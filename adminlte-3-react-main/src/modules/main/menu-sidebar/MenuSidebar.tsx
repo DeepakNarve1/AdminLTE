@@ -25,6 +25,11 @@ export const MENU: IMenuItem[] = [
     path: "/users",
   },
   {
+    name: "Roles",
+    icon: "fas fa-user-shield nav-icon",
+    path: "/roles",
+  },
+  {
     name: i18n.t("menusidebar.label.mainMenu"),
     icon: "far fa-caret-square-down nav-icon",
     children: [

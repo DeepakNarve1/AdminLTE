@@ -1,22 +1,22 @@
-import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import App from '@app/App';
-import store from '@store/store';
+import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+import App from "@app/App";
+import store from "@store/store";
 
-import * as serviceWorker from './serviceWorker';
-import { BrowserRouter } from 'react-router-dom';
-import ReactGA from 'react-ga4';
+import * as serviceWorker from "./serviceWorker";
+import { BrowserRouter } from "react-router-dom";
+import ReactGA from "react-ga4";
 
-import './utils/i18n';
-import './index.scss';
+import "./utils/i18n";
+import "./index.scss";
 
 export const { VITE_NODE_ENV, VITE_GA_ID } = import.meta.env;
 
-if (VITE_NODE_ENV === 'production' && VITE_GA_ID) {
+if (VITE_NODE_ENV === "production" && VITE_GA_ID) {
   ReactGA.initialize(VITE_GA_ID);
 }
 
-createRoot(document.getElementById('root') as HTMLDivElement).render(
+createRoot(document.getElementById("root") as HTMLDivElement).render(
   <Provider store={store}>
     <BrowserRouter>
       <App />
