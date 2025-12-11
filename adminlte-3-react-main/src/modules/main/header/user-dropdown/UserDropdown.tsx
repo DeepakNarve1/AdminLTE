@@ -1,34 +1,45 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { StyledBigUserImage, StyledSmallUserImage } from '@app/styles/common';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { StyledBigUserImage, StyledSmallUserImage } from "@app/styles/common";
 import {
   UserBody,
   UserFooter,
   UserHeader,
   UserMenuDropdown,
-} from '@app/styles/dropdown-menus';
-import { firebaseAuth } from '@app/firebase';
-import {} from '@app/index';
-import { useAppSelector } from '@app/store/store';
-import { DateTime } from 'luxon';
+} from "@app/styles/dropdown-menus";
+import {} from "@app/index";
+import { useAppSelector, useAppDispatch } from "@app/store/store";
+import { setCurrentUser } from "@app/store/reducers/auth";
+import { DateTime } from "luxon";
 
 const UserDropdown = () => {
   const navigate = useNavigate();
   const [t] = useTranslation();
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useAppDispatch();
 
   const logOut = async (event: any) => {
-    await firebaseAuth.signOut();
     event.preventDefault();
+
+    // Clear local auth state (we use our backend JWT + localStorage)
+    try {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    } catch (e) {
+      // ignore
+    }
+
+    dispatch(setCurrentUser(null));
     setDropdownOpen(false);
+    navigate("/");
   };
 
   const navigateToProfile = (event: any) => {
     event.preventDefault();
     setDropdownOpen(false);
-    navigate('/profile');
+    navigate("/profile");
   };
 
   return (
@@ -60,7 +71,7 @@ const UserDropdown = () => {
                 <span>
                   {DateTime.fromRFC2822(
                     currentUser?.metadata?.creationTime
-                  ).toFormat('dd LLL yyyy')}
+                  ).toFormat("dd LLL yyyy")}
                 </span>
               )}
             </small>
@@ -69,13 +80,13 @@ const UserDropdown = () => {
         <UserBody>
           <div className="row">
             <div className="col-4 text-center">
-              <Link to="/">{t('header.user.followers')}</Link>
+              <Link to="/">{t("header.user.followers")}</Link>
             </div>
             <div className="col-4 text-center">
-              <Link to="/">{t('header.user.sales')}</Link>
+              <Link to="/">{t("header.user.sales")}</Link>
             </div>
             <div className="col-4 text-center">
-              <Link to="/">{t('header.user.friends')}</Link>
+              <Link to="/">{t("header.user.friends")}</Link>
             </div>
           </div>
         </UserBody>
@@ -85,14 +96,14 @@ const UserDropdown = () => {
             className="btn btn-default btn-flat"
             onClick={navigateToProfile}
           >
-            {t('header.user.profile')}
+            {t("header.user.profile")}
           </button>
           <button
             type="button"
             className="btn btn-default btn-flat float-right"
             onClick={logOut}
           >
-            {t('login.button.signOut')}
+            {t("login.button.signOut")}
           </button>
         </UserFooter>
       </div>

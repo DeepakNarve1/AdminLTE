@@ -1,29 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ContentHeader } from "@components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-// (no redux selector needed here)
 import { toast } from "react-toastify";
 
 interface UserForm {
   name: string;
   email: string;
-  password: string;
-  confirmPassword: string;
   mobile: string;
   role: string;
   userType: string;
   block: string;
 }
 
-const CreateUser = () => {
+const EditUser = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const [form, setForm] = useState<UserForm>({
     name: "",
     email: "",
-    password: "",
-    confirmPassword: "",
     mobile: "",
     role: "",
     userType: "",
@@ -33,35 +29,57 @@ const CreateUser = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `http://localhost:5000/api/auth/users/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (res.data?.data) {
+          const user = res.data.data;
+          setForm({
+            name: user.name || "",
+            email: user.email || "",
+            mobile: user.mobile || "",
+            role: user.role || "",
+            userType: user.userType || "",
+            block: user.block || "",
+          });
+        }
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.response?.data?.message || "Failed to load user");
+        setTimeout(() => navigate("/users"), 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchUser();
+    }
+  }, [id, navigate]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const createUser = async () => {
+  const updateUser = async () => {
     // Inline validation with field highlighting
     const newErrors: Record<string, string> = {};
-    const required = [
-      "name",
-      "email",
-      "password",
-      "confirmPassword",
-      "role",
-      "block",
-    ];
+    const required = ["name", "email", "role", "block"];
     required.forEach((f) => {
       // @ts-ignore
       if (!form[f]) newErrors[f] = "This field is required";
     });
-
-    if (
-      form.password &&
-      form.confirmPassword &&
-      form.password !== form.confirmPassword
-    ) {
-      newErrors["confirmPassword"] = "Passwords do not match";
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -73,38 +91,28 @@ const CreateUser = () => {
 
     try {
       setLoading(true);
-
+      const token = localStorage.getItem("token");
       const payload = {
         name: form.name,
         email: form.email,
-        password: form.password,
         role: form.role,
         mobile: form.mobile || "",
         userType: form.userType || "",
         block: form.block || "",
       };
 
-      // Use backend auth register endpoint (no axiosInstance)
-      await axios.post("http://localhost:5000/api/auth/register", payload);
-
-      toast.success("User Created Successfully!");
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        mobile: "",
-        role: "",
-        userType: "",
-        block: "",
+      await axios.put(`http://localhost:5000/api/auth/users/${id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      toast.success("User updated successfully!");
       navigate("/users");
     } catch (error: any) {
       console.error(error);
       const errorMsg =
         error.response?.data?.message ||
         error.message ||
-        "Failed to create user";
+        "Failed to update user";
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -113,12 +121,12 @@ const CreateUser = () => {
 
   return (
     <div>
-      <ContentHeader title="User Management" />
+      <ContentHeader title="Edit User" />
 
       <section className="content">
         <div className="container-fluid">
           <div className="card p-4" style={{ maxWidth: "900px" }}>
-            <h5 className="mb-3">Enter User Details</h5>
+            <h5 className="mb-3">Edit User Details</h5>
 
             {Object.keys(errors).length > 0 && (
               <div className="alert alert-danger" role="alert">
@@ -154,33 +162,9 @@ const CreateUser = () => {
                   onChange={handleChange}
                   className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   placeholder="Enter email"
+                  disabled
                 />
-              </div>
-
-              {/* Password */}
-              <div className="col-md-6 mb-3">
-                <label>Password</label>
-                <input
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                  placeholder="Enter password"
-                />
-              </div>
-
-              {/* Confirm Password */}
-              <div className="col-md-6 mb-3">
-                <label>Confirm Password</label>
-                <input
-                  name="confirmPassword"
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
-                  placeholder="Re-enter password"
-                />
+                <small className="text-muted">Email cannot be changed</small>
               </div>
 
               {/* Mobile Number */}
@@ -205,21 +189,10 @@ const CreateUser = () => {
                   className={`form-control ${errors.role ? "is-invalid" : ""}`}
                 >
                   <option value="">Select Role</option>
-                  <option value="systemAdministrator">
-                    System Administrator
-                  </option>
+                  <option value="admin">Admin</option>
                   <option value="manager">Manager</option>
-                  <option value="appUser">App User</option>
-                  <option value="tandaBlock">Tanda Block</option>
-                  <option value="gandhwaniBlock">Gandhwani Block</option>
-                  <option value="baghBlock">Bagh Block</option>
-                  <option value="tirlaBlock">Tirla Block</option>
-                  <option value="bhopalBlock">Bhopal Block</option>
-                  <option value="myAssemblyStage1">My Assembly Stage 1</option>
-                  <option value="bhopalUser1">Bhopal User1</option>
-                  <option value="bhopalUser2">Bhopal User2</option>
-                  <option value="MPPublicProblems">MP Public Problems</option>
-                  <option value="testing">Testing</option>
+                  <option value="hr">HR</option>
+                  <option value="employee">Employee</option>
                 </select>
               </div>
 
@@ -250,43 +223,29 @@ const CreateUser = () => {
                   className={`form-control ${errors.block ? "is-invalid" : ""}`}
                 >
                   <option value="">Select Block</option>
-                  <option value="tanda">Tanda</option>
-                  <option value="gandhwani">Gandhwani</option>
-                  <option value="bagh">Bagh</option>
-                  <option value="tirla">Tirla</option>
-                  <option value="bhopal">Bhopal</option>
-                  <option value="other">Other</option>
+                  <option value="A">Block A</option>
+                  <option value="B">Block B</option>
+                  <option value="C">Block C</option>
+                  <option value="D">Block D</option>
                 </select>
               </div>
             </div>
 
             {/* Submit Button */}
-
             <div className="d-flex mt-4">
               <button
                 className="btn btn-primary mr-2"
-                onClick={createUser}
+                onClick={updateUser}
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create User"}
+                {loading ? "Updating..." : "Update User"}
               </button>
               <button
                 className="btn btn-secondary"
-                onClick={() =>
-                  setForm({
-                    name: "",
-                    email: "",
-                    password: "",
-                    confirmPassword: "",
-                    mobile: "",
-                    role: "",
-                    userType: "",
-                    block: "",
-                  })
-                }
+                onClick={() => navigate("/users")}
                 disabled={loading}
               >
-                Reset
+                Cancel
               </button>
             </div>
           </div>
@@ -296,4 +255,4 @@ const CreateUser = () => {
   );
 };
 
-export default CreateUser;
+export default EditUser;

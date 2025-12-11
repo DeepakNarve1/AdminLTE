@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useFormik } from 'formik';
-import { useTranslation } from 'react-i18next';
-import * as Yup from 'yup';
-import { setWindowClass } from '@app/utils/helpers';
-import { Form, InputGroup } from 'react-bootstrap';
-import { Checkbox } from '@profabric/react-components';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
+import * as Yup from "yup";
+import { setWindowClass } from "@app/utils/helpers";
+import { Form, InputGroup } from "react-bootstrap";
+import { Checkbox } from "@profabric/react-components";
 
-import { setCurrentUser } from '@app/store/reducers/auth';
-import { Button } from '@app/styles/common';
-import { registerWithEmail, signInByGoogle } from '@app/services/auth';
-import { useAppDispatch } from '@app/store/store';
+import { setCurrentUser } from "@app/store/reducers/auth";
+import { Button } from "@app/styles/common";
+// backend handles registration via axios; firebase helpers removed
+import { useAppDispatch } from "@app/store/store";
+import axios from "axios";
 
 const Register = () => {
   const [isAuthLoading, setAuthLoading] = useState(false);
@@ -25,62 +26,54 @@ const Register = () => {
   const register = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
-      const result = await registerWithEmail(email, password);
-      dispatch(setCurrentUser(result?.user as any));
-      toast.success('Registration is success');
-      navigate('/');
+      const result = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        {
+          email,
+          password,
+        }
+      );
+      // server responds with { success: true, data: { ... } }
+      const data = result.data?.data || result.data;
+
+      // SAVE USER & TOKEN
+      if (data) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data));
+        dispatch(setCurrentUser(data));
+      }
+
+      toast.success("Registration success");
+      navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || 'Failed');
+      toast.error(error.message || "Failed");
       setAuthLoading(false);
-    }
-  };
-
-  const registerByGoogle = async () => {
-    try {
-      setGoogleAuthLoading(true);
-      await signInByGoogle();
-      setGoogleAuthLoading(false);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed');
-      setGoogleAuthLoading(false);
-    }
-  };
-
-  const registerByFacebook = async () => {
-    try {
-      setFacebookAuthLoading(true);
-
-      throw new Error('Not implemented');
-    } catch (error: any) {
-      setFacebookAuthLoading(false);
-      toast.error(error.message || 'Failed');
     }
   };
 
   const { handleChange, values, handleSubmit, touched, errors, submitForm } =
     useFormik({
       initialValues: {
-        email: '',
-        password: '',
-        passwordRetype: '',
+        email: "",
+        password: "",
+        passwordRetype: "",
       },
       validationSchema: Yup.object({
-        email: Yup.string().email('Invalid email address').required('Required'),
+        email: Yup.string().email("Invalid email address").required("Required"),
         password: Yup.string()
-          .min(5, 'Must be 5 characters or more')
-          .max(30, 'Must be 30 characters or less')
-          .required('Required'),
+          .min(5, "Must be 5 characters or more")
+          .max(30, "Must be 30 characters or less")
+          .required("Required"),
         passwordRetype: Yup.string()
-          .min(5, 'Must be 5 characters or more')
-          .max(30, 'Must be 30 characters or less')
-          .required('Required'),
+          .oneOf([Yup.ref("password")], "Passwords do not match")
+          .required("Required"),
       }),
       onSubmit: (values) => {
         register(values.email, values.password);
       },
     });
 
-  setWindowClass('hold-transition register-page');
+  setWindowClass("hold-transition register-page");
 
   return (
     <div className="register-box">
@@ -92,8 +85,9 @@ const Register = () => {
           </Link>
         </div>
         <div className="card-body">
-          <p className="login-box-msg">{t('register.registerNew')}</p>
+          <p className="login-box-msg">{t("register.registerNew")}</p>
           <form onSubmit={handleSubmit}>
+            {/* Name field removed — registration uses email/password only */}
             <div className="mb-3">
               <InputGroup className="mb-3">
                 <Form.Control
@@ -174,11 +168,11 @@ const Register = () => {
 
             <div className="row">
               <div className="col-7">
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
                   <Checkbox checked={false} />
-                  <label style={{ margin: 0, padding: 0, paddingLeft: '4px' }}>
+                  <label style={{ margin: 0, padding: 0, paddingLeft: "4px" }}>
                     <span>I agree to the </span>
-                    <Link to="/">terms</Link>{' '}
+                    <Link to="/">terms</Link>{" "}
                   </label>
                 </div>
               </div>
@@ -188,7 +182,7 @@ const Register = () => {
                   loading={isAuthLoading}
                   disabled={isGoogleAuthLoading || isFacebookAuthLoading}
                 >
-                  {t('register.label')}
+                  {t("register.label")}
                 </Button>
               </div>
             </div>
@@ -196,27 +190,27 @@ const Register = () => {
           <div className="social-auth-links text-center">
             <Button
               className="mb-2"
-              onClick={registerByFacebook}
+              // onClick={registerByFacebook}
               loading={isFacebookAuthLoading}
               disabled={true || isAuthLoading || isGoogleAuthLoading}
             >
               <i className="fab fa-facebook mr-2" />
-              {t('login.button.signIn.social', {
-                what: 'Facebook',
+              {t("login.button.signIn.social", {
+                what: "Facebook",
               })}
             </Button>
             <Button
               variant="danger"
-              onClick={registerByGoogle}
+              // onClick={registerByGoogle}
               loading={isGoogleAuthLoading}
               disabled={isAuthLoading || isFacebookAuthLoading}
             >
               <i className="fab fa-google mr-2" />
-              {t('login.button.signUp.social', { what: 'Google' })}
+              {t("login.button.signUp.social", { what: "Google" })}
             </Button>
           </div>
           <Link to="/login" className="text-center">
-            {t('register.alreadyHave')}
+            {t("register.alreadyHave")}
           </Link>
         </div>
       </div>
