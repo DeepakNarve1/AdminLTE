@@ -1,6 +1,6 @@
 import { ContentHeader } from "@components";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
@@ -25,6 +25,16 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const roleOptions = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => {
+      if (u.role) {
+        set.add(u.role);
+      }
+    });
+    return Array.from(set).sort();
+  }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -225,10 +235,11 @@ const Users = () => {
                   style={{ width: "140px", height: "36px" }}
                 >
                   <option value="">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="hr">HR</option>
-                  <option value="employee">Employee</option>
+                  {roleOptions.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
                 </select>
 
                 {/* Entries Per Page Dropdown */}

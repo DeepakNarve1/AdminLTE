@@ -5,5 +5,8 @@ export interface IUser {
   email?: string;
   token?: string;
   photoURL?: string;
+  role?: string;
+  roles?: string[];
+  permissions?: string[];
   metadata?: any;
 }

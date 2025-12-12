@@ -1,245 +1,259 @@
-const asyncHandler = require("express-async-handler");
-const Permission = require("../models/permissionModel");
 const Role = require("../models/roleModel");
+const Permission = require("../models/permissionModel");
+const SidebarAccess = require("../models/sidebarAccessModel");
 
-// ==================== PERMISSIONS ====================
+// ==================== PERMISSION CONTROLLERS ====================
 
-// @desc    Get all permissions
-// @route   GET /api/rbac/permissions
-// @access  Private (admin/superadmin)
-exports.getAllPermissions = asyncHandler(async (req, res) => {
-  const permissions = await Permission.find().sort({ category: 1, name: 1 });
-  res.json({ success: true, data: permissions });
-});
-
-// @desc    Create new permission
-// @route   POST /api/rbac/permissions
-// @access  Private (superadmin only)
-exports.createPermission = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized to create permissions");
+// Get all permissions
+exports.getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await Permission.find();
+    res.status(200).json({
+      success: true,
+      data: permissions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const { name, displayName, description, category } = req.body;
+// Create permission
+exports.createPermission = async (req, res) => {
+  try {
+    const { name, displayName, description, category } = req.body;
 
-  if (!name || !displayName) {
-    res.status(400);
-    throw new Error("Name and displayName are required");
-  }
-
-  const permission = await Permission.create({
-    name: name.toLowerCase(),
-    displayName,
-    description,
-    category: category || "other",
-  });
-
-  res.status(201).json({ success: true, data: permission });
-});
-
-// ==================== ROLES ====================
-
-// @desc    Get all roles with permissions
-// @route   GET /api/rbac/roles
-// @access  Private (admin/superadmin)
-exports.getAllRoles = asyncHandler(async (req, res) => {
-  const roles = await Role.find()
-    .populate("permissions", "name displayName description category")
-    .sort({ isSystem: -1, name: 1 });
-  res.json({ success: true, data: roles });
-});
-
-// @desc    Get single role by ID
-// @route   GET /api/rbac/roles/:id
-// @access  Private (admin/superadmin)
-exports.getRoleById = asyncHandler(async (req, res) => {
-  const role = await Role.findById(req.params.id).populate(
-    "permissions",
-    "name displayName description category"
-  );
-
-  if (!role) {
-    res.status(404);
-    throw new Error("Role not found");
-  }
-
-  res.json({ success: true, data: role });
-});
-
-// @desc    Create new role
-// @route   POST /api/rbac/roles
-// @access  Private (superadmin only)
-exports.createRole = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized to create roles");
-  }
-
-  const { name, displayName, description, permissions } = req.body;
-
-  if (!name || !displayName) {
-    res.status(400);
-    throw new Error("Name and displayName are required");
-  }
-
-  // Validate permissions exist
-  if (permissions && permissions.length > 0) {
-    const perms = await Permission.find({ _id: { $in: permissions } });
-    if (perms.length !== permissions.length) {
-      res.status(400);
-      throw new Error("Some permissions do not exist");
+    if (!name || !displayName) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and displayName are required",
+      });
     }
+
+    const permission = await Permission.create({
+      name,
+      displayName,
+      description,
+      category,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: permission,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const role = await Role.create({
-    name: name.toLowerCase(),
-    displayName,
-    description,
-    permissions: permissions || [],
-    isSystem: false,
-  });
+// ==================== ROLE CONTROLLERS ====================
 
-  await role.populate("permissions", "name displayName description category");
+// Get all roles
+exports.getAllRoles = async (req, res) => {
+  try {
+    const roles = await Role.find().populate("permissions");
 
-  res.status(201).json({ success: true, data: role });
-});
+    // Format the response to match what the frontend expects
+    const formattedRoles = roles.map((role) => ({
+      _id: role._id,
+      role: role.name,
+      status: role.isSystem ? "System" : "Custom",
+      createdAt: role.createdAt,
+      ...role.toObject(),
+    }));
 
-// @desc    Update role and its permissions
-// @route   PUT /api/rbac/roles/:id
-// @access  Private (superadmin only)
-exports.updateRole = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized to update roles");
+    res.status(200).json({
+      success: true,
+      data: formattedRoles,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const role = await Role.findById(req.params.id);
+// Get single role by id
+exports.getRoleById = async (req, res) => {
+  try {
+    const role = await Role.findById(req.params.id).populate("permissions");
 
-  if (!role) {
-    res.status(404);
-    throw new Error("Role not found");
-  }
-
-  // Cannot modify system roles
-  if (role.isSystem) {
-    res.status(403);
-    throw new Error("Cannot modify system roles");
-  }
-
-  const { displayName, description, permissions } = req.body;
-
-  role.displayName = displayName ?? role.displayName;
-  role.description = description ?? role.description;
-
-  // Update permissions if provided
-  if (permissions) {
-    const perms = await Permission.find({ _id: { $in: permissions } });
-    if (perms.length !== permissions.length) {
-      res.status(400);
-      throw new Error("Some permissions do not exist");
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found",
+      });
     }
-    role.permissions = permissions;
+
+    res.status(200).json({
+      success: true,
+      data: role,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const updated = await role.save();
-  await updated.populate(
-    "permissions",
-    "name displayName description category"
-  );
+// Create role
+exports.createRole = async (req, res) => {
+  try {
+    const { name, displayName, description, permissions } = req.body;
 
-  res.json({ success: true, data: updated });
-});
+    if (!name || !displayName) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and displayName are required",
+      });
+    }
 
-// @desc    Delete role
-// @route   DELETE /api/rbac/roles/:id
-// @access  Private (superadmin only)
-exports.deleteRole = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized to delete roles");
+    const role = await Role.create({
+      name,
+      displayName,
+      description,
+      permissions: permissions || [],
+    });
+
+    res.status(201).json({
+      success: true,
+      data: role,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const role = await Role.findById(req.params.id);
+// Update role
+exports.updateRole = async (req, res) => {
+  try {
+    const { name, displayName, description, permissions } = req.body;
 
-  if (!role) {
-    res.status(404);
-    throw new Error("Role not found");
-  }
+    const role = await Role.findById(req.params.id);
 
-  // Cannot delete system roles
-  if (role.isSystem) {
-    res.status(403);
-    throw new Error("Cannot delete system roles");
-  }
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found",
+      });
+    }
 
-  await Role.findByIdAndDelete(req.params.id);
+    // Prevent updating system roles
+    if (role.isSystem) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot update system roles",
+      });
+    }
 
-  res.json({ success: true, message: "Role deleted successfully" });
-});
+    role.name = name || role.name;
+    role.displayName = displayName || role.displayName;
+    role.description = description || role.description;
+    role.permissions = permissions || role.permissions;
 
-// @desc    Assign permission to role
-// @route   POST /api/rbac/roles/:id/permissions
-// @access  Private (superadmin only)
-exports.assignPermissionToRole = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized");
-  }
-
-  const { permissionId } = req.body;
-
-  if (!permissionId) {
-    res.status(400);
-    throw new Error("Permission ID is required");
-  }
-
-  const role = await Role.findById(req.params.id);
-  if (!role) {
-    res.status(404);
-    throw new Error("Role not found");
-  }
-
-  const permission = await Permission.findById(permissionId);
-  if (!permission) {
-    res.status(404);
-    throw new Error("Permission not found");
-  }
-
-  // Add permission if not already present
-  if (!role.permissions.includes(permissionId)) {
-    role.permissions.push(permissionId);
     await role.save();
+
+    res.status(200).json({
+      success: true,
+      data: role,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  await role.populate("permissions", "name displayName description category");
+// Delete role
+exports.deleteRole = async (req, res) => {
+  try {
+    const role = await Role.findById(req.params.id);
 
-  res.json({ success: true, data: role });
-});
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found",
+      });
+    }
 
-// @desc    Remove permission from role
-// @route   DELETE /api/rbac/roles/:id/permissions/:permissionId
-// @access  Private (superadmin only)
-exports.removePermissionFromRole = asyncHandler(async (req, res) => {
-  if (req.user.role !== "superadmin") {
-    res.status(403);
-    throw new Error("Not authorized");
+    // Prevent deletion of system roles
+    if (role.isSystem) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete system roles",
+      });
+    }
+
+    await Role.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Role deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const { id, permissionId } = req.params;
+// ==================== SIDEBAR ACCESS CONTROLLERS ====================
 
-  const role = await Role.findById(id);
-  if (!role) {
-    res.status(404);
-    throw new Error("Role not found");
+// Get sidebar access map { role: [paths] }
+exports.getSidebarAccess = async (_req, res) => {
+  try {
+    const records = await SidebarAccess.find();
+    const map = {};
+    records.forEach((rec) => {
+      map[rec.role] = rec.paths || [];
+    });
+    return res.status(200).json({ success: true, data: map });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: error.message || "Failed to load sidebar access" });
   }
+};
 
-  role.permissions = role.permissions.filter(
-    (p) => p.toString() !== permissionId
-  );
-  await role.save();
+// Upsert sidebar access map { role: [paths] }
+exports.upsertSidebarAccess = async (req, res) => {
+  try {
+    const accessMap = req.body || {};
 
-  await role.populate("permissions", "name displayName description category");
+    if (typeof accessMap !== "object" || Array.isArray(accessMap)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payload must be an object of role -> paths[]" });
+    }
 
-  res.json({ success: true, data: role });
-});
+    const bulkOps = Object.entries(accessMap).map(([role, paths]) => ({
+      updateOne: {
+        filter: { role: role.toLowerCase() },
+        update: { role: role.toLowerCase(), paths: Array.isArray(paths) ? paths : [] },
+        upsert: true,
+      },
+    }));
+
+    if (bulkOps.length > 0) {
+      await SidebarAccess.bulkWrite(bulkOps);
+    }
+
+    return res.status(200).json({ success: true, message: "Sidebar access updated" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: error.message || "Failed to update sidebar access" });
+  }
+};

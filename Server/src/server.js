@@ -24,7 +24,15 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+// Mount rbac routes - this will handle /api/rbac/roles, /api/rbac/permissions
 app.use("/api/rbac", rbacRoutes);
+
+// Legacy support: map /api/roles/* to /api/rbac/roles/*
+app.use("/api/roles", (req, res, next) => {
+  req.url = "/roles" + req.url;
+  rbacRoutes(req, res, next);
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
