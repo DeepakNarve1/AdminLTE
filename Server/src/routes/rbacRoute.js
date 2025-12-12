@@ -7,28 +7,26 @@ const {
   createRole,
   updateRole,
   deleteRole,
-  assignPermissionToRole,
-  removePermissionFromRole,
+  getSidebarAccess,
+  upsertSidebarAccess,
 } = require("../controller/rbacController");
 const protect = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-// All RBAC routes require authentication
-router.use(protect);
+// Permission routes
+router.get("/permissions", protect, getAllPermissions);
+router.post("/permissions", protect, createPermission);
 
-// ==================== PERMISSIONS ====================
-router.get("/permissions", getAllPermissions);
-router.post("/permissions", createPermission);
+// Role routes
+router.get("/roles", protect, getAllRoles);
+router.get("/roles/:id", protect, getRoleById);
+router.post("/roles", protect, createRole);
+router.put("/roles/:id", protect, updateRole);
+router.delete("/roles/:id", protect, deleteRole);
 
-// ==================== ROLES ====================
-router.get("/roles", getAllRoles);
-router.get("/roles/:id", getRoleById);
-router.post("/roles", createRole);
-router.put("/roles/:id", updateRole);
-router.delete("/roles/:id", deleteRole);
-
-// Role-Permission Management
-router.post("/roles/:id/permissions", assignPermissionToRole);
-router.delete("/roles/:id/permissions/:permissionId", removePermissionFromRole);
+// Sidebar access routes
+router.get("/sidebar-permissions", protect, getSidebarAccess);
+router.put("/sidebar-permissions", protect, upsertSidebarAccess);
 
 module.exports = router;

@@ -13,6 +13,13 @@ interface UserForm {
   block: string;
 }
 
+interface IRoleOption {
+  _id: string;
+  role?: string;
+  displayName?: string;
+  name?: string;
+}
+
 const EditUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -28,9 +35,26 @@ const EditUser = () => {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [roles, setRoles] = useState<IRoleOption[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
 
-  // Fetch user data on mount
+  // Fetch roles and user data on mount
   useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const res = await axios.get("http://localhost:5000/api/roles", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setRoles(res.data?.data || []);
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.response?.data?.message || "Failed to load roles");
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
     const fetchUser = async () => {
       try {
         setLoading(true);
@@ -61,6 +85,7 @@ const EditUser = () => {
       }
     };
 
+    fetchRoles();
     if (id) {
       fetchUser();
     }
@@ -187,12 +212,17 @@ const EditUser = () => {
                   value={form.role}
                   onChange={handleChange}
                   className={`form-control ${errors.role ? "is-invalid" : ""}`}
+                  disabled={rolesLoading}
                 >
                   <option value="">Select Role</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="hr">HR</option>
-                  <option value="employee">Employee</option>
+                  {roles.map((r) => (
+                    <option
+                      key={r._id}
+                      value={r.role || r.displayName || r.name || r._id}
+                    >
+                      {r.displayName || r.name || r.role}
+                    </option>
+                  ))}
                 </select>
               </div>
 

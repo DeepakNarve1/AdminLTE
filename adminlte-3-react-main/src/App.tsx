@@ -25,7 +25,13 @@ import Users from "./pages/users";
 import CreateUser from "./pages/users/CreateUser";
 import EditUser from "./pages/users/EditUser";
 import ViewUser from "./pages/users/ViewUser";
-import Roles from "./pages/roles";
+import RoleList from "./pages/roles";
+import CreateRoles from "./pages/roles/CreateRoles";
+import Review from "./pages/review";
+import Report from "./pages/report";
+import Setting from "./pages/setting";
+import PermissionsPage from "./pages/permissions";
+import PlaceholderPage from "./pages/shared/PlaceholderPage";
 
 const { VITE_NODE_ENV } = import.meta.env;
 
@@ -98,10 +104,107 @@ const App = () => {
             <Route path="/users/create" element={<CreateUser />} />
             <Route path="/users/:id/edit" element={<EditUser />} />
             <Route path="/users/:id/view" element={<ViewUser />} />
-            <Route path="/roles" element={<Roles />} />
+            <Route path="/roles" element={<RoleList />} />
+            <Route path="/review" element={<Review />} />
+            <Route path="/report" element={<Report />} />
+            <Route path="/setting" element={<Setting />} />
+            <Route path="/permissions" element={<PermissionsPage />} />
+            <Route path="/roles/create" element={<CreateRoles />} />
             <Route path="/sub-menu-1" element={<SubMenu />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/user-count"
+              element={<PlaceholderPage title="User Count" />}
+            />
+            <Route
+              path="/member-list"
+              element={<PlaceholderPage title="Member List" />}
+            />
+            <Route
+              path="/mp-public-problem"
+              element={<PlaceholderPage title="MP Public Problem" />}
+            />
+            <Route
+              path="/assembly-issue"
+              element={<PlaceholderPage title="Assembly Issue" />}
+            />
+            <Route
+              path="/vidhansabha-samiti"
+              element={<PlaceholderPage title="Vidhansabha Samiti" />}
+            />
+            <Route
+              path="/project-summary"
+              element={<PlaceholderPage title="Project Summary" />}
+            />
+            <Route
+              path="/visitors"
+              element={<PlaceholderPage title="Visitors" />}
+            />
+            <Route
+              path="/events"
+              element={<PlaceholderPage title="Events" />}
+            />
+            <Route path="/voter" element={<PlaceholderPage title="Voter" />} />
+            <Route
+              path="/samiti"
+              element={<PlaceholderPage title="Samiti" />}
+            />
+            <Route
+              path="/district"
+              element={<PlaceholderPage title="District" />}
+            />
+            <Route
+              path="/vidhan-sabha"
+              element={<PlaceholderPage title="Vidhan Sabha" />}
+            />
+            <Route path="/block" element={<PlaceholderPage title="Block" />} />
+            <Route path="/booth" element={<PlaceholderPage title="Booth" />} />
+            <Route
+              path="/panchayat"
+              element={<PlaceholderPage title="Panchayat" />}
+            />
+            <Route
+              path="/village"
+              element={<PlaceholderPage title="Village" />}
+            />
+            <Route path="/party" element={<PlaceholderPage title="Party" />} />
+            <Route
+              path="/department"
+              element={<PlaceholderPage title="Department" />}
+            />
+            <Route
+              path="/worktype"
+              element={<PlaceholderPage title="Worktype" />}
+            />
+            <Route
+              path="/subtype-of-work"
+              element={<PlaceholderPage title="Subtype Of Work" />}
+            />
+            <Route
+              path="/phone-directory"
+              element={<PlaceholderPage title="Phone Directory" />}
+            />
+            <Route
+              path="/dispatch-register"
+              element={<PlaceholderPage title="Dispatch Register" />}
+            />
+            <Route
+              path="/call-management"
+              element={<PlaceholderPage title="Call Management" />}
+            />
+            <Route
+              path="/in-docs"
+              element={<PlaceholderPage title="In Docs" />}
+            />
+            <Route
+              path="/inward-register"
+              element={<PlaceholderPage title="Inward Register" />}
+            />
+            <Route
+              path="/activity-management"
+              element={<PlaceholderPage title="Activity Management" />}
+            />
           </Route>
         </Route>
       </Routes>

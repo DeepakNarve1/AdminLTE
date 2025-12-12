@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ContentHeader } from "@components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -14,6 +14,13 @@ interface UserForm {
   role: string;
   userType: string;
   block: string;
+}
+
+interface IRoleOption {
+  _id: string;
+  role?: string;
+  displayName?: string;
+  name?: string;
 }
 
 const CreateUser = () => {
@@ -32,6 +39,27 @@ const CreateUser = () => {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [roles, setRoles] = useState<IRoleOption[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const res = await axios.get("http://localhost:5000/api/roles", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setRoles(res.data?.data || []);
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.response?.data?.message || "Failed to load roles");
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -203,23 +231,17 @@ const CreateUser = () => {
                   value={form.role}
                   onChange={handleChange}
                   className={`form-control ${errors.role ? "is-invalid" : ""}`}
+                  disabled={rolesLoading}
                 >
                   <option value="">Select Role</option>
-                  <option value="systemAdministrator">
-                    System Administrator
-                  </option>
-                  <option value="manager">Manager</option>
-                  <option value="appUser">App User</option>
-                  <option value="tandaBlock">Tanda Block</option>
-                  <option value="gandhwaniBlock">Gandhwani Block</option>
-                  <option value="baghBlock">Bagh Block</option>
-                  <option value="tirlaBlock">Tirla Block</option>
-                  <option value="bhopalBlock">Bhopal Block</option>
-                  <option value="myAssemblyStage1">My Assembly Stage 1</option>
-                  <option value="bhopalUser1">Bhopal User1</option>
-                  <option value="bhopalUser2">Bhopal User2</option>
-                  <option value="MPPublicProblems">MP Public Problems</option>
-                  <option value="testing">Testing</option>
+                  {roles.map((r) => (
+                    <option
+                      key={r._id}
+                      value={r.role || r.displayName || r.name || r._id}
+                    >
+                      {r.displayName || r.name || r.role}
+                    </option>
+                  ))}
                 </select>
               </div>
 

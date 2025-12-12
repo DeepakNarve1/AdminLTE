@@ -1,372 +1,282 @@
-import { useState, useEffect } from "react";
 import { ContentHeader } from "@components";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-interface IPermission {
+interface IRoleRow {
   _id: string;
-  name: string;
-  displayName: string;
-  description: string;
-  category: string;
+  role: string;
+  status: string;
+  createdAt?: string;
 }
 
-interface IRole {
-  _id: string;
-  name: string;
-  displayName: string;
-  description: string;
-  permissions: IPermission[];
-  isSystem: boolean;
-  createdAt: string;
-}
-
-const Roles = () => {
+const RoleList = () => {
   const navigate = useNavigate();
-  const [roles, setRoles] = useState<IRole[]>([]);
-  const [permissions, setPermissions] = useState<IPermission[]>([]);
+  const [roles, setRoles] = useState<IRoleRow[]>([]);
+  const [filteredRoles, setFilteredRoles] = useState<IRoleRow[]>([]);
+  const [displayedRoles, setDisplayedRoles] = useState<IRoleRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingRole, setEditingRole] = useState<IRole | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const [form, setForm] = useState({
-    name: "",
-    displayName: "",
-    description: "",
-    permissions: [] as string[],
-  });
-
-  useEffect(() => {
-    fetchRoles();
-    fetchPermissions();
-  }, []);
+  const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const fetchRoles = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/rbac/roles", {
+
+      const res = await axios.get("http://localhost:5000/api/roles", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setRoles(res.data?.data || []);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to load roles");
+      setFilteredRoles(res.data?.data || []);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to load roles");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchPermissions = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        "http://localhost:5000/api/rbac/permissions",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  // Search Filter
+  useEffect(() => {
+    let filtered = roles;
+
+    if (searchTerm !== "") {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.role.toLowerCase().includes(term) ||
+          r.status.toLowerCase().includes(term)
       );
-      setPermissions(res.data?.data || []);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(
-        error.response?.data?.message || "Failed to load permissions"
-      );
-    }
-  };
-
-  const handleEdit = (role: IRole) => {
-    setEditingRole(role);
-    setForm({
-      name: role.name,
-      displayName: role.displayName,
-      description: role.description,
-      permissions: role.permissions.map((p) => p._id),
-    });
-    setShowModal(true);
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    setEditingRole(null);
-    setForm({
-      name: "",
-      displayName: "",
-      description: "",
-      permissions: [],
-    });
-  };
-
-  const handlePermissionChange = (permissionId: string) => {
-    setForm({
-      ...form,
-      permissions: form.permissions.includes(permissionId)
-        ? form.permissions.filter((p) => p !== permissionId)
-        : [...form.permissions, permissionId],
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.displayName) {
-      toast.error("Display name is required");
-      return;
     }
 
-    try {
-      const token = localStorage.getItem("token");
+    setFilteredRoles(filtered);
+  }, [searchTerm, roles]);
 
-      if (editingRole) {
-        // Update existing role
-        await axios.put(
-          `http://localhost:5000/api/rbac/roles/${editingRole._id}`,
-          {
-            displayName: form.displayName,
-            description: form.description,
-            permissions: form.permissions,
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success("Role updated successfully!");
-      } else {
-        // Create new role
-        await axios.post(
-          "http://localhost:5000/api/rbac/roles",
-          {
-            name: form.name,
-            displayName: form.displayName,
-            description: form.description,
-            permissions: form.permissions,
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success("Role created successfully!");
-      }
+  // Pagination Reset
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, entriesPerPage]);
 
-      fetchRoles();
-      handleClose();
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to save role");
+  // Paginated Roles
+  useEffect(() => {
+    if (entriesPerPage === -1) {
+      setDisplayedRoles(filteredRoles);
+    } else {
+      const startIndex = (currentPage - 1) * entriesPerPage;
+      const endIndex = startIndex + entriesPerPage;
+      setDisplayedRoles(filteredRoles.slice(startIndex, endIndex));
     }
-  };
+  }, [filteredRoles, entriesPerPage, currentPage]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this role?")) return;
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/rbac/roles/${id}`, {
+
+      await axios.delete(`http://localhost:5000/api/roles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       toast.success("Role deleted successfully");
       fetchRoles();
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to delete role");
+    } catch (err: any) {
+      toast.error("Could not delete role");
     }
   };
-
-  const getPermissionsByCategory = (category: string) => {
-    return permissions.filter((p) => p.category === category);
-  };
-
-  const categories = ["users", "reports", "settings", "dashboard", "other"];
 
   return (
     <div>
       <ContentHeader title="Role Management" />
       <section className="content">
         <div className="container-fluid">
-          <div className="row mb-3">
-            <div className="col-md-12">
+          <div className="card p-3">
+            {/* Search + Create Button */}
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-control form-control-sm"
+                style={{ width: "220px", height: "36px" }}
+              />
+
               <button
-                className="btn btn-primary"
-                onClick={() => setShowModal(true)}
+                className="btn btn-primary btn-sm"
+                onClick={() => navigate("/roles/create")}
+                style={{ height: "36px", padding: "0 16px" }}
               >
-                <i className="fas fa-plus"></i> Create New Role
+                Create New Role
               </button>
             </div>
-          </div>
 
-          {loading ? (
-            <div className="text-center p-4">
-              <p>Loading...</p>
-            </div>
-          ) : (
-            <div className="row">
-              {roles.map((role) => (
-                <div key={role._id} className="col-md-6 col-lg-4 mb-3">
-                  <div className="card">
-                    <div className="card-header bg-primary text-white">
-                      <h5 className="mb-0">{role.displayName}</h5>
-                      {role.isSystem && (
-                        <small className="badge badge-secondary">System</small>
-                      )}
-                    </div>
-                    <div className="card-body">
-                      <p className="text-muted">{role.description}</p>
-                      <div className="mb-3">
-                        <strong>Permissions ({role.permissions.length})</strong>
-                        <div className="mt-2">
-                          {role.permissions.length === 0 ? (
-                            <small className="text-muted">No permissions</small>
+            {/* Table */}
+            <div className="card-body">
+              <table className="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created On</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="text-center">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : displayedRoles.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center">
+                        No roles found
+                      </td>
+                    </tr>
+                  ) : (
+                    displayedRoles.map((r) => (
+                      <tr key={r._id}>
+                        <td>{r.role}</td>
+                        <td>
+                          {r.status === "active" ? (
+                            <span className="badge bg-success">Active</span>
                           ) : (
-                            role.permissions.map((perm) => (
-                              <span
-                                key={perm._id}
-                                className="badge badge-info mr-1 mb-1"
-                              >
-                                {perm.displayName}
-                              </span>
-                            ))
+                            <span className="badge bg-secondary">Inactive</span>
                           )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="card-footer">
-                      <button
-                        className="btn btn-sm btn-warning"
-                        onClick={() => handleEdit(role)}
-                        disabled={role.isSystem}
-                      >
-                        <i className="fas fa-edit"></i> Edit
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger ml-2"
-                        onClick={() => handleDelete(role._id)}
-                        disabled={role.isSystem}
-                      >
-                        <i className="fas fa-trash"></i> Delete
-                      </button>
-                    </div>
-                  </div>
+                        </td>
+                        <td>
+                          {r.createdAt
+                            ? new Date(r.createdAt).toLocaleString()
+                            : "-"}
+                        </td>
+                        <td>
+                          <div className="d-flex align-items-center gap-2">
+                            <button
+                              className="btn btn-sm btn-info p-2 mr-2"
+                              onClick={() => navigate(`/roles/${r._id}/view`)}
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+
+                            <button
+                              className="btn btn-sm btn-warning p-2 mr-2"
+                              onClick={() => navigate(`/roles/${r._id}/edit`)}
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+
+                            <button
+                              className="btn btn-sm btn-danger p-2 mr-2"
+                              onClick={() => handleDelete(r._id)}
+                            >
+                              <i className="fas fa-trash-alt"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+              {/* Pagination Footer */}
+              <div
+                className="d-flex justify-content-between align-items-center mt-3"
+                style={{ borderTop: "1px solid #dee2e6", paddingTop: "12px" }}
+              >
+                <div style={{ fontSize: "14px", color: "#666" }}>
+                  Showing{" "}
+                  <strong>
+                    {filteredRoles.length > 0
+                      ? (currentPage - 1) * entriesPerPage + 1
+                      : 0}
+                  </strong>{" "}
+                  to{" "}
+                  <strong>
+                    {entriesPerPage === -1
+                      ? filteredRoles.length
+                      : Math.min(
+                          currentPage * entriesPerPage,
+                          filteredRoles.length
+                        )}
+                  </strong>{" "}
+                  of <strong>{filteredRoles.length}</strong> entries
                 </div>
-              ))}
+
+                {entriesPerPage !== -1 &&
+                  filteredRoles.length > entriesPerPage && (
+                    <nav aria-label="Page navigation">
+                      <ul className="pagination mb-0" style={{ gap: "4px" }}>
+                        <li
+                          className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() =>
+                              setCurrentPage((prev) => Math.max(prev - 1, 1))
+                            }
+                          >
+                            Previous
+                          </button>
+                        </li>
+
+                        {Array.from(
+                          {
+                            length: Math.ceil(
+                              filteredRoles.length / entriesPerPage
+                            ),
+                          },
+                          (_, i) => i + 1
+                        ).map((page) => (
+                          <li
+                            key={page}
+                            className={`page-item ${page === currentPage ? "active" : ""}`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => setCurrentPage(page)}
+                            >
+                              {page}
+                            </button>
+                          </li>
+                        ))}
+
+                        <li
+                          className={`page-item ${
+                            currentPage >=
+                            Math.ceil(filteredRoles.length / entriesPerPage)
+                              ? "disabled"
+                              : ""
+                          }`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() => setCurrentPage((prev) => prev + 1)}
+                          >
+                            Next
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                  )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </section>
-
-      {/* Modal */}
-      {showModal && (
-        <div
-          className="modal fade show"
-          style={{ display: "block" }}
-          role="dialog"
-        >
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {editingRole ? "Edit Role" : "Create New Role"}
-                </h5>
-                <button type="button" className="close" onClick={handleClose}>
-                  <span>&times;</span>
-                </button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                  <div className="form-group">
-                    <label>Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      disabled={!!editingRole}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Display Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={form.displayName}
-                      onChange={(e) =>
-                        setForm({ ...form, displayName: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Description</label>
-                    <textarea
-                      className="form-control"
-                      value={form.description}
-                      onChange={(e) =>
-                        setForm({ ...form, description: e.target.value })
-                      }
-                      rows={3}
-                    ></textarea>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Permissions</label>
-                    {categories.map((category) => (
-                      <div key={category} className="mb-3">
-                        <strong className="text-capitalize">{category}</strong>
-                        <div className="ml-3">
-                          {getPermissionsByCategory(category).map((perm) => (
-                            <div
-                              key={perm._id}
-                              className="custom-control custom-checkbox"
-                            >
-                              <input
-                                type="checkbox"
-                                className="custom-control-input"
-                                id={perm._id}
-                                checked={form.permissions.includes(perm._id)}
-                                onChange={() =>
-                                  handlePermissionChange(perm._id)
-                                }
-                              />
-                              <label
-                                className="custom-control-label"
-                                htmlFor={perm._id}
-                              >
-                                {perm.displayName}{" "}
-                                <small className="text-muted">
-                                  {perm.description}
-                                </small>
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleClose}
-                  >
-                    Close
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    {editingRole ? "Update Role" : "Create Role"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default Roles;
+export default RoleList;

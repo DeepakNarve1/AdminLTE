@@ -100,38 +100,16 @@ const seedPermissionsAndRoles = async () => {
     // Create roles with permissions
     const roles = [
       {
-        name: "superadmin",
-        displayName: "Super Administrator",
-        description: "Has all permissions",
+        name: "testing",
+        displayName: "Testing",
+        description: "Testing role",
         permissions: createdPermissions.map((p) => p._id),
-        isSystem: true,
+        isSystem: false,
       },
       {
-        name: "admin",
-        displayName: "Administrator",
-        description: "Can manage users, reports, and settings",
-        permissions: createdPermissions
-          .filter((p) =>
-            [
-              "view_users",
-              "create_users",
-              "edit_users",
-              "delete_users",
-              "view_reports",
-              "create_reports",
-              "export_reports",
-              "view_settings",
-              "edit_settings",
-              "view_dashboard",
-            ].includes(p.name)
-          )
-          .map((p) => p._id),
-        isSystem: true,
-      },
-      {
-        name: "manager",
-        displayName: "Manager",
-        description: "Can view users and create reports",
+        name: "mp_public_problems",
+        displayName: "MP Public Problems",
+        description: "MP Public Problems role",
         permissions: createdPermissions
           .filter((p) =>
             [
@@ -143,27 +121,97 @@ const seedPermissionsAndRoles = async () => {
             ].includes(p.name)
           )
           .map((p) => p._id),
-        isSystem: true,
+        isSystem: false,
       },
       {
-        name: "hr",
-        displayName: "HR",
-        description: "Can view users and reports",
+        name: "bhopal_user1",
+        displayName: "BHopal User1",
+        description: "Bhopal User 1 role",
         permissions: createdPermissions
           .filter((p) =>
             ["view_users", "view_reports", "view_dashboard"].includes(p.name)
           )
           .map((p) => p._id),
-        isSystem: true,
+        isSystem: false,
       },
       {
-        name: "employee",
-        displayName: "Employee",
-        description: "Can view dashboard",
+        name: "bhopal_user2",
+        displayName: "Bhopal User 2",
+        description: "Bhopal User 2 role",
         permissions: createdPermissions
-          .filter((p) => ["view_dashboard"].includes(p.name))
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
           .map((p) => p._id),
-        isSystem: true,
+        isSystem: false,
+      },
+      {
+        name: "assembly_stage1",
+        displayName: "My Assembly Stage1",
+        description: "Assembly Stage 1 role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_reports", "create_reports", "view_dashboard"].includes(
+              p.name
+            )
+          )
+          .map((p) => p._id),
+        isSystem: false,
+      },
+      {
+        name: "bhopal_block",
+        displayName: "Bhopal Block",
+        description: "Bhopal Block role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
+          .map((p) => p._id),
+        isSystem: false,
+      },
+      {
+        name: "tirla_block",
+        displayName: "Tirla Block",
+        description: "Tirla Block role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
+          .map((p) => p._id),
+        isSystem: false,
+      },
+      {
+        name: "bagh_block",
+        displayName: "Bagh Block",
+        description: "Bagh Block role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
+          .map((p) => p._id),
+        isSystem: false,
+      },
+      {
+        name: "gandhwani_block",
+        displayName: "Gandhwani Block",
+        description: "Gandhwani Block role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
+          .map((p) => p._id),
+        isSystem: false,
+      },
+      {
+        name: "tanda_block",
+        displayName: "Tanda Block",
+        description: "Tanda Block role",
+        permissions: createdPermissions
+          .filter((p) =>
+            ["view_users", "view_reports", "view_dashboard"].includes(p.name)
+          )
+          .map((p) => p._id),
+        isSystem: false,
       },
     ];
 
