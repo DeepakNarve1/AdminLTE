@@ -1,6 +1,5 @@
 const Role = require("../models/roleModel");
 const Permission = require("../models/permissionModel");
-const SidebarAccess = require("../models/sidebarAccessModel");
 
 // ==================== PERMISSION CONTROLLERS ====================
 
@@ -106,7 +105,8 @@ exports.getRoleById = async (req, res) => {
 // Create role
 exports.createRole = async (req, res) => {
   try {
-    const { name, displayName, description, permissions } = req.body;
+    const { name, displayName, description, permissions, sidebarAccess } =
+      req.body;
 
     if (!name || !displayName) {
       return res.status(400).json({
@@ -120,6 +120,7 @@ exports.createRole = async (req, res) => {
       displayName,
       description,
       permissions: permissions || [],
+      sidebarAccess: sidebarAccess || [],
     });
 
     res.status(201).json({
@@ -137,7 +138,8 @@ exports.createRole = async (req, res) => {
 // Update role
 exports.updateRole = async (req, res) => {
   try {
-    const { name, displayName, description, permissions } = req.body;
+    const { name, displayName, description, permissions, sidebarAccess } =
+      req.body;
 
     const role = await Role.findById(req.params.id);
 
@@ -160,6 +162,7 @@ exports.updateRole = async (req, res) => {
     role.displayName = displayName || role.displayName;
     role.description = description || role.description;
     role.permissions = permissions || role.permissions;
+    role.sidebarAccess = sidebarAccess || role.sidebarAccess;
 
     await role.save();
 
@@ -211,49 +214,70 @@ exports.deleteRole = async (req, res) => {
 
 // ==================== SIDEBAR ACCESS CONTROLLERS ====================
 
-// Get sidebar access map { role: [paths] }
-exports.getSidebarAccess = async (_req, res) => {
+// Get sidebar permissions map
+// Get sidebar permissions map
+exports.getSidebarAccess = async (req, res) => {
   try {
-    const records = await SidebarAccess.find();
-    const map = {};
-    records.forEach((rec) => {
-      map[rec.role] = rec.paths || [];
+    const roles = await Role.find().select("name sidebarAccess");
+
+    const accessMap = {};
+    roles.forEach((role) => {
+      if (role?.name) {
+        accessMap[role.name] = role.sidebarAccess || [];
+      }
     });
-    return res.status(200).json({ success: true, data: map });
+
+    // Ensure superadmin always has full access (wildcard)
+    // This is server-side protection in case DB is missing it.
+    accessMap.superadmin = ["*"];
+
+    res.status(200).json({
+      success: true,
+      data: accessMap,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: error.message || "Failed to load sidebar access" });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// Upsert sidebar access map { role: [paths] }
+// Update sidebar permissions map
+// Update sidebar permissions map
 exports.upsertSidebarAccess = async (req, res) => {
   try {
-    const accessMap = req.body || {};
+    const accessMap = req.body; // { roleName: [paths...] }
 
-    if (typeof accessMap !== "object" || Array.isArray(accessMap)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Payload must be an object of role -> paths[]" });
+    if (!accessMap || typeof accessMap !== "object") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid access map format",
+      });
     }
 
-    const bulkOps = Object.entries(accessMap).map(([role, paths]) => ({
-      updateOne: {
-        filter: { role: role.toLowerCase() },
-        update: { role: role.toLowerCase(), paths: Array.isArray(paths) ? paths : [] },
-        upsert: true,
-      },
-    }));
+    // Force superadmin wildcard and prevent accidental modification from client
+    accessMap.superadmin = ["*"];
 
-    if (bulkOps.length > 0) {
-      await SidebarAccess.bulkWrite(bulkOps);
-    }
+    const updates = Object.entries(accessMap).map(([roleName, paths]) =>
+      Role.findOneAndUpdate(
+        { name: roleName },
+        { sidebarAccess: Array.isArray(paths) ? paths : [] },
+        { new: true, upsert: false } // don't create new roles here
+      )
+    );
 
-    return res.status(200).json({ success: true, message: "Sidebar access updated" });
+    await Promise.all(updates);
+
+    res.status(200).json({
+      success: true,
+      message: "Sidebar permissions updated successfully",
+      data: accessMap,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: error.message || "Failed to update sidebar access" });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { ContentHeader } from "@components";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,7 @@ interface IPermission {
   category: string;
 }
 
-const CreateRole = () => {
+const EditRole = () => {
   const navigate = useNavigate();
 
   const [role, setRole] = useState({
@@ -28,6 +29,7 @@ const CreateRole = () => {
   const [permissions, setPermissions] = useState<IPermission[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { id } = useParams();
 
   // Fetch all permissions from backend
   useEffect(() => {
@@ -43,6 +45,33 @@ const CreateRole = () => {
     };
     fetchPermissions();
   }, []);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/roles/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        const roleData = res.data.data;
+
+        setRole({
+          name: roleData.name,
+          displayName: roleData.displayName,
+          description: roleData.description || "",
+          permissions: roleData.permissions.map((p: IPermission) => p._id),
+        });
+
+        setSidebarAccess(roleData.sidebarAccess || []);
+      } catch (err) {
+        toast.error("Failed to load role");
+      }
+    };
+
+    fetchRole();
+  }, [id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -65,7 +94,7 @@ const CreateRole = () => {
     );
   };
 
-  const createRole = async () => {
+  const updateRole = async () => {
     const newErrors: Record<string, string> = {};
 
     if (!role.name) newErrors.name = "Name is required";
@@ -80,21 +109,20 @@ const CreateRole = () => {
     try {
       setLoading(true);
 
-      await axios.post(
-        "http://localhost:5000/api/roles",
+      await axios.put(
+        `http://localhost:5000/api/roles/${id}`,
+        { ...role, sidebarAccess },
         {
-          ...role,
-          sidebarAccess,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
 
-      toast.success("Role created successfully!");
+      toast.success("Role updated successfully!");
       navigate("/roles");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to create role");
+      toast.error(err.response?.data?.message || "Failed to update role");
     } finally {
       setLoading(false);
     }
@@ -102,7 +130,7 @@ const CreateRole = () => {
 
   return (
     <div>
-      <ContentHeader title="Create Role" />
+      <ContentHeader title="Update Role" />
       <section className="content">
         <div className="container-fluid">
           <div className="card p-4">
@@ -201,9 +229,9 @@ const CreateRole = () => {
               <button
                 className="btn btn-primary mr-2"
                 disabled={loading}
-                onClick={createRole}
+                onClick={updateRole}
               >
-                {loading ? "Saving..." : "Create Role"}
+                {loading ? "Saving..." : "Update Role"}
               </button>
 
               <button
@@ -228,4 +256,4 @@ const CreateRole = () => {
   );
 };
 
-export default CreateRole;
+export default EditRole;

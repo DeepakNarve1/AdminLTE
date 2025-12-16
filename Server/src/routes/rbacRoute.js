@@ -25,7 +25,7 @@ router.post("/roles", protect, createRole);
 router.put("/roles/:id", protect, updateRole);
 router.delete("/roles/:id", protect, deleteRole);
 
-// Sidebar access routes
+// Sidebar RBAC routes (🔥 MISSING)
 router.get("/sidebar-permissions", protect, getSidebarAccess);
 router.put("/sidebar-permissions", protect, upsertSidebarAccess);
 

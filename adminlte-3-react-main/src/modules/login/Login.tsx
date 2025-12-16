@@ -33,6 +33,30 @@ const Login = () => {
 
       const { data } = res.data;
 
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7242/ingest/105f93a2-9fac-4818-ba68-806d6a51ed9a",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: "debug-session",
+            runId: "initial",
+            hypothesisId: "H4",
+            location: "Login.tsx:loginResponse",
+            message: "Login response user shape",
+            data: {
+              hasUser: !!data?.user,
+              userKeys: data?.user ? Object.keys(data.user) : [],
+              hasRole: !!data?.user?.role,
+              roleType: data?.user ? typeof (data.user as any).role : null,
+            },
+            timestamp: Date.now(),
+          }),
+        }
+      ).catch(() => {});
+      // #endregion
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 

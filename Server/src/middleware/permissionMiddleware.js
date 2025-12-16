@@ -1,101 +1,71 @@
 const asyncHandler = require("express-async-handler");
-const Role = require("../models/roleModel");
 
-// @desc    Check if user has specific permission
-// @param   {string} permissionName - The permission to check (e.g., "view_users", "delete_users")
-// @returns {function} Middleware function
+// @desc    Check if user has a specific permission
 const checkPermission = (permissionName) => {
   return asyncHandler(async (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      res.status(403);
+      throw new Error("User or role not found");
+    }
+
     // Superadmin has all permissions
-    if (req.user && req.user.role === "superadmin") {
+    if (req.user.role.name === "superadmin") {
       return next();
     }
 
-    // Get user's role with permissions populated
-    const userRole = await Role.findOne({ name: req.user.role }).populate(
-      "permissions",
-      "name"
-    );
-
-    if (!userRole) {
+    // Permissions should already be populated in req.user.role
+    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    if (!userPermNames.includes(permissionName)) {
       res.status(403);
-      throw new Error("Role not found");
-    }
-
-    // Check if user has the required permission
-    const hasPermission = userRole.permissions.some(
-      (perm) => perm.name === permissionName
-    );
-
-    if (!hasPermission) {
-      res.status(403);
-      throw new Error(
-        `You do not have permission to perform this action: ${permissionName}`
-      );
+      throw new Error(`You do not have permission: ${permissionName}`);
     }
 
     next();
   });
 };
 
-// @desc    Check if user has one of multiple permissions
-// @param   {array} permissionNames - Array of permissions (user needs at least one)
+// Check any permission
 const checkAnyPermission = (permissionNames) => {
   return asyncHandler(async (req, res, next) => {
-    // Superadmin has all permissions
-    if (req.user && req.user.role === "superadmin") {
+    if (!req.user || !req.user.role) {
+      res.status(403);
+      throw new Error("User or role not found");
+    }
+
+    if (req.user.role.name === "superadmin") {
       return next();
     }
 
-    const userRole = await Role.findOne({ name: req.user.role }).populate(
-      "permissions",
-      "name"
-    );
+    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    const hasAny = permissionNames.some((perm) => userPermNames.includes(perm));
 
-    if (!userRole) {
+    if (!hasAny) {
       res.status(403);
-      throw new Error("Role not found");
-    }
-
-    const userPermNames = userRole.permissions.map((p) => p.name);
-    const hasAnyPermission = permissionNames.some((perm) =>
-      userPermNames.includes(perm)
-    );
-
-    if (!hasAnyPermission) {
-      res.status(403);
-      throw new Error("You do not have the required permissions");
+      throw new Error("You do not have any of the required permissions");
     }
 
     next();
   });
 };
 
-// @desc    Check if user has all required permissions
-// @param   {array} permissionNames - Array of permissions (user needs all)
+// Check all permissions
 const checkAllPermissions = (permissionNames) => {
   return asyncHandler(async (req, res, next) => {
-    // Superadmin has all permissions
-    if (req.user && req.user.role === "superadmin") {
+    if (!req.user || !req.user.role) {
+      res.status(403);
+      throw new Error("User or role not found");
+    }
+
+    if (req.user.role.name === "superadmin") {
       return next();
     }
 
-    const userRole = await Role.findOne({ name: req.user.role }).populate(
-      "permissions",
-      "name"
-    );
-
-    if (!userRole) {
-      res.status(403);
-      throw new Error("Role not found");
-    }
-
-    const userPermNames = userRole.permissions.map((p) => p.name);
-    const hasAllPermissions = permissionNames.every((perm) =>
+    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    const hasAll = permissionNames.every((perm) =>
       userPermNames.includes(perm)
     );
 
-    if (!hasAllPermissions) {
+    if (!hasAll) {
       res.status(403);
       throw new Error("You do not have all required permissions");
     }

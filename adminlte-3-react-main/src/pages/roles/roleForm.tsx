@@ -72,8 +72,6 @@ const PermissionsPage = () => {
 
         const map = accessRes.data?.data;
         if (map && typeof map === "object" && !Array.isArray(map)) {
-          // FORCE superadmin wildcard
-          map.superadmin = ["*"];
           setAccessMap(map);
         } else {
           setAccessMap(DEFAULT_SIDEBAR_ACCESS_BY_ROLE);
@@ -109,8 +107,8 @@ const PermissionsPage = () => {
   };
 
   const handleSave = async () => {
-    if (selectedRole === "superadmin") {
-      toast.info("Superadmin permissions are fixed and cannot be changed");
+    if (!selectedRole) {
+      toast.warn("Select a role to save permissions");
       return;
     }
     setIsSaving(true);
@@ -195,15 +193,13 @@ const PermissionsPage = () => {
                     <input
                       type="checkbox"
                       checked={
-                        selectedRole === "superadmin"
-                          ? true
-                          : !!selectedRole &&
-                            (accessMap[selectedRole] || []).includes(
-                              item.path || ""
-                            )
+                        !!selectedRole &&
+                        (accessMap[selectedRole] || []).includes(
+                          item.path || ""
+                        )
                       }
                       onChange={() => item.path && handleTogglePath(item.path)}
-                      disabled={!selectedRole || selectedRole === "superadmin"}
+                      disabled={!selectedRole}
                     />
                   </td>
                 </tr>

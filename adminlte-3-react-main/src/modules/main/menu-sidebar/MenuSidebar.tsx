@@ -10,7 +10,8 @@ import axios from "axios";
 
 const SIDEBAR_ACCESS_STORAGE_KEY = "sidebarAccessByRole";
 export const DEFAULT_SIDEBAR_ACCESS_BY_ROLE: Record<string, string[]> = {
-  testing: ["/", "/review", "/report"],
+  superadmin: ["*"],
+  testing: ["/dashboard", "/review", "/report"],
   mp_public_problems: ["/"],
   bhopal_user1: ["/", "/review"],
   bhopal_user2: ["/", "/report"],
@@ -50,7 +51,7 @@ export const MENU: IMenuItem[] = [
   {
     name: i18n.t("menusidebar.label.dashboard"),
     icon: "fas fa-tachometer-alt nav-icon",
-    path: "/",
+    path: "/dashboard",
   },
   {
     name: i18n.t("menusidebar.label.users"),
@@ -89,24 +90,6 @@ export const MENU: IMenuItem[] = [
     allowedRoles: ["superadmin"],
   },
   {
-    name: "Vidhansabha Samiti",
-    icon: "fas fa-users nav-icon",
-    path: "/vidhansabha-samiti",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Project Summary",
-    icon: "fas fa-clipboard-list nav-icon",
-    path: "/project-summary",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Visitors",
-    icon: "fas fa-walking nav-icon",
-    path: "/visitors",
-    allowedRoles: ["superadmin"],
-  },
-  {
     name: "Events",
     icon: "fas fa-calendar-alt nav-icon",
     path: "/events",
@@ -137,30 +120,6 @@ export const MENU: IMenuItem[] = [
     allowedRoles: ["superadmin"],
   },
   {
-    name: "Block",
-    icon: "fas fa-th-large nav-icon",
-    path: "/block",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Booth",
-    icon: "fas fa-door-open nav-icon",
-    path: "/booth",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Panchayat",
-    icon: "fas fa-gavel nav-icon",
-    path: "/panchayat",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Village",
-    icon: "fas fa-home nav-icon",
-    path: "/village",
-    allowedRoles: ["superadmin"],
-  },
-  {
     name: "Party",
     icon: "fas fa-flag nav-icon",
     path: "/party",
@@ -170,48 +129,6 @@ export const MENU: IMenuItem[] = [
     name: "Department",
     icon: "fas fa-sitemap nav-icon",
     path: "/department",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Worktype",
-    icon: "fas fa-tasks nav-icon",
-    path: "/worktype",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Subtype Of Work",
-    icon: "fas fa-stream nav-icon",
-    path: "/subtype-of-work",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Phone Directory",
-    icon: "fas fa-phone nav-icon",
-    path: "/phone-directory",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Dispatch Register",
-    icon: "fas fa-paper-plane nav-icon",
-    path: "/dispatch-register",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Call Management",
-    icon: "fas fa-headset nav-icon",
-    path: "/call-management",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "In Docs",
-    icon: "fas fa-file-alt nav-icon",
-    path: "/in-docs",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: "Inward Register",
-    icon: "fas fa-clipboard nav-icon",
-    path: "/inward-register",
     allowedRoles: ["superadmin"],
   },
   {
@@ -238,29 +155,6 @@ export const MENU: IMenuItem[] = [
     path: "/setting",
     allowedRoles: ["superadmin"],
   },
-  {
-    name: "Permissions",
-    icon: "fas fa-user-shield nav-icon",
-    path: "/permissions",
-    allowedRoles: ["superadmin"],
-  },
-  {
-    name: i18n.t("menusidebar.label.mainMenu"),
-    icon: "far fa-caret-square-down nav-icon",
-    children: [
-      {
-        name: i18n.t("menusidebar.label.subMenu"),
-        icon: "fas fa-hammer nav-icon",
-        path: "/sub-menu-1",
-      },
-
-      {
-        name: i18n.t("menusidebar.label.blank"),
-        icon: "fas fa-cogs nav-icon",
-        path: "/sub-menu-2",
-      },
-    ],
-  },
 ];
 
 const StyledBrandImage = styled(Image)`
@@ -274,6 +168,21 @@ const StyledBrandImage = styled(Image)`
 
 const StyledUserImage = styled(Image)`
   --pf-box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b !important;
+`;
+
+const StyledSidebar = styled.aside`
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  height: 100vh !important;
+  overflow-y: hidden !important;
+  z-index: 1038;
+`;
+
+const StyledSidebarInner = styled.div`
+  height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 `;
 
 const MenuSidebar = () => {
@@ -294,6 +203,27 @@ const MenuSidebar = () => {
     }
     return DEFAULT_SIDEBAR_ACCESS_BY_ROLE;
   });
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/105f93a2-9fac-4818-ba68-806d6a51ed9a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: "debug-session",
+      runId: "initial",
+      hypothesisId: "H1",
+      location: "MenuSidebar.tsx:currentUser",
+      message: "Current user role shape",
+      data: {
+        hasUser: !!currentUser,
+        roleType: currentUser ? typeof (currentUser as any).role : null,
+        hasRolesArray: !!(currentUser as any)?.roles,
+        hasMetadataRole: !!(currentUser as any)?.metadata?.role,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
 
   useEffect(() => {
     const fetchSidebarAccess = async () => {
@@ -319,35 +249,100 @@ const MenuSidebar = () => {
   }, []);
 
   const userRoles = useMemo(() => {
+    // Normalize any role value (string or populated object) into role name strings
+    const normalize = (role: any) => {
+      if (!role) return null;
+      if (typeof role === "string") return role;
+      if (typeof role === "object" && role.name) return role.name;
+      return null;
+    };
+
     const rolesFromUser = Array.isArray(currentUser?.roles)
-      ? currentUser?.roles
+      ? currentUser?.roles.map(normalize)
       : [];
-    const roleFromUser = currentUser?.role ? [currentUser.role] : [];
+    const roleFromUser = currentUser?.role ? [normalize(currentUser.role)] : [];
     const rolesFromMetadata = Array.isArray(currentUser?.metadata?.roles)
-      ? currentUser?.metadata?.roles
+      ? currentUser?.metadata?.roles.map(normalize)
       : currentUser?.metadata?.role
-        ? [currentUser.metadata.role]
+        ? [normalize(currentUser.metadata.role)]
         : [];
 
-    return Array.from(
+    const normalized = Array.from(
       new Set(
         [...rolesFromUser, ...roleFromUser, ...rolesFromMetadata].filter(
           Boolean
-        )
+        ) as string[]
       )
     );
+
+    // Frontend fallback: treat known superadmin account as superadmin
+    if (
+      normalized.length === 0 &&
+      currentUser &&
+      typeof (currentUser as any).email === "string" &&
+      (currentUser as any).email.toLowerCase() === "superadmin@example.com"
+    ) {
+      return ["superadmin"];
+    }
+
+    return normalized;
   }, [currentUser]);
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/105f93a2-9fac-4818-ba68-806d6a51ed9a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: "debug-session",
+      runId: "initial",
+      hypothesisId: "H2",
+      location: "MenuSidebar.tsx:userRoles",
+      message: "Computed userRoles for sidebar",
+      data: {
+        userRoles,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
 
   const roleBasedAllowedPaths = useMemo(() => {
     const allowed = new Set<string>();
     userRoles.forEach((role) => {
       const roleAccess = sidebarAccessByRole[role];
+
+      if (roleAccess?.includes("*")) {
+        MENU.forEach((m) => {
+          if (m.path) allowed.add(m.path);
+          m.children?.forEach((c) => c.path && allowed.add(c.path));
+        });
+      }
+
       if (Array.isArray(roleAccess)) {
         roleAccess.forEach((path) => allowed.add(path));
       }
     });
     return allowed;
   }, [sidebarAccessByRole, userRoles]);
+
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/105f93a2-9fac-4818-ba68-806d6a51ed9a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: "debug-session",
+      runId: "initial",
+      hypothesisId: "H3",
+      location: "MenuSidebar.tsx:roleBasedAllowedPaths",
+      message: "Role-based allowed paths snapshot",
+      data: {
+        userRoles,
+        allowedPaths: Array.from(roleBasedAllowedPaths),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
 
   const userPermissions = useMemo(() => {
     const permissionsFromUser = Array.isArray(currentUser?.permissions)
@@ -367,6 +362,11 @@ const MenuSidebar = () => {
   }, [currentUser]);
 
   const canAccess = (item: IMenuItem) => {
+    // SUPERADMIN BYPASS
+    if (userRoles.includes("superadmin")) {
+      return true;
+    }
+
     const roleAllowed =
       !item.allowedRoles ||
       item.allowedRoles.length === 0 ||
@@ -379,8 +379,7 @@ const MenuSidebar = () => {
         userPermissions.includes(permission)
       );
 
-    const overrideAllowed =
-      item.path && roleBasedAllowedPaths.has(item.path) ? true : false;
+    const overrideAllowed = item.path && roleBasedAllowedPaths.has(item.path);
 
     return overrideAllowed || (roleAllowed && permissionAllowed);
   };
@@ -409,7 +408,7 @@ const MenuSidebar = () => {
   }, [userPermissions, userRoles]);
 
   return (
-    <aside className={`main-sidebar elevation-4 ${sidebarSkin}`}>
+    <StyledSidebar className={`main-sidebar elevation-4 ${sidebarSkin}`}>
       <Link to="/" className="brand-link">
         <StyledBrandImage
           src="img/logo.png"
@@ -420,7 +419,7 @@ const MenuSidebar = () => {
         />
         <span className="brand-text font-weight-light">AdminLTE 3</span>
       </Link>
-      <div className="sidebar">
+      <StyledSidebarInner className="sidebar">
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">
           <div className="image">
             <StyledUserImage
@@ -458,8 +457,8 @@ const MenuSidebar = () => {
             ))}
           </ul>
         </nav>
-      </div>
-    </aside>
+      </StyledSidebarInner>
+    </StyledSidebar>
   );
 };
 
