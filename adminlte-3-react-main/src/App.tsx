@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import axios from "axios";
 import Main from "@modules/main/Main";
 import Login from "@modules/login/Login";
 import Register from "@modules/register/Register";
@@ -12,7 +13,6 @@ import { setWindowSize } from "@app/store/reducers/ui";
 import ReactGA from "react-ga4";
 
 import Dashboard from "@pages/Dashboard";
-import SubMenu from "@pages/SubMenu";
 import Profile from "@pages/profile/Profile";
 
 import PublicRoute from "./routes/PublicRoute";
@@ -30,8 +30,8 @@ import CreateRoles from "./pages/roles/CreateRoles";
 import Review from "./pages/review";
 import Report from "./pages/report";
 import Setting from "./pages/setting";
-import PermissionsPage from "./pages/permissions";
 import PlaceholderPage from "./pages/shared/PlaceholderPage";
+import EditRole from "./pages/roles/EditRoles";
 
 const { VITE_NODE_ENV } = import.meta.env;
 
@@ -44,23 +44,74 @@ const App = () => {
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
-      try {
-        dispatch(setCurrentUser(JSON.parse(storedUser)));
-      } catch (error) {
-        console.error("Failed to parse stored user", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+
+          // If role is missing (old stored user shape), refresh from backend
+          if (!parsedUser.role && parsedUser._id) {
+            try {
+              const res = await axios.get(
+                `http://localhost:5000/api/auth/users/${parsedUser._id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${storedToken}`,
+                  },
+                }
+              );
+
+              const freshUser = res.data?.data || parsedUser;
+
+              // #region agent log
+              fetch(
+                "http://127.0.0.1:7242/ingest/105f93a2-9fac-4818-ba68-806d6a51ed9a",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    sessionId: "debug-session",
+                    runId: "post-fix",
+                    hypothesisId: "H5",
+                    location: "App.tsx:initAuth",
+                    message: "Refreshed user from backend",
+                    data: {
+                      hasUser: !!freshUser,
+                      hasRole: !!freshUser?.role,
+                      roleType: freshUser ? typeof freshUser.role : null,
+                    },
+                    timestamp: Date.now(),
+                  }),
+                }
+              ).catch(() => {});
+              // #endregion
+
+              localStorage.setItem("user", JSON.stringify(freshUser));
+              dispatch(setCurrentUser(freshUser));
+            } catch (err) {
+              console.error("Failed to refresh user from backend", err);
+              dispatch(setCurrentUser(parsedUser));
+            }
+          } else {
+            dispatch(setCurrentUser(parsedUser));
+          }
+        } catch (error) {
+          console.error("Failed to parse stored user", error);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+          dispatch(setCurrentUser(null));
+        }
+      } else {
         dispatch(setCurrentUser(null));
       }
-    } else {
-      dispatch(setCurrentUser(null));
-    }
 
-    setIsAppLoading(false);
+      setIsAppLoading(false);
+    };
+
+    initAuth();
   }, [dispatch]);
 
   useEffect(() => {
@@ -105,12 +156,11 @@ const App = () => {
             <Route path="/users/:id/edit" element={<EditUser />} />
             <Route path="/users/:id/view" element={<ViewUser />} />
             <Route path="/roles" element={<RoleList />} />
+            <Route path="/roles/:id/edit" element={<EditRole />} />
             <Route path="/review" element={<Review />} />
             <Route path="/report" element={<Report />} />
             <Route path="/setting" element={<Setting />} />
-            <Route path="/permissions" element={<PermissionsPage />} />
             <Route path="/roles/create" element={<CreateRoles />} />
-            <Route path="/sub-menu-1" element={<SubMenu />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route
@@ -121,6 +171,7 @@ const App = () => {
               path="/member-list"
               element={<PlaceholderPage title="Member List" />}
             />
+
             <Route
               path="/mp-public-problem"
               element={<PlaceholderPage title="MP Public Problem" />}
@@ -128,18 +179,6 @@ const App = () => {
             <Route
               path="/assembly-issue"
               element={<PlaceholderPage title="Assembly Issue" />}
-            />
-            <Route
-              path="/vidhansabha-samiti"
-              element={<PlaceholderPage title="Vidhansabha Samiti" />}
-            />
-            <Route
-              path="/project-summary"
-              element={<PlaceholderPage title="Project Summary" />}
-            />
-            <Route
-              path="/visitors"
-              element={<PlaceholderPage title="Visitors" />}
             />
             <Route
               path="/events"
@@ -158,48 +197,11 @@ const App = () => {
               path="/vidhan-sabha"
               element={<PlaceholderPage title="Vidhan Sabha" />}
             />
-            <Route path="/block" element={<PlaceholderPage title="Block" />} />
-            <Route path="/booth" element={<PlaceholderPage title="Booth" />} />
-            <Route
-              path="/panchayat"
-              element={<PlaceholderPage title="Panchayat" />}
-            />
-            <Route
-              path="/village"
-              element={<PlaceholderPage title="Village" />}
-            />
+
             <Route path="/party" element={<PlaceholderPage title="Party" />} />
             <Route
               path="/department"
               element={<PlaceholderPage title="Department" />}
-            />
-            <Route
-              path="/worktype"
-              element={<PlaceholderPage title="Worktype" />}
-            />
-            <Route
-              path="/subtype-of-work"
-              element={<PlaceholderPage title="Subtype Of Work" />}
-            />
-            <Route
-              path="/phone-directory"
-              element={<PlaceholderPage title="Phone Directory" />}
-            />
-            <Route
-              path="/dispatch-register"
-              element={<PlaceholderPage title="Dispatch Register" />}
-            />
-            <Route
-              path="/call-management"
-              element={<PlaceholderPage title="Call Management" />}
-            />
-            <Route
-              path="/in-docs"
-              element={<PlaceholderPage title="In Docs" />}
-            />
-            <Route
-              path="/inward-register"
-              element={<PlaceholderPage title="Inward Register" />}
             />
             <Route
               path="/activity-management"

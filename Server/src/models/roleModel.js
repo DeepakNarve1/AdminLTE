@@ -23,6 +23,11 @@ const roleSchema = new mongoose.Schema(
         ref: "Permission",
       },
     ],
+    // <-- ADD THIS FIELD
+    sidebarAccess: {
+      type: [String],
+      default: [],
+    },
     isSystem: {
       type: Boolean,
       default: false,
