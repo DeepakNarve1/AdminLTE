@@ -203,7 +203,19 @@ const EditRole = () => {
                     <th>Menu Name</th>
                     <th>Path</th>
                     <th className="text-center" style={{ width: "120px" }}>
-                      Visible
+                      Total
+                      <input
+                        type="checkbox"
+                        className="ml-2"
+                        checked={menuItems.length > 0 && menuItems.every((i) => i.path && sidebarAccess.includes(i.path))}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSidebarAccess(menuItems.map((i) => i.path).filter((p) => p) as string[]);
+                          } else {
+                            setSidebarAccess([]);
+                          }
+                        }}
+                      />
                     </th>
                   </tr>
                 </thead>

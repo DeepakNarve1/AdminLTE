@@ -162,12 +162,6 @@ const RoleList = () => {
                         </td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-                            <button
-                              className="btn btn-sm btn-info p-2 mr-2"
-                              onClick={() => navigate(`/roles/${r._id}/view`)}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
 
                             <button
                               className="btn btn-sm btn-warning p-2 mr-2"
