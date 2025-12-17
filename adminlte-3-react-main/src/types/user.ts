@@ -5,17 +5,24 @@ export interface IUser {
   email?: string;
   token?: string;
   photoURL?: string;
-  role?: string;
+  role?: string | IRole;
   roles?: string[];
   permissions?: string[];
   metadata?: any;
+}
+
+export interface IPermission {
+  _id: string;
+  name: string;
+  displayName: string;
+  description?: string;
 }
 
 export interface IRole {
   _id: string;
   name: string;
   displayName?: string;
-  permissions?: string[];
+  permissions?: string[] | IPermission[];
   sidebarAccess?: string[];
 }
 
