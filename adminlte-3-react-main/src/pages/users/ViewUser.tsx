@@ -190,7 +190,10 @@ const ViewUser = () => {
                       fontSize: "12px",
                     }}
                   >
-                    {user.role || "-"}
+                    {user.role && typeof user.role === "object"
+                      ? // @ts-ignore
+                        user.role.displayName || user.role.name || user.role.role
+                      : user.role || "-"}
                   </span>
                 </p>
                 <hr style={{ margin: "8px 0", borderColor: "#e9ecef" }} />
