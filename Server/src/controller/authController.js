@@ -11,11 +11,17 @@ const generateToken = (id) => {
 
 // Register User
 exports.registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role, mobile, userType, block } = req.body;
+  console.log("Register Request Body:", req.body);
+  let { name, email, password, role, mobile, userType, block } = req.body;
 
-  if (!name || !email || !password) {
+  // Handle if role is passed as an object (e.g. from react-select)
+  if (role && typeof role === 'object' && (role._id || role.value)) {
+    role = role._id || role.value;
+  }
+
+  if (!name || !email || !password || !role) {
     res.status(400);
-    throw new Error("Please fill all fields");
+    throw new Error("Please fill all fields, including Role");
   }
 
   const userExists = await User.findOne({ email });
@@ -24,16 +30,22 @@ exports.registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
+  /* 
+     NOTE: role variable is already sanitized above to be a string ID or value.
+     Mongoose Mixed type will save it as is.
+  */
   const newUser = await User.create({
     name,
     email,
     password,
-    role, // ObjectId of Role
+    role, // sanitized role
     mobile: mobile || "",
     userType: userType || "regularUser",
     block: block || "",
     permissions: {},
   });
+
+  console.log("New User Created:", newUser._id, "Role:", newUser.role);
 
   // Perform manual safe populate
   if (newUser.role && mongoose.Types.ObjectId.isValid(newUser.role)) {
