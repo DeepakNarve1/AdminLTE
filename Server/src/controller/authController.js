@@ -155,13 +155,21 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  const roleDoc = await Role.findById(user.role);
-  if (roleDoc?.name === "superadmin") {
-    res.status(403);
-    throw new Error("Cannot delete superadmin account");
+  // Check if target user is superadmin (handle both populate/ObjectId and string)
+  if (user.role === "superadmin") {
+      res.status(403);
+      throw new Error("Cannot delete superadmin account");
   }
 
-  await user.remove();
+  if (user.role && mongoose.Types.ObjectId.isValid(user.role)) {
+    const roleDoc = await Role.findById(user.role);
+    if (roleDoc?.name === "superadmin") {
+      res.status(403);
+      throw new Error("Cannot delete superadmin account");
+    }
+  }
+
+  await user.deleteOne();
   res.json({ success: true, message: "User removed" });
 });
 
