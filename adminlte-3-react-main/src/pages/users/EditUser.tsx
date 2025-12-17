@@ -71,7 +71,7 @@ const EditUser = () => {
             name: user.name || "",
             email: user.email || "",
             mobile: user.mobile || "",
-            role: user.role || "",
+            role: typeof user.role === "object" && user.role ? (user.role as any).name || (user.role as any).role || "" : user.role || "",
             userType: user.userType || "",
             block: user.block || "",
           });

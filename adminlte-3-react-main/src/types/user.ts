@@ -10,3 +10,20 @@ export interface IUser {
   permissions?: string[];
   metadata?: any;
 }
+
+export interface IRole {
+  _id: string;
+  name: string;
+  displayName?: string;
+  permissions?: string[];
+  sidebarAccess?: string[];
+}
+
+export interface IUserRow {
+  _id: string;
+  name: string;
+  email: string;
+  mobile?: string;
+  role?: string | IRole;
+  createdAt?: string;
+}

@@ -9,7 +9,7 @@ const checkPermission = (permissionName) => {
     }
 
     // Superadmin has all permissions
-    if (req.user.role.name === "superadmin") {
+    if (req.user.role === "superadmin" || (req.user.role && req.user.role.name === "superadmin")) {
       return next();
     }
 

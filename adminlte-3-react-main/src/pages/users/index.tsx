@@ -4,22 +4,14 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
-
-interface IUserRow {
-  _id: string;
-  name: string;
-  email: string;
-  mobile?: string;
-  role?: string;
-  createdAt?: string;
-}
+import { IUserRow } from "@app/types/user";
 
 const Users = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [users, setUsers] = useState<IUserRow[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<IUserRow[]>([]);
-  const [displayedUsers, setDisplayedUsers] = useState<IUserRow[]>([]);
+  const fileInputRef = useRef(null as HTMLInputElement | null);
+  const [users, setUsers] = useState([] as IUserRow[]);
+  const [filteredUsers, setFilteredUsers] = useState([] as IUserRow[]);
+  const [displayedUsers, setDisplayedUsers] = useState([] as IUserRow[]);
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -27,14 +19,14 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const roleOptions = useMemo(() => {
-    const set = new Set<string>();
-    users.forEach((u) => {
-      if (u.role) {
-        set.add(u.role);
-      }
-    });
-    return Array.from(set).sort();
-  }, [users]);
+  const set = new Set<string>();
+  users.forEach((u) => {
+    if (u.role && typeof u.role === "object" && u.role.name) {
+      set.add(u.role.name);
+    }
+  });
+  return Array.from(set).sort();
+}, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -57,9 +49,11 @@ const Users = () => {
     let filtered = users;
 
     // Filter by role
-    if (selectedRole !== "") {
-      filtered = filtered.filter((u) => u.role === selectedRole);
-    }
+   if (selectedRole !== "") {
+  filtered = filtered.filter((u) => {
+    return typeof u.role === "object" ? u.role.name === selectedRole : u.role === selectedRole;
+  });
+}
 
     // Filter by search term (name, email, or mobile)
     if (searchTerm !== "") {
@@ -266,7 +260,6 @@ const Users = () => {
                   onClick={() => navigate("/users/create")}
                   style={{ height: "36px", padding: "0 16px" }}
                 >
-                  <i></i>
                   Create User
                 </button>
 
@@ -332,7 +325,7 @@ const Users = () => {
                         <td>{u.name}</td>
                         <td>{u.email}</td>
                         <td>{u.mobile || "-"}</td>
-                        <td>{u.role || "-"}</td>
+                        <td>{u.role && typeof u.role === "object" ? u.role.displayName || u.role.name : u.role || "-"}</td>
                         <td>
                           {u.createdAt
                             ? new Date(u.createdAt).toLocaleString()
@@ -386,10 +379,10 @@ const Users = () => {
                 <div style={{ fontSize: "14px", color: "#666" }}>
                   Showing{" "}
                   <strong>
-                    {filteredUsers.length > 0
-                      ? (currentPage - 1) * entriesPerPage + 1
-                      : 0}
-                  </strong>{" "}
+  {filteredUsers.length === 0 ? 0 : 1
+    ? (currentPage - 1) * entriesPerPage + 1
+    : 0}
+</strong>{" "}
                   to{" "}
                   <strong>
                     {entriesPerPage === -1
