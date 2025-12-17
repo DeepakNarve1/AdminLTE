@@ -209,7 +209,7 @@ const Register = () => {
               {t("login.button.signUp.social", { what: "Google" })}
             </Button>
           </div>
-          <Link to="/login" className="text-center">
+          <Link to="/" className="text-center">
             {t("register.alreadyHave")}
           </Link>
         </div>
