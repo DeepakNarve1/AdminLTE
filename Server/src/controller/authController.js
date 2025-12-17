@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
@@ -34,12 +35,13 @@ exports.registerUser = asyncHandler(async (req, res) => {
     permissions: {},
   });
 
-  // Populate role for response
-  await newUser.populate({
-    path: "role",
-    select: "name displayName permissions sidebarAccess",
-    populate: { path: "permissions", select: "name displayName" },
-  });
+  // Perform manual safe populate
+  if (newUser.role && mongoose.Types.ObjectId.isValid(newUser.role)) {
+     const roleDoc = await Role.findById(newUser.role).populate("permissions", "name displayName");
+     if (roleDoc) {
+       newUser.role = roleDoc;
+     }
+  }
 
   res.status(201).json({
     success: true,
@@ -96,12 +98,14 @@ exports.getUserById = asyncHandler(async (req, res) => {
 
 // Update User
 exports.updateUser = asyncHandler(async (req, res) => {
-  if (!req.user || !["admin", "superadmin"].includes(req.user.role?.name)) {
+  const roleName = req.user?.role?.name || req.user?.role;
+  if (!req.user || !["admin", "superadmin"].includes(roleName)) {
     res.status(403);
     throw new Error("Not authorized to update users");
   }
 
-  const user = await User.findById(req.params.id).populate("role");
+  // Fetch user first allowing strings
+  let user = await User.findById(req.params.id);
   if (!user) {
     res.status(404);
     throw new Error("User not found");
@@ -127,7 +131,8 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
 // Delete User
 exports.deleteUser = asyncHandler(async (req, res) => {
-  if (!req.user || !["admin", "superadmin"].includes(req.user.role.name)) {
+  const roleName = req.user?.role?.name || req.user?.role;
+  if (!req.user || !["admin", "superadmin", "super admin", "System Administrator", "system administrator"].includes(roleName)) {
     res.status(403);
     throw new Error("Not authorized to delete users");
   }
@@ -152,11 +157,16 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 exports.loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).populate({
-    path: "role",
-    select: "name displayName permissions sidebarAccess",
-    populate: { path: "permissions", select: "name displayName" },
-  });
+  // Fetch user document without populate first to allow string roles
+  const user = await User.findOne({ email });
+
+  // Manually populate role if it is an ObjectId
+  if (user && user.role && mongoose.Types.ObjectId.isValid(user.role)) {
+     const roleDoc = await Role.findById(user.role).populate("permissions", "name displayName");
+     if (roleDoc) {
+       user.role = roleDoc;
+     }
+  }
 
   if (!user) {
     res.status(401);
