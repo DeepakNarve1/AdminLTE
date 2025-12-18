@@ -21,14 +21,14 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const roleOptions = useMemo(() => {
-  const set = new Set<string>();
-  users.forEach((u) => {
-    if (u.role && typeof u.role === "object" && u.role.name) {
-      set.add(u.role.name);
-    }
-  });
-  return Array.from(set).sort();
-}, [users]);
+    const set = new Set<string>();
+    users.forEach((u) => {
+      if (u.role && typeof u.role === "object" && u.role.name) {
+        set.add(u.role.name);
+      }
+    });
+    return Array.from(set).sort();
+  }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -51,11 +51,13 @@ const Users = () => {
     let filtered = users;
 
     // Filter by role
-   if (selectedRole !== "") {
-  filtered = filtered.filter((u) => {
-    return typeof u.role === "object" ? u.role.name === selectedRole : u.role === selectedRole;
-  });
-}
+    if (selectedRole !== "") {
+      filtered = filtered.filter((u) => {
+        return typeof u.role === "object"
+          ? u.role.name === selectedRole
+          : u.role === selectedRole;
+      });
+    }
 
     // Filter by search term (name, email, or mobile)
     if (searchTerm !== "") {
@@ -257,14 +259,14 @@ const Users = () => {
 
               {/* Create User Button */}
               <div style={{ display: "flex", gap: "8px" }}>
-                {checkPermission("users.create") && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => navigate("/users/create")}
-                  style={{ height: "36px", padding: "0 16px" }}
-                >
-                  Create User
-                </button>
+                {checkPermission("create_users") && (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => navigate("/users/create")}
+                    style={{ height: "36px", padding: "0 16px" }}
+                  >
+                    Create User
+                  </button>
                 )}
 
                 {/* Export Button */}
@@ -329,7 +331,11 @@ const Users = () => {
                         <td>{u.name}</td>
                         <td>{u.email}</td>
                         <td>{u.mobile || "-"}</td>
-                        <td>{u.role && typeof u.role === "object" ? u.role.displayName || u.role.name : u.role || "-"}</td>
+                        <td>
+                          {u.role && typeof u.role === "object"
+                            ? u.role.displayName || u.role.name
+                            : u.role || "-"}
+                        </td>
                         <td>
                           {u.createdAt
                             ? new Date(u.createdAt).toLocaleString()
@@ -338,36 +344,36 @@ const Users = () => {
                         <td>
                           <div className="d-flex align-items-center gap-2">
                             {/* View Button - Always visible or checking users.view? for now leaving as is or add users.view */}
-                            {checkPermission("users.view") && (
-                                <button
+                            {checkPermission("view_users") && (
+                              <button
                                 className="btn btn-sm btn-info p-2 mr-2"
                                 onClick={() => navigate(`/users/${u._id}/view`)}
                                 title="View"
-                                >
+                              >
                                 <i className="fas fa-eye"></i>
-                                </button>
+                              </button>
                             )}
-                            
+
                             {/* Edit Button */}
-                            {checkPermission("users.edit") && (
-                                <button
+                            {checkPermission("edit_users") && (
+                              <button
                                 className="btn btn-sm btn-warning p-2 mr-2"
                                 onClick={() => navigate(`/users/${u._id}/edit`)}
                                 title="Edit"
-                                >
+                              >
                                 <i className="fas fa-edit"></i>
-                                </button>
+                              </button>
                             )}
 
                             {/* Delete Button */}
-                            {checkPermission("users.delete") && (
-                                <button
+                            {checkPermission("delete_users") && (
+                              <button
                                 className="btn btn-sm btn-danger p-2 mr-2"
                                 onClick={() => handleDelete(u._id)}
                                 title="Delete"
-                                >
+                              >
                                 <i className="fas fa-trash-alt"></i>
-                                </button>
+                              </button>
                             )}
                           </div>
                         </td>
@@ -389,10 +395,12 @@ const Users = () => {
                 <div style={{ fontSize: "14px", color: "#666" }}>
                   Showing{" "}
                   <strong>
-  {filteredUsers.length === 0 ? 0 : 1
-    ? (currentPage - 1) * entriesPerPage + 1
-    : 0}
-</strong>{" "}
+                    {filteredUsers.length === 0
+                      ? 0
+                      : 1
+                        ? (currentPage - 1) * entriesPerPage + 1
+                        : 0}
+                  </strong>{" "}
                   to{" "}
                   <strong>
                     {entriesPerPage === -1
