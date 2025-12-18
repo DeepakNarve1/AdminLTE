@@ -16,6 +16,7 @@ interface IPermission {
 
 const EditRole = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [role, setRole] = useState({
     name: "",
@@ -29,44 +30,44 @@ const EditRole = () => {
   const [permissions, setPermissions] = useState<IPermission[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { id } = useParams();
 
-  // Fetch all permissions from backend
+  // Fetch all permissions
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/permissions", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        setPermissions(res.data.data);
+        setPermissions(res.data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch permissions:", err);
       }
     };
     fetchPermissions();
   }, []);
 
+  // Fetch current role
   useEffect(() => {
     const fetchRole = async () => {
+      if (!id) return;
       try {
         const res = await axios.get(`http://localhost:5000/api/roles/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
         const roleData = res.data.data;
 
         setRole({
-          name: roleData.name,
-          displayName: roleData.displayName,
+          name: roleData.name || "",
+          displayName: roleData.displayName || "",
           description: roleData.description || "",
-          permissions: roleData.permissions.map((p: IPermission) => p._id),
+          permissions:
+            roleData.permissions?.map((p: IPermission) => p._id) || [],
         });
 
         setSidebarAccess(roleData.sidebarAccess || []);
-      } catch (err) {
-        toast.error("Failed to load role");
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || "Failed to load role");
       }
     };
 
@@ -79,12 +80,12 @@ const EditRole = () => {
     setRole({ ...role, [e.target.name]: e.target.value });
   };
 
-  const togglePermission = (id: string) => {
+  const togglePermission = (permId: string) => {
     setRole((prev) => ({
       ...prev,
-      permissions: prev.permissions.includes(id)
-        ? prev.permissions.filter((p) => p !== id)
-        : [...prev.permissions, id],
+      permissions: prev.permissions.includes(permId)
+        ? prev.permissions.filter((p) => p !== permId)
+        : [...prev.permissions, permId],
     }));
   };
 
@@ -97,25 +98,23 @@ const EditRole = () => {
   const updateRole = async () => {
     const newErrors: Record<string, string> = {};
 
-    if (!role.name) newErrors.name = "Name is required";
-    if (!role.displayName) newErrors.displayName = "Display Name is required";
+    if (!role.name.trim()) newErrors.name = "Name is required";
+    if (!role.displayName.trim())
+      newErrors.displayName = "Display Name is required";
 
     if (Object.keys(newErrors).length > 0) {
-      toast.error("Fix the errors");
       setErrors(newErrors);
+      toast.error("Please fix the errors");
       return;
     }
 
     try {
       setLoading(true);
-
       await axios.put(
         `http://localhost:5000/api/roles/${id}`,
         { ...role, sidebarAccess },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
@@ -137,7 +136,6 @@ const EditRole = () => {
             <h5 className="mb-3">Role Details</h5>
 
             <div className="row">
-              {/* Name */}
               <div className="col-md-6 mb-3">
                 <label>Role Name (system name)</label>
                 <input
@@ -149,7 +147,6 @@ const EditRole = () => {
                 />
               </div>
 
-              {/* Display Name */}
               <div className="col-md-6 mb-3">
                 <label>Display Name</label>
                 <input
@@ -161,7 +158,6 @@ const EditRole = () => {
                 />
               </div>
 
-              {/* Description */}
               <div className="col-md-12 mb-3">
                 <label>Description</label>
                 <textarea
@@ -170,6 +166,7 @@ const EditRole = () => {
                   onChange={handleChange}
                   placeholder="Enter description"
                   className="form-control"
+                  rows={3}
                 />
               </div>
             </div>
@@ -177,13 +174,18 @@ const EditRole = () => {
             <h5 className="mt-4">Select Permissions</h5>
             <div className="row">
               {permissions.map((p) => (
-                <div className="col-md-4" key={p._id}>
-                  <label className="d-flex align-items-center">
+                <div className="col-md-4 mb-3" key={p._id}>
+                  <label
+                    htmlFor={`perm-${p._id}`}
+                    className="d-flex align-items-center"
+                    style={{ cursor: "pointer" }}
+                  >
                     <input
+                      id={`perm-${p._id}`}
                       type="checkbox"
                       checked={role.permissions.includes(p._id)}
                       onChange={() => togglePermission(p._id)}
-                      style={{ marginRight: "8px" }}
+                      style={{ marginRight: "10px" }}
                     />
                     {p.displayName}
                   </label>
@@ -201,31 +203,55 @@ const EditRole = () => {
                 <thead>
                   <tr>
                     <th>Menu Name</th>
-                    <th>Path</th>
                     <th className="text-center" style={{ width: "120px" }}>
-                      Total
-                      <input
-                        type="checkbox"
-                        className="ml-2"
-                        checked={menuItems.length > 0 && menuItems.every((i) => i.path && sidebarAccess.includes(i.path))}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSidebarAccess(menuItems.map((i) => i.path).filter((p) => p) as string[]);
-                          } else {
-                            setSidebarAccess([]);
+                      Access
+                      <label
+                        htmlFor="select-all-sidebar"
+                        style={{ cursor: "pointer", marginLeft: "8px" }}
+                      >
+                        <input
+                          id="select-all-sidebar"
+                          type="checkbox"
+                          checked={
+                            menuItems.length > 0 &&
+                            menuItems.every(
+                              (i) => i.path && sidebarAccess.includes(i.path)
+                            )
                           }
-                        }}
-                      />
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSidebarAccess(
+                                menuItems
+                                  .map((i) => i.path)
+                                  .filter((p): p is string => !!p)
+                              );
+                            } else {
+                              setSidebarAccess([]);
+                            }
+                          }}
+                        />
+                      </label>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {menuItems.map((item) => (
                     <tr key={item.path}>
-                      <td>{item.name}</td>
-                      <td>{item.path}</td>
+                      <td>
+                        <label
+                          htmlFor={`sidebar-${item.path}`}
+                          style={{
+                            cursor: "pointer",
+                            display: "block",
+                            padding: "8px 0",
+                          }}
+                        >
+                          {item.name}
+                        </label>
+                      </td>
                       <td className="text-center">
                         <input
+                          id={`sidebar-${item.path}`}
                           type="checkbox"
                           checked={sidebarAccess.includes(item.path)}
                           onChange={() => toggleSidebarAccess(item.path)}
@@ -237,9 +263,9 @@ const EditRole = () => {
               </table>
             </div>
 
-            <div className="d-flex mt-4">
+            <div className="d-flex mt-4" style={{ gap: "12px" }}>
               <button
-                className="btn btn-primary mr-2"
+                className="btn btn-primary"
                 disabled={loading}
                 onClick={updateRole}
               >
@@ -256,6 +282,7 @@ const EditRole = () => {
                     permissions: [],
                   });
                   setSidebarAccess([]);
+                  setErrors({});
                 }}
               >
                 Reset
