@@ -6,7 +6,7 @@ const PrivateRoute = () => {
   const token = localStorage.getItem("token");
 
   // Check both Redux state and localStorage token
-  return currentUser && token ? <Outlet /> : <Navigate to="/" replace />;
+  return currentUser && token ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;

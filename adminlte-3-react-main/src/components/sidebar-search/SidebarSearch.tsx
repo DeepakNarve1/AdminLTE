@@ -1,4 +1,4 @@
-import { IMenuItem, MENU } from '@app/modules/main/menu-sidebar/MenuSidebar';
+import { IMenuItem, MENU } from '@app/utils/menu';
 import { Dropdown } from '@profabric/react-components';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
