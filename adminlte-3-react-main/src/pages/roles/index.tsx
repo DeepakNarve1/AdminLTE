@@ -11,7 +11,10 @@ interface IRoleRow {
   createdAt?: string;
 }
 
+import { useAuthorization } from "@app/hooks/useAuthorization";
+
 const RoleList = () => {
+  const { checkPermission } = useAuthorization();
   const navigate = useNavigate();
   const [roles, setRoles] = useState<IRoleRow[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<IRoleRow[]>([]);
@@ -111,13 +114,15 @@ const RoleList = () => {
                 style={{ width: "220px", height: "36px" }}
               />
 
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => navigate("/roles/create")}
-                style={{ height: "36px", padding: "0 16px" }}
-              >
-                Create New Role
-              </button>
+              {checkPermission("roles.create") && (
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => navigate("/roles/create")}
+                  style={{ height: "36px", padding: "0 16px" }}
+                >
+                  Create New Role
+                </button>
+              )}
             </div>
 
             {/* Table */}
@@ -163,19 +168,24 @@ const RoleList = () => {
                         <td>
                           <div className="d-flex align-items-center gap-2">
 
-                            <button
-                              className="btn btn-sm btn-warning p-2 mr-2"
-                              onClick={() => navigate(`/roles/${r._id}/edit`)}
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
 
-                            <button
-                              className="btn btn-sm btn-danger p-2 mr-2"
-                              onClick={() => handleDelete(r._id)}
-                            >
-                              <i className="fas fa-trash-alt"></i>
-                            </button>
+                            {checkPermission("roles.edit") && (
+                                <button
+                                className="btn btn-sm btn-warning p-2 mr-2"
+                                onClick={() => navigate(`/roles/${r._id}/edit`)}
+                                >
+                                <i className="fas fa-edit"></i>
+                                </button>
+                            )}
+
+                            {checkPermission("roles.delete") && (
+                                <button
+                                className="btn btn-sm btn-danger p-2 mr-2"
+                                onClick={() => handleDelete(r._id)}
+                                >
+                                <i className="fas fa-trash-alt"></i>
+                                </button>
+                            )}
                           </div>
                         </td>
                       </tr>
