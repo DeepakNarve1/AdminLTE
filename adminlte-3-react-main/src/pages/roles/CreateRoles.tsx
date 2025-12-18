@@ -174,8 +174,8 @@ const CreateRole = () => {
                   <tr>
                     <th>Menu Name</th>
                     <th>Path</th>
-                    <th className="text-center" style={{ width: "120px" }}>
-                      Total
+                    <th className="text-center" style={{ width: "100px" }}>
+                      Sidebar Access  
                       <input
                         type="checkbox"
                         className="ml-2"
@@ -189,10 +189,28 @@ const CreateRole = () => {
                         }}
                       />
                     </th>
+                    <th className="text-center" style={{ width: "80px" }}>Create</th>
+                    <th className="text-center" style={{ width: "80px" }}>Edit</th>
+                    <th className="text-center" style={{ width: "80px" }}>Delete</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {menuItems.map((item) => (
+                  {menuItems.map((item: any) => {
+                     // Find permissions for this resource
+                     const resourcePermissions = permissions.filter(
+                         (p) => item.resource && (p.category === item.resource || p.name.startsWith(item.resource))
+                     );
+                     
+                     const findPermissionId = (action: string) => {
+                         const p = resourcePermissions.find(rp => rp.name.toLowerCase().includes(action.toLowerCase()));
+                         return p?._id;
+                     };
+
+                     const createPermId = findPermissionId("create");
+                     const editPermId = findPermissionId("edit");
+                     const deletePermId = findPermissionId("delete");
+
+                     return (
                     <tr key={item.path}>
                       <td>{item.name}</td>
                       <td>{item.path}</td>
@@ -203,8 +221,35 @@ const CreateRole = () => {
                           onChange={() => toggleSidebarAccess(item.path)}
                         />
                       </td>
+                      <td className="text-center">
+                          {createPermId && (
+                              <input 
+                                  type="checkbox"
+                                  checked={role.permissions.includes(createPermId)}
+                                  onChange={() => togglePermission(createPermId)}
+                              />
+                          )}
+                      </td>
+                      <td className="text-center">
+                          {editPermId && (
+                              <input 
+                                  type="checkbox"
+                                  checked={role.permissions.includes(editPermId)}
+                                  onChange={() => togglePermission(editPermId)}
+                              />
+                          )}
+                      </td>
+                      <td className="text-center">
+                          {deletePermId && (
+                              <input 
+                                  type="checkbox"
+                                  checked={role.permissions.includes(deletePermId)}
+                                  onChange={() => togglePermission(deletePermId)}
+                              />
+                          )}
+                      </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>

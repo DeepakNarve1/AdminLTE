@@ -188,5 +188,10 @@ export const useAuthorization = () => {
      return false;
   };
 
-  return { checkAccess, userRoles, roleBasedAllowedPaths };
+  const checkPermission = (action: string) => {
+    if (userRoles.includes("superadmin")) return true;
+    return userPermissions.includes(action);
+  };
+
+  return { checkAccess, checkPermission, userRoles, roleBasedAllowedPaths };
 };

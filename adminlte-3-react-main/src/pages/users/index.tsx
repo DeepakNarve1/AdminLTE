@@ -5,8 +5,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { IUserRow } from "@app/types/user";
+import { useAuthorization } from "@app/hooks/useAuthorization";
 
 const Users = () => {
+  const { checkPermission } = useAuthorization();
   const navigate = useNavigate();
   const fileInputRef = useRef(null as HTMLInputElement | null);
   const [users, setUsers] = useState([] as IUserRow[]);
@@ -255,6 +257,7 @@ const Users = () => {
 
               {/* Create User Button */}
               <div style={{ display: "flex", gap: "8px" }}>
+                {checkPermission("users.create") && (
                 <button
                   className="btn btn-primary btn-sm"
                   onClick={() => navigate("/users/create")}
@@ -262,6 +265,7 @@ const Users = () => {
                 >
                   Create User
                 </button>
+                )}
 
                 {/* Export Button */}
                 <button
@@ -333,32 +337,38 @@ const Users = () => {
                         </td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-                            {/* View Button */}
-                            <button
-                              className="btn btn-sm btn-info p-2 mr-2"
-                              onClick={() => navigate(`/users/${u._id}/view`)}
-                              title="View"
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-
+                            {/* View Button - Always visible or checking users.view? for now leaving as is or add users.view */}
+                            {checkPermission("users.view") && (
+                                <button
+                                className="btn btn-sm btn-info p-2 mr-2"
+                                onClick={() => navigate(`/users/${u._id}/view`)}
+                                title="View"
+                                >
+                                <i className="fas fa-eye"></i>
+                                </button>
+                            )}
+                            
                             {/* Edit Button */}
-                            <button
-                              className="btn btn-sm btn-warning p-2 mr-2"
-                              onClick={() => navigate(`/users/${u._id}/edit`)}
-                              title="Edit"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
+                            {checkPermission("users.edit") && (
+                                <button
+                                className="btn btn-sm btn-warning p-2 mr-2"
+                                onClick={() => navigate(`/users/${u._id}/edit`)}
+                                title="Edit"
+                                >
+                                <i className="fas fa-edit"></i>
+                                </button>
+                            )}
 
                             {/* Delete Button */}
-                            <button
-                              className="btn btn-sm btn-danger p-2 mr-2"
-                              onClick={() => handleDelete(u._id)}
-                              title="Delete"
-                            >
-                              <i className="fas fa-trash-alt"></i>
-                            </button>
+                            {checkPermission("users.delete") && (
+                                <button
+                                className="btn btn-sm btn-danger p-2 mr-2"
+                                onClick={() => handleDelete(u._id)}
+                                title="Delete"
+                                >
+                                <i className="fas fa-trash-alt"></i>
+                                </button>
+                            )}
                           </div>
                         </td>
                       </tr>
