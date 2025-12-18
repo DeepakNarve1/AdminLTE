@@ -1,4 +1,4 @@
-import { MENU } from "@app/modules/main/menu-sidebar/MenuSidebar";
+import { MENU } from "@app/utils/menu";
 
 export const flattenMenu = (items = MENU) => {
   const flattened: { name: string; path: string }[] = [];

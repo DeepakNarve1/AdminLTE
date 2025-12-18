@@ -37,7 +37,7 @@ const Main = () => {
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const [isAppLoaded, setIsAppLoaded] = useState(false);
   const [isScrollbarVisible, setIsScrollbarVisible] = useState(false);
-  const mainRef = useRef<HTMLDivElement | undefined>();
+  const mainRef = useRef<HTMLDivElement | undefined>(undefined);
 
   const handleToggleMenuSidebar = () => {
     dispatch(toggleSidebarMenu());
