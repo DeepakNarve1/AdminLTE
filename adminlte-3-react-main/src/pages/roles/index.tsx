@@ -167,24 +167,22 @@ const RoleList = () => {
                         </td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-
-
                             {checkPermission("roles.edit") && (
-                                <button
+                              <button
                                 className="btn btn-sm btn-warning p-2 mr-2"
                                 onClick={() => navigate(`/roles/${r._id}/edit`)}
-                                >
+                              >
                                 <i className="fas fa-edit"></i>
-                                </button>
+                              </button>
                             )}
 
                             {checkPermission("roles.delete") && (
-                                <button
+                              <button
                                 className="btn btn-sm btn-danger p-2 mr-2"
                                 onClick={() => handleDelete(r._id)}
-                                >
+                              >
                                 <i className="fas fa-trash-alt"></i>
-                                </button>
+                              </button>
                             )}
                           </div>
                         </td>
