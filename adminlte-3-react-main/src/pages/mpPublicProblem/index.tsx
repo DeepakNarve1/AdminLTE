@@ -1,5 +1,5 @@
 import { ContentHeader } from "@components";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
@@ -38,7 +38,7 @@ const calculateTimer = (dateStr: string) => {
 const MpPublicProblem = () => {
   const [data, setData] = useState<IPublicProblem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(0);
+  const [totalCount, setTotalCount] = useState(0); // Total records in DB (unfiltered)
 
   // Filters
   const [filterBlock, setFilterBlock] = useState("");
@@ -52,7 +52,7 @@ const MpPublicProblem = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Column Visibility State
+  // Column Visibility
   const [showColumnToggle, setShowColumnToggle] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
     srNo: true,
@@ -68,7 +68,7 @@ const MpPublicProblem = () => {
     boothNo: true,
   });
 
-  // Timer for live update
+  // Live timer
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -80,7 +80,7 @@ const MpPublicProblem = () => {
       setLoading(true);
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage,
+        limit: entriesPerPage === -1 ? -1 : entriesPerPage,
       };
       if (filterBlock) params.block = filterBlock;
       if (filterYear) params.year = filterYear;
@@ -94,11 +94,11 @@ const MpPublicProblem = () => {
         params,
       });
 
-      setData(res.data.data);
-      setTotal(res.data.count);
+      setData(res.data.data || []);
+      setTotalCount(res.data.count || 0); // This is now the TRUE total in DB
     } catch (err: any) {
       console.error(err);
-      // toast.error("Failed to fetch data");
+      toast.error("Failed to fetch data");
     } finally {
       setLoading(false);
     }
@@ -117,24 +117,20 @@ const MpPublicProblem = () => {
     searchTerm,
   ]);
 
-  // Apply Filters
-  const handleFilter = () => {
-    setCurrentPage(1); // Reset to first page on filter change
-    fetchData(); // Trigger data fetch with new filters
-    toast.info("Filters applied");
-  };
-
-  // Search Logic (now triggers fetchData)
+  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page on search change
-      fetchData(); // Trigger data fetch with new search term
-    }, 300); // Debounce search
+      setCurrentPage(1);
+      fetchData();
+    }, 300);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Pagination Logic (no longer needed for client-side slicing, just triggers fetchData)
-  // The useEffect for pagination is now merged into the main fetchData useEffect.
+  const handleFilter = () => {
+    setCurrentPage(1);
+    fetchData();
+    toast.info("Filters applied");
+  };
 
   const handleSeed = async () => {
     try {
@@ -145,7 +141,7 @@ const MpPublicProblem = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      toast.success("Database seeded! Refreshing...");
+      toast.success("Database seeded successfully!");
       fetchData();
     } catch (err) {
       toast.error("Failed to seed database");
@@ -153,13 +149,15 @@ const MpPublicProblem = () => {
   };
 
   const handleExport = () => {
-    // For export, we might want to fetch all data without pagination or apply current filters
-    // For simplicity, exporting currently displayed data.
+    if (data.length === 0) {
+      toast.warning("No data to export");
+      return;
+    }
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "PublicProblems");
     XLSX.writeFile(wb, "PublicProblems.xlsx");
-    toast.success("Exported to Excel");
+    toast.success("Exported successfully");
   };
 
   const toggleColumn = (key: keyof typeof visibleColumns) => {
@@ -247,7 +245,7 @@ const MpPublicProblem = () => {
             </div>
           </div>
 
-          {/* List Card */}
+          {/* Main Table Card */}
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h3 className="card-title font-weight-bold">
@@ -261,7 +259,6 @@ const MpPublicProblem = () => {
             <div className="card-body">
               {/* Top Controls */}
               <div className="d-flex justify-content-between flex-wrap mb-3">
-                {/* Left Side: Entries & Buttons */}
                 <div
                   className="d-flex align-items-center mb-2"
                   style={{ gap: "10px" }}
@@ -334,7 +331,6 @@ const MpPublicProblem = () => {
                   </div>
                 </div>
 
-                {/* Right Side: Search */}
                 <div className="d-flex align-items-center mb-2">
                   <label className="mr-2 mb-0">Search:</label>
                   <input
@@ -342,6 +338,7 @@ const MpPublicProblem = () => {
                     className="form-control form-control-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
                   />
                 </div>
               </div>
@@ -369,26 +366,39 @@ const MpPublicProblem = () => {
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan={11}>Loading...</td>
+                        <td colSpan={11} className="text-center py-4">
+                          Loading...
+                        </td>
                       </tr>
                     ) : data.length === 0 ? (
                       <tr>
-                        <td colSpan={11}>
-                          No data found
-                          {total === 0 && (
-                            <div className="mt-2">
+                        <td colSpan={11} className="text-center py-4">
+                          {totalCount > 0 ? (
+                            <div>
+                              <strong>
+                                No records match the current filters
+                              </strong>
+                              <div className="mt-2 text-muted small">
+                                Try adjusting or clearing the filters
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="mb-3">
+                                No data available in the database
+                              </div>
                               <button
                                 className="btn btn-warning btn-sm"
                                 onClick={handleSeed}
                               >
-                                Seed Database (Demo)
+                                Seed Database (Add Demo Data)
                               </button>
-                            </div>
+                            </>
                           )}
                         </td>
                       </tr>
                     ) : (
-                      data.map((row: IPublicProblem, idx) => (
+                      data.map((row, idx) => (
                         <tr key={row._id}>
                           {visibleColumns.srNo && (
                             <td>
@@ -411,7 +421,7 @@ const MpPublicProblem = () => {
                             <td>{row.recommendedLetterNo}</td>
                           )}
                           {visibleColumns.boothNo && (
-                            <td>{row.boothNo || ""}</td>
+                            <td>{row.boothNo || "-"}</td>
                           )}
                         </tr>
                       ))
@@ -420,16 +430,17 @@ const MpPublicProblem = () => {
                 </table>
               </div>
 
-              {/* Pagination Footer */}
+              {/* Pagination */}
               <div className="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
                 <div className="text-muted small">
                   Showing{" "}
                   {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0}{" "}
-                  to {Math.min(currentPage * entriesPerPage, total)} of {total}{" "}
-                  entries
+                  to {Math.min(currentPage * entriesPerPage, totalCount)} of{" "}
+                  {totalCount} entries
                 </div>
-                <nav>
-                  {entriesPerPage !== -1 && total > entriesPerPage && (
+
+                {entriesPerPage !== -1 && totalCount > entriesPerPage && (
+                  <nav>
                     <ul className="pagination pagination-sm m-0">
                       <li
                         className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
@@ -449,7 +460,11 @@ const MpPublicProblem = () => {
                       </li>
 
                       <li
-                        className={`page-item ${currentPage * entriesPerPage >= total ? "disabled" : ""}`}
+                        className={`page-item ${
+                          currentPage * entriesPerPage >= totalCount
+                            ? "disabled"
+                            : ""
+                        }`}
                       >
                         <button
                           className="page-link"
@@ -459,8 +474,8 @@ const MpPublicProblem = () => {
                         </button>
                       </li>
                     </ul>
-                  )}
-                </nav>
+                  </nav>
+                )}
               </div>
             </div>
           </div>
