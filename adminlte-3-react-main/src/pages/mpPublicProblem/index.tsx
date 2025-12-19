@@ -1,5 +1,5 @@
 import { ContentHeader } from "@components";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
@@ -165,6 +165,99 @@ const MpPublicProblem = () => {
     setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Import from Excel
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        setLoading(true);
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+          toast.warning("No data found in Excel file");
+          setLoading(false);
+          return;
+        }
+
+        const token = localStorage.getItem("token");
+        let successCount = 0;
+        let failureCount = 0;
+
+        // Iterate and create entries
+        for (const row of jsonData) {
+          try {
+            const anyRow = row as any;
+            const payload = {
+              srNo: anyRow["Sr.No."] || anyRow["SrNo"] || anyRow["srNo"] || "",
+              regNo:
+                anyRow["Regl. No."] || anyRow["RegNo"] || anyRow["regNo"] || "",
+              timer: anyRow["Timer"] || anyRow["timer"] || "",
+              year:
+                anyRow["Year"] ||
+                anyRow["year"] ||
+                new Date().getFullYear().toString(),
+              month: anyRow["Month"] || anyRow["month"] || "",
+              day: anyRow["Date"] || anyRow["Day"] || anyRow["day"] || "",
+              district: anyRow["District"] || anyRow["district"] || "",
+              assembly: anyRow["Assembly"] || anyRow["assembly"] || "",
+              block: anyRow["Block"] || anyRow["block"] || "",
+              recommendedLetterNo:
+                anyRow["Recommended Letter No"] ||
+                anyRow["RecLetterNo"] ||
+                anyRow["recommendedLetterNo"] ||
+                "",
+              boothNo:
+                anyRow["Booth No"] ||
+                anyRow["Booth"] ||
+                anyRow["boothNo"] ||
+                "",
+              department: anyRow["Department"] || anyRow["department"] || "",
+              status: anyRow["Status"] || anyRow["status"] || "Pending",
+            };
+
+            // Basic validation
+            if (!payload.regNo || !payload.district) {
+              failureCount++;
+              continue;
+            }
+
+            // Using existing create endpoint
+            await axios.post(
+              "http://localhost:5000/api/public-problems",
+              payload,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            successCount++;
+          } catch (error) {
+            failureCount++;
+          }
+        }
+
+        toast.success(
+          `Import complete: ${successCount} entries added, ${failureCount} failed`
+        );
+        fetchData();
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to import file. Please check the format.");
+      } finally {
+        setLoading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
     <div>
       <ContentHeader title="Public Problems Management" />
@@ -252,12 +345,27 @@ const MpPublicProblem = () => {
               <h3 className="card-title font-weight-bold">
                 Public Problems List
               </h3>
-              <button
-                className="btn btn-info btn-sm"
-                onClick={() => navigate("/mp-public-problems/create-entry")}
-              >
-                Add <i className="fas fa-plus ml-1"></i>
-              </button>
+              <div className="ml-auto">
+                <button
+                  className="btn btn-warning btn-sm mr-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Import <i className="fas fa-file-import ml-1"></i>
+                </button>
+                <button
+                  className="btn btn-info btn-sm"
+                  onClick={() => navigate("/mp-public-problems/create-entry")}
+                >
+                  Add <i className="fas fa-plus ml-1"></i>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleImport}
+                  style={{ display: "none" }}
+                />
+              </div>
             </div>
 
             <div className="card-body">
@@ -365,6 +473,7 @@ const MpPublicProblem = () => {
                         <th>Recommended Letter No</th>
                       )}
                       {visibleColumns.boothNo && <th>Booth No</th>}
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -427,6 +536,17 @@ const MpPublicProblem = () => {
                           {visibleColumns.boothNo && (
                             <td>{row.boothNo || "-"}</td>
                           )}
+                          <td>
+                            <button
+                              className="btn btn-sm btn-warning"
+                              onClick={() =>
+                                navigate(`/mp-public-problems/${row._id}/edit`)
+                              }
+                              title="Edit"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}

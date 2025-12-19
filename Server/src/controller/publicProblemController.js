@@ -110,8 +110,43 @@ const seedPublicProblems = async (req, res) => {
   }
 };
 
+// @desc    Get single public problem
+// @route   GET /api/public-problems/:id
+const getPublicProblemById = async (req, res) => {
+  try {
+    const problem = await PublicProblem.findById(req.params.id);
+    if (!problem) {
+      return res.status(404).json({ message: "Problem not found" });
+    }
+    res.json({ success: true, data: problem });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update public problem
+// @route   PUT /api/public-problems/:id
+const updatePublicProblem = async (req, res) => {
+  try {
+    const problem = await PublicProblem.findById(req.params.id);
+    if (!problem) {
+      return res.status(404).json({ message: "Problem not found" });
+    }
+    const updatedProblem = await PublicProblem.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.json({ success: true, data: updatedProblem });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getPublicProblems,
   createPublicProblem,
   seedPublicProblems,
+  getPublicProblemById,
+  updatePublicProblem,
 };

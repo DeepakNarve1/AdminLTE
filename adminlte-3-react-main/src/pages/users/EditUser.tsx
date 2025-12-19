@@ -3,28 +3,15 @@ import { ContentHeader } from "@components";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-interface UserForm {
-  name: string;
-  email: string;
-  mobile: string;
-  role: string;
-  userType: string;
-  block: string;
-}
-
-interface IRoleOption {
-  _id: string;
-  role?: string;
-  displayName?: string;
-  name?: string;
-}
+import { IRoleOption, UserForm } from "@app/types/user";
 
 const EditUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const [form, setForm] = useState<UserForm>({
+  const [form, setForm] = useState<
+    Omit<UserForm, "password" | "confirmPassword">
+  >({
     name: "",
     email: "",
     mobile: "",
@@ -71,7 +58,10 @@ const EditUser = () => {
             name: user.name || "",
             email: user.email || "",
             mobile: user.mobile || "",
-            role: typeof user.role === "object" && user.role ? (user.role as any).name || (user.role as any).role || "" : user.role || "",
+            role:
+              typeof user.role === "object" && user.role
+                ? (user.role as any).name || (user.role as any).role || ""
+                : user.role || "",
             userType: user.userType || "",
             block: user.block || "",
           });

@@ -4,24 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // (no redux selector needed here)
 import { toast } from "react-toastify";
-
-interface UserForm {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  mobile: string;
-  role: string;
-  userType: string;
-  block: string;
-}
-
-interface IRoleOption {
-  _id: string;
-  role?: string;
-  displayName?: string;
-  name?: string;
-}
+import { IRoleOption, UserForm } from "@app/types/user";
 
 const CreateUser = () => {
   const navigate = useNavigate();

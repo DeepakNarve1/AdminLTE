@@ -34,3 +34,21 @@ export interface IUserRow {
   role?: string | IRole;
   createdAt?: string;
 }
+
+export interface UserForm {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  mobile: string;
+  role: string;
+  userType: string;
+  block: string;
+}
+
+export interface IRoleOption {
+  _id: string;
+  role?: string;
+  displayName?: string;
+  name?: string;
+}
