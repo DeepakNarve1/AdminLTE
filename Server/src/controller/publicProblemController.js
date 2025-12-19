@@ -16,6 +16,7 @@ const getPublicProblems = async (req, res) => {
       limit = 10,
     } = req.query;
 
+    // Build filter query
     const query = {};
 
     if (block) query.block = block;
@@ -31,30 +32,38 @@ const getPublicProblems = async (req, res) => {
       ];
     }
 
-    // Pagination
     const pageNum = Number(page);
     const limitNum = Number(limit);
+
     let problems;
-    let total;
+    let filteredCount;
+    let totalCount;
+
+    // Always get the true total (unfiltered)
+    totalCount = await PublicProblem.countDocuments({});
 
     if (limitNum === -1) {
+      // Return all filtered records (no pagination)
       problems = await PublicProblem.find(query).sort({ createdAt: -1 });
-      total = problems.length;
+      filteredCount = problems.length;
     } else {
       const skip = (pageNum - 1) * limitNum;
       problems = await PublicProblem.find(query)
         .sort({ createdAt: -1 })
-        .limit(limitNum)
-        .skip(skip);
-      total = await PublicProblem.countDocuments(query);
+        .skip(skip)
+        .limit(limitNum);
+
+      filteredCount = await PublicProblem.countDocuments(query);
     }
 
     res.json({
       success: true,
-      count: total,
       data: problems,
+      count: totalCount, // ← Total records in DB (unfiltered)
+      filteredCount: filteredCount, // ← How many match current filters
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -76,7 +85,7 @@ const seedPublicProblems = async (req, res) => {
   try {
     await PublicProblem.deleteMany();
 
-    const problems = Array.from({ length: 25 }).map((_, i) => ({
+    const problems = Array.from({ length: 1250 }).map((_, i) => ({
       regNo: `MP/${416 - i}`,
       // Create dates going back 1 day per item to make timer interesting
       submissionDate: new Date(
