@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation, Location } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { IMenuItem } from '@app/modules/main/menu-sidebar/MenuSidebar';
+import { useEffect, useState } from "react";
+import { NavLink, useNavigate, useLocation, Location } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { IMenuItem } from "@app/utils/menu";
 
 const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
   const [t] = useTranslation();
@@ -22,7 +22,7 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
       toggleMenu();
       return;
     }
-    navigate(menuItem.path ? menuItem.path : '/');
+    navigate(menuItem.path ? menuItem.path : "/");
   };
 
   const calculateIsActive = (url: Location) => {
@@ -59,14 +59,14 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
   }, [menuItem]);
 
   return (
-    <li className={`nav-item${isMenuExtended ? ' menu-open' : ''}`}>
+    <li className={`nav-item${isMenuExtended ? " menu-open" : ""}`}>
       <a
         className={`nav-link${
-          isMainActive || isOneOfChildrenActive ? ' active' : ''
+          isMainActive || isOneOfChildrenActive ? " active" : ""
         }`}
         role="link"
         onClick={handleMainMenuAction}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: "pointer" }}
       >
         <i className={`${menuItem.icon}`} />
         <p>{t(menuItem.name)}</p>

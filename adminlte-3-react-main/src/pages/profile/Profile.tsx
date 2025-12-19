@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { ContentHeader } from '@components';
-import { Image, Button as RawButton } from '@profabric/react-components';
-import styled from 'styled-components';
-import ActivityTab from './ActivityTab';
-import TimelineTab from './TimelineTab';
-import SettingsTab from './SettingsTab';
-import { Button } from '@app/styles/common';
-import { useAppSelector } from '@app/store/store';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ContentHeader } from "@components";
+import { Image, Button as RawButton } from "@profabric/react-components";
+import styled from "styled-components";
+import ActivityTab from "./ActivityTab";
+import TimelineTab from "./TimelineTab";
+import SettingsTab from "./SettingsTab";
+import { Button } from "@app/styles/common";
+import { useAppSelector } from "@app/store/store";
 
 const StyledUserImage = styled(Image)`
   --pf-border: 3px solid #adb5bd;
@@ -20,7 +20,7 @@ export const TabButton = styled(RawButton)`
 `;
 
 const Profile = () => {
-  const [activeTab, setActiveTab] = useState('ACTIVITY');
+  const [activeTab, setActiveTab] = useState("ACTIVITY");
   const [t] = useTranslation();
   const currentUser = useAppSelector((state) => state.auth.currentUser);
 
@@ -48,35 +48,35 @@ const Profile = () => {
                     />
                   </div>
                   <h3 className="profile-username text-center">
-                    {currentUser?.displayName}
+                    {currentUser?.name}
                   </h3>
                   <p className="text-muted text-center">Software Engineer</p>
                   <ul className="list-group list-group-unbordered mb-3">
                     <li className="list-group-item">
-                      <b>{t('header.user.followers')}</b>
+                      <b>{t("header.user.followers")}</b>
                       <span className="float-right">1,322</span>
                     </li>
                     <li className="list-group-item">
-                      <b>{t('views.user.following')}</b>
+                      <b>{t("views.user.following")}</b>
                       <span className="float-right">543</span>
                     </li>
                     <li className="list-group-item">
-                      <b>{t('header.user.friends')}</b>
+                      <b>{t("header.user.friends")}</b>
                       <span className="float-right">13,287</span>
                     </li>
                   </ul>
-                  <Button>{t('main.label.follow')}</Button>
+                  <Button>{t("main.label.follow")}</Button>
                 </div>
                 {/* /.card-body */}
               </div>
               <div className="card card-primary">
                 <div className="card-header">
-                  <h3 className="card-title">{t('main.label.aboutMe')}</h3>
+                  <h3 className="card-title">{t("main.label.aboutMe")}</h3>
                 </div>
                 <div className="card-body">
                   <strong>
                     <i className="fas fa-book mr-1" />
-                    {t('main.label.education')}
+                    {t("main.label.education")}
                   </strong>
                   <p className="text-muted">
                     B.S. in Computer Science from the University of Tennessee at
@@ -85,13 +85,13 @@ const Profile = () => {
                   <hr />
                   <strong>
                     <i className="fas fa-map-marker-alt mr-1" />
-                    {t('main.label.location')}
+                    {t("main.label.location")}
                   </strong>
                   <p className="text-muted">Malibu, California</p>
                   <hr />
                   <strong>
                     <i className="fas fa-pencil-alt mr-1" />
-                    {t('main.label.skills')}
+                    {t("main.label.skills")}
                   </strong>
                   <p className="text-muted">
                     <span className="tag tag-danger">UI Design</span>
@@ -103,7 +103,7 @@ const Profile = () => {
                   <hr />
                   <strong>
                     <i className="far fa-file-alt mr-1" />
-                    {t('main.label.notes')}
+                    {t("main.label.notes")}
                   </strong>
                   <p className="text-muted">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
@@ -118,35 +118,35 @@ const Profile = () => {
                   <ul className="nav nav-pills">
                     <li className="nav-item">
                       <TabButton
-                        variant={activeTab === 'ACTIVITY' ? 'primary' : 'light'}
-                        onClick={() => toggle('ACTIVITY')}
+                        variant={activeTab === "ACTIVITY" ? "primary" : "light"}
+                        onClick={() => toggle("ACTIVITY")}
                       >
-                        {t('main.label.activity')}
+                        {t("main.label.activity")}
                       </TabButton>
                     </li>
                     <li className="nav-item">
                       <TabButton
-                        variant={activeTab === 'TIMELINE' ? 'primary' : 'light'}
-                        onClick={() => toggle('TIMELINE')}
+                        variant={activeTab === "TIMELINE" ? "primary" : "light"}
+                        onClick={() => toggle("TIMELINE")}
                       >
-                        {t('main.label.timeline')}
+                        {t("main.label.timeline")}
                       </TabButton>
                     </li>
                     <li className="nav-item">
                       <TabButton
-                        variant={activeTab === 'SETTINGS' ? 'primary' : 'light'}
-                        onClick={() => toggle('SETTINGS')}
+                        variant={activeTab === "SETTINGS" ? "primary" : "light"}
+                        onClick={() => toggle("SETTINGS")}
                       >
-                        {t('main.label.settings')}
+                        {t("main.label.settings")}
                       </TabButton>
                     </li>
                   </ul>
                 </div>
                 <div className="card-body">
                   <div className="tab-content">
-                    <ActivityTab isActive={activeTab === 'ACTIVITY'} />
-                    <TimelineTab isActive={activeTab === 'TIMELINE'} />
-                    <SettingsTab isActive={activeTab === 'SETTINGS'} />
+                    <ActivityTab isActive={activeTab === "ACTIVITY"} />
+                    <TimelineTab isActive={activeTab === "TIMELINE"} />
+                    <SettingsTab isActive={activeTab === "SETTINGS"} />
                   </div>
                 </div>
               </div>
