@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface IPublicProblem {
   _id: string;
@@ -39,7 +40,7 @@ const MpPublicProblem = () => {
   const [data, setData] = useState<IPublicProblem[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0); // Total records in DB (unfiltered)
-
+  const navigate = useNavigate();
   // Filters
   const [filterBlock, setFilterBlock] = useState("");
   const [filterYear, setFilterYear] = useState("");
@@ -251,7 +252,10 @@ const MpPublicProblem = () => {
               <h3 className="card-title font-weight-bold">
                 Public Problems List
               </h3>
-              <button className="btn btn-info btn-sm">
+              <button
+                className="btn btn-info btn-sm"
+                onClick={() => navigate("/mp-public-problems/create-entry")}
+              >
                 Add <i className="fas fa-plus ml-1"></i>
               </button>
             </div>

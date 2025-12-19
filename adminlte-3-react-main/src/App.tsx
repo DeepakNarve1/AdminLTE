@@ -35,6 +35,7 @@ import Setting from "./pages/setting";
 import PlaceholderPage from "./pages/shared/PlaceholderPage";
 import EditRole from "./pages/roles/EditRoles";
 import MpPublicProblem from "./pages/mpPublicProblem";
+import CreateEntry from "./pages/mpPublicProblem/CreateEntry";
 
 const { VITE_NODE_ENV } = import.meta.env;
 
@@ -208,6 +209,11 @@ const App = () => {
                 element={<PlaceholderPage title="Member List" />}
               />
               <Route path="/mp-public-problem" element={<MpPublicProblem />} />
+              <Route
+                path="/mp-public-problems/create-entry"
+                element={<CreateEntry />}
+              />
+
               <Route
                 path="/assembly-issue"
                 element={<PlaceholderPage title="Assembly Issue" />}
