@@ -46,9 +46,9 @@ export const MENU: IMenuItem[] = [
     resource: "roles",
   },
   {
-    name: "User Count",
+    name: "Project Summary",
     icon: "fas fa-user-friends nav-icon",
-    path: "/user-count",
+    path: "/project-summary",
     allowedRoles: ["superadmin"],
   },
   {

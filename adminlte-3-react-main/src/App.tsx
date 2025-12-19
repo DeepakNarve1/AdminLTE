@@ -36,6 +36,10 @@ import PlaceholderPage from "./pages/shared/PlaceholderPage";
 import EditRole from "./pages/roles/EditRoles";
 import MpPublicProblem from "./pages/mpPublicProblem";
 import CreateEntry from "./pages/mpPublicProblem/CreateEntry";
+import EditEntry from "./pages/mpPublicProblem/EditEntry";
+import ProjectSummary from "./pages/projectSummary";
+import CreateProject from "./pages/projectSummary/CreateProject";
+import EditProject from "./pages/projectSummary/EditProject";
 
 const { VITE_NODE_ENV } = import.meta.env;
 
@@ -200,10 +204,10 @@ const App = () => {
               <Route path="/roles/create" element={<CreateRoles />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route
-                path="/user-count"
-                element={<PlaceholderPage title="User Count" />}
-              />
+              <Route path="/project-summary" element={<ProjectSummary />} />
+              <Route path="/projects/create" element={<CreateProject />} />
+              <Route path="/projects/:id" element={<EditProject />} />
+              <Route path="/projects/:id/edit" element={<EditProject />} />
               <Route
                 path="/member-list"
                 element={<PlaceholderPage title="Member List" />}
@@ -212,6 +216,10 @@ const App = () => {
               <Route
                 path="/mp-public-problems/create-entry"
                 element={<CreateEntry />}
+              />
+              <Route
+                path="/mp-public-problems/:id/edit"
+                element={<EditEntry />}
               />
 
               <Route

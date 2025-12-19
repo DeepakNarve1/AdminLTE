@@ -42,9 +42,8 @@ const MenuSidebar = () => {
   const sidebarSkin = useAppSelector((state) => state.ui.sidebarSkin);
   const menuItemFlat = useAppSelector((state) => state.ui.menuItemFlat);
   const menuChildIndent = useAppSelector((state) => state.ui.menuChildIndent);
-  
-  const { userRoles, roleBasedAllowedPaths } = useAuthorization();
 
+  const { userRoles, roleBasedAllowedPaths } = useAuthorization();
 
   const userPermissions = useMemo(() => {
     const permissionsFromUser = Array.isArray(currentUser?.permissions)
@@ -114,12 +113,12 @@ const MenuSidebar = () => {
       <Link to="/" className="brand-link">
         <StyledBrandImage
           src="img/logo.png"
-          alt="AdminLTE Logo"
+          alt="RBAC System Logo"
           width={33}
           height={33}
           rounded
         />
-        <span className="brand-text font-weight-light">AdminLTE 3</span>
+        <span className="brand-text font-weight-light">RBAC System</span>
       </Link>
       <StyledSidebarInner className="sidebar">
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">

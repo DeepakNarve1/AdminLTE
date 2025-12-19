@@ -37,6 +37,9 @@ app.use("/api/roles", (req, res, next) => {
 const publicProblemRoutes = require("./routes/publicProblemRoute");
 app.use("/api/public-problems", publicProblemRoutes);
 
+const projectRoutes = require("./routes/projectRoute");
+app.use("/api/projects", projectRoutes);
+
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });

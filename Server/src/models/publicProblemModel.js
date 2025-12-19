@@ -7,9 +7,12 @@ const publicProblemSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    srNo: { type: String },
+    day: { type: String }, // Storing the day number (1-31) explicitly
     // We will derive 'id' (Sr.No) from index or specific field if needed, but Mongo has _id.
     // We can store a visible ID if we want, or just use _id.
     // For "Timer", we assume it shows elapsed time since creation.
+    timer: { type: String },
 
     submissionDate: {
       type: Date,
@@ -20,7 +23,7 @@ const publicProblemSchema = mongoose.Schema(
     // or derive them. The UI has separate columns for them.
     year: { type: String, required: true },
     month: { type: String, required: true },
-    dateString: { type: String, required: true }, // "YYYY-MM-DD"
+    dateString: { type: String }, // "YYYY-MM-DD"
 
     district: { type: String, required: true },
     assembly: { type: String, default: "N/A" },
