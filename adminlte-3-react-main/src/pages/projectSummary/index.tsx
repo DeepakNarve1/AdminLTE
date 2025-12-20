@@ -187,88 +187,100 @@ const ProjectSummary = () => {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <Select value={filterBlock} onValueChange={setFilterBlock}>
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="All Blocks" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Blocks</SelectItem>
-                      <SelectItem value="Bagh">Bagh</SelectItem>
-                      <SelectItem value="Tanda">Tanda</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap items-center gap-5">
+                  {/* Filters Group */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Select value={filterBlock} onValueChange={setFilterBlock}>
+                      <SelectTrigger className="w-48 h-12">
+                        <SelectValue placeholder="All Blocks" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Blocks</SelectItem>
+                        <SelectItem value="Bagh">Bagh</SelectItem>
+                        <SelectItem value="Tanda">Tanda</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <Select
-                    value={filterDepartment}
-                    onValueChange={setFilterDepartment}
-                  >
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="All Departments" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
-                      <SelectItem value="PWD">PWD</SelectItem>
-                      <SelectItem value="Health">Health</SelectItem>
-                      <SelectItem value="Education">Education</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={filterDepartment}
+                      onValueChange={setFilterDepartment}
+                    >
+                      <SelectTrigger className="w-48 h-12">
+                        <SelectValue placeholder="All Departments" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="PWD">PWD</SelectItem>
+                        <SelectItem value="Health">Health</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={filterStatus}
+                      onValueChange={setFilterStatus}
+                    >
+                      <SelectTrigger className="w-48 h-12">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <Select
-                    value={entriesPerPage.toString()}
-                    onValueChange={(v: string) =>
-                      setEntriesPerPage(v === "-1" ? -1 : Number(v))
-                    }
-                  >
-                    <SelectTrigger className="w-32 h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="-1">All</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={entriesPerPage.toString()}
+                      onValueChange={(v: string) =>
+                        setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                      }
+                    >
+                      <SelectTrigger className="w-32 h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="-1">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={handleExport}
-                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
-                  >
-                    <Download className="w-5 h-5 mr-2" /> Export
-                  </Button>
+                  {/* Divider for better separation */}
+                  <div className="hidden 2xl:block h-8 w-px bg-gray-200 mx-4" />
 
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
-                  >
-                    <Upload className="w-5 h-5 mr-2" /> Import
-                  </Button>
+                  {/* Actions Group */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleExport}
+                      className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                    >
+                      <Download className="w-5 h-5 mr-2" /> Export
+                    </Button>
 
-                  <Button
-                    size="lg"
-                    onClick={() => navigate("/projects/create")}
-                    className="bg-[#00563B] hover:bg-[#368F8B]"
-                  >
-                    <Plus className="w-5 h-5 mr-2" /> Add Project
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                    >
+                      <Upload className="w-5 h-5 mr-2" /> Import
+                    </Button>
+
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/projects/create")}
+                      className="bg-[#00563B] hover:bg-[#368F8B]"
+                    >
+                      <Plus className="w-5 h-5 mr-2" /> Add Project
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -591,7 +603,7 @@ const ProjectSummary = () => {
         {/* Remarks Modal */}
         {selectedRemark && (
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-2000 flex items-center justify-center p-4"
             onClick={() => setSelectedRemark(null)}
           >
             <div
