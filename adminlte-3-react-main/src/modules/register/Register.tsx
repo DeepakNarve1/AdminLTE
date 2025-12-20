@@ -5,11 +5,9 @@ import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { setWindowClass } from "@app/utils/helpers";
-import { Form, InputGroup } from "react-bootstrap";
 import { Checkbox } from "@profabric/react-components";
 
 import { setCurrentUser } from "@app/store/reducers/auth";
-import { Button } from "@app/styles/common";
 // backend handles registration via axios; firebase helpers removed
 import { useAppDispatch } from "@app/store/store";
 import axios from "axios";
@@ -76,140 +74,160 @@ const Register = () => {
   setWindowClass("hold-transition register-page");
 
   return (
-    <div className="register-box">
-      <div className="card card-outline card-primary">
-        <div className="card-header text-center">
-          <Link to="/" className="h1">
+    <div className="register-box w-[360px] mx-auto mt-[10vh]">
+      <div className="bg-white rounded shadow-sm border border-gray-200 border-t-[3px] border-t-blue-600">
+        <div className="text-center p-4 border-b border-gray-100">
+          <Link to="/" className="text-3xl font-light text-gray-800">
             <b>Admin</b>
             <span>LTE</span>
           </Link>
         </div>
-        <div className="card-body">
-          <p className="login-box-msg">{t("register.registerNew")}</p>
+        <div className="p-5">
+          <p className="text-center mb-4 text-gray-600">
+            {t("register.registerNew")}
+          </p>
           <form onSubmit={handleSubmit}>
             {/* Name field removed — registration uses email/password only */}
             <div className="mb-3">
-              <InputGroup className="mb-3">
-                <Form.Control
+              <div className="relative flex w-full flex-wrap items-stretch">
+                <input
                   id="email"
                   name="email"
                   type="email"
                   placeholder="Email"
                   onChange={handleChange}
                   value={values.email}
-                  isValid={touched.email && !errors.email}
-                  isInvalid={touched.email && !!errors.email}
+                  className={`relative m-0 block w-[1%] min-w-0 flex-auto rounded-l border border-r-0 border-solid px-3 py-1.5 text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:z-3 focus:border-blue-300 focus:text-neutral-700 focus:shadow-[inset_0_0_0_1px_rgb(59,113,202)] focus:outline-none ${
+                    touched.email && errors.email
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 />
-                {touched.email && errors.email ? (
-                  <Form.Control.Feedback type="invalid">
+                <span className="flex items-center whitespace-nowrap rounded-r border border-l-0 border-solid border-neutral-300 px-3 py-1 text-center text-base font-normal leading-[1.6] text-neutral-700">
+                  <i className="fas fa-envelope text-gray-500" />
+                </span>
+                {touched.email && errors.email && (
+                  <div className="w-full text-xs text-red-500 mt-1">
                     {errors.email}
-                  </Form.Control.Feedback>
-                ) : (
-                  <InputGroup.Append>
-                    <InputGroup.Text>
-                      <i className="fas fa-envelope" />
-                    </InputGroup.Text>
-                  </InputGroup.Append>
+                  </div>
                 )}
-              </InputGroup>
+              </div>
             </div>
             <div className="mb-3">
-              <InputGroup className="mb-3">
-                <Form.Control
+              <div className="relative flex w-full flex-wrap items-stretch">
+                <input
                   id="password"
                   name="password"
                   type="password"
                   placeholder="Password"
                   onChange={handleChange}
                   value={values.password}
-                  isValid={touched.password && !errors.password}
-                  isInvalid={touched.password && !!errors.password}
+                  className={`relative m-0 block w-[1%] min-w-0 flex-auto rounded-l border border-r-0 border-solid px-3 py-1.5 text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:z-3 focus:border-blue-300 focus:text-neutral-700 focus:shadow-[inset_0_0_0_1px_rgb(59,113,202)] focus:outline-none ${
+                    touched.password && errors.password
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 />
-                {touched.password && errors.password ? (
-                  <Form.Control.Feedback type="invalid">
+                <span className="flex items-center whitespace-nowrap rounded-r border border-l-0 border-solid border-neutral-300 px-3 py-1 text-center text-base font-normal leading-[1.6] text-neutral-700">
+                  <i className="fas fa-lock text-gray-500" />
+                </span>
+                {touched.password && errors.password && (
+                  <div className="w-full text-xs text-red-500 mt-1">
                     {errors.password}
-                  </Form.Control.Feedback>
-                ) : (
-                  <InputGroup.Append>
-                    <InputGroup.Text>
-                      <i className="fas fa-lock" />
-                    </InputGroup.Text>
-                  </InputGroup.Append>
+                  </div>
                 )}
-              </InputGroup>
+              </div>
             </div>
 
             <div className="mb-3">
-              <InputGroup className="mb-3">
-                <Form.Control
+              <div className="relative flex w-full flex-wrap items-stretch">
+                <input
                   id="passwordRetype"
                   name="passwordRetype"
                   type="password"
                   placeholder="Retype password"
                   onChange={handleChange}
                   value={values.passwordRetype}
-                  isValid={touched.passwordRetype && !errors.passwordRetype}
-                  isInvalid={touched.passwordRetype && !!errors.passwordRetype}
+                  className={`relative m-0 block w-[1%] min-w-0 flex-auto rounded-l border border-r-0 border-solid px-3 py-1.5 text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:z-3 focus:border-blue-300 focus:text-neutral-700 focus:shadow-[inset_0_0_0_1px_rgb(59,113,202)] focus:outline-none ${
+                    touched.passwordRetype && errors.passwordRetype
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 />
 
-                {touched.passwordRetype && errors.passwordRetype ? (
-                  <Form.Control.Feedback type="invalid">
+                <span className="flex items-center whitespace-nowrap rounded-r border border-l-0 border-solid border-neutral-300 px-3 py-1 text-center text-base font-normal leading-[1.6] text-neutral-700">
+                  <i className="fas fa-lock text-gray-500" />
+                </span>
+                {touched.passwordRetype && errors.passwordRetype && (
+                  <div className="w-full text-xs text-red-500 mt-1">
                     {errors.passwordRetype}
-                  </Form.Control.Feedback>
-                ) : (
-                  <InputGroup.Append>
-                    <InputGroup.Text>
-                      <i className="fas fa-lock" />
-                    </InputGroup.Text>
-                  </InputGroup.Append>
+                  </div>
                 )}
-              </InputGroup>
+              </div>
             </div>
 
-            <div className="row">
-              <div className="col-7">
-                <div style={{ display: "flex", alignItems: "center" }}>
+            <div className="flex flex-wrap -mx-2 mb-2">
+              <div className="w-7/12 px-2">
+                <div className="flex items-center">
                   <Checkbox checked={false} />
-                  <label style={{ margin: 0, padding: 0, paddingLeft: "4px" }}>
+                  <label className="m-0 p-0 pl-1">
                     <span>I agree to the </span>
-                    <Link to="/">terms</Link>{" "}
+                    <Link to="/" className="text-blue-600 hover:text-blue-500">
+                      terms
+                    </Link>{" "}
                   </label>
                 </div>
               </div>
-              <div className="col-5">
-                <Button
+              <div className="w-5/12 px-2">
+                <button
                   onClick={submitForm}
-                  loading={isAuthLoading}
-                  disabled={isGoogleAuthLoading || isFacebookAuthLoading}
+                  disabled={
+                    isGoogleAuthLoading ||
+                    isFacebookAuthLoading ||
+                    isAuthLoading
+                  }
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
+                  {isAuthLoading && (
+                    <i className="fas fa-spinner fa-spin text-sm" />
+                  )}
                   {t("register.label")}
-                </Button>
+                </button>
               </div>
             </div>
           </form>
-          <div className="social-auth-links text-center">
-            <Button
-              className="mb-2"
-              // onClick={registerByFacebook}
-              loading={isFacebookAuthLoading}
+          <div className="text-center mt-2 mb-3 space-y-2">
+            <button
+              className="bg-blue-700 hover:bg-blue-800 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={true || isAuthLoading || isGoogleAuthLoading}
             >
-              <i className="fab fa-facebook mr-2" />
+              {isFacebookAuthLoading ? (
+                <i className="fas fa-spinner fa-spin text-sm" />
+              ) : (
+                <i className="fab fa-facebook mr-2" />
+              )}
               {t("login.button.signIn.social", {
                 what: "Facebook",
               })}
-            </Button>
-            <Button
-              variant="danger"
-              // onClick={registerByGoogle}
-              loading={isGoogleAuthLoading}
-              disabled={isAuthLoading || isFacebookAuthLoading}
+            </button>
+            <button
+              className="bg-red-600 hover:bg-red-700 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={
+                isAuthLoading || isFacebookAuthLoading || isGoogleAuthLoading
+              }
             >
-              <i className="fab fa-google mr-2" />
+              {isGoogleAuthLoading ? (
+                <i className="fas fa-spinner fa-spin text-sm" />
+              ) : (
+                <i className="fab fa-google mr-2" />
+              )}
               {t("login.button.signUp.social", { what: "Google" })}
-            </Button>
+            </button>
           </div>
-          <Link to="/" className="text-center">
+          <Link
+            to="/"
+            className="text-center block text-blue-600 hover:text-blue-500"
+          >
             {t("register.alreadyHave")}
           </Link>
         </div>

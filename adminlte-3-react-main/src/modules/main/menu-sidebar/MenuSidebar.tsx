@@ -1,47 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { MenuItem } from "@components";
 import { Image } from "@profabric/react-components";
-import styled from "styled-components";
 import { SidebarSearch } from "@app/components/sidebar-search/SidebarSearch";
-import i18n from "@app/utils/i18n";
 import { useAppSelector } from "@app/store/store";
 import { MENU, IMenuItem } from "@app/utils/menu";
 import { useAuthorization } from "@app/hooks/useAuthorization";
-
-const StyledBrandImage = styled(Image)`
-  float: left;
-  line-height: 0.8;
-  margin: -1px 8px 0 6px;
-  opacity: 0.8;
-  --pf-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19),
-    0 6px 6px rgba(0, 0, 0, 0.23) !important;
-`;
-
-const StyledUserImage = styled(Image)`
-  --pf-box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b !important;
-`;
-
-const StyledSidebar = styled.aside`
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  height: 100vh !important;
-  overflow-y: hidden !important;
-  z-index: 1038;
-`;
-
-const StyledSidebarInner = styled.div`
-  height: 100%;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-`;
 
 const MenuSidebar = () => {
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const sidebarSkin = useAppSelector((state) => state.ui.sidebarSkin);
   const menuItemFlat = useAppSelector((state) => state.ui.menuItemFlat);
   const menuChildIndent = useAppSelector((state) => state.ui.menuChildIndent);
+  const menuSidebarCollapsed = useAppSelector(
+    (state) => state.ui.menuSidebarCollapsed
+  );
+  const screenSize = useAppSelector((state) => state.ui.screenSize);
 
   const { userRoles, roleBasedAllowedPaths } = useAuthorization();
 
@@ -63,10 +37,7 @@ const MenuSidebar = () => {
   }, [currentUser]);
 
   const canAccess = (item: IMenuItem) => {
-    // SUPERADMIN BYPASS
-    if (userRoles.includes("superadmin")) {
-      return true;
-    }
+    if (userRoles.includes("superadmin")) return true;
 
     const roleAllowed =
       !item.allowedRoles ||
@@ -108,44 +79,115 @@ const MenuSidebar = () => {
     return filterItems(MENU);
   }, [userPermissions, userRoles]);
 
+  const sidebarClasses = useMemo(() => {
+    let classes = `fixed top-0 left-0 h-screen overflow-y-hidden z-[1038] transition-all duration-300 shadow-2xl group border-r `;
+
+    // Richer Dark/Light Modes
+    if (sidebarSkin === "sidebar-light-primary") {
+      classes += "bg-white text-slate-700 border-gray-200";
+    } else {
+      // "Premium Dark" - darker slate/zinc instead of pure gray
+      classes += "bg-slate-900 text-slate-300 border-slate-800";
+    }
+
+    if (screenSize === "lg") {
+      if (menuSidebarCollapsed) {
+        // Mini sidebar, expands on hover
+        classes += " w-[73px] hover:w-[260px]";
+      } else {
+        classes += " w-[260px]";
+      }
+    } else {
+      classes += menuSidebarCollapsed
+        ? " w-[260px] translate-x-0"
+        : " w-[260px] -translate-x-full";
+    }
+    return classes;
+  }, [sidebarSkin, screenSize, menuSidebarCollapsed]);
+
+  const isMini = screenSize === "lg" && menuSidebarCollapsed;
+  const isLight = sidebarSkin === "sidebar-light-primary";
+
   return (
-    <StyledSidebar className={`main-sidebar elevation-4 ${sidebarSkin}`}>
-      <Link to="/" className="brand-link">
-        <StyledBrandImage
+    <aside className={sidebarClasses}>
+      {/* Brand Logo */}
+      <Link
+        to="/"
+        className={`flex items-center h-[57px] px-6 border-b transition-colors ${
+          isLight
+            ? "border-gray-200 hover:bg-gray-50"
+            : "border-slate-800 hover:bg-slate-800/50"
+        }`}
+      >
+        <Image
           src="img/logo.png"
-          alt="RBAC System Logo"
-          width={33}
-          height={33}
+          alt="RBAC Logo"
+          width={32}
+          height={32}
           rounded
+          className="opacity-90 shadow-sm shrink-0"
         />
-        <span className="brand-text font-weight-light">RBAC System</span>
+        <span
+          className={`ml-3 text-lg font-semibold tracking-wide whitespace-nowrap transition-all duration-300 ${
+            isMini ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
+          } group-hover:opacity-100 group-hover:w-auto`}
+        >
+          RBAC System
+        </span>
       </Link>
-      <StyledSidebarInner className="sidebar">
-        <div className="user-panel mt-3 pb-3 mb-3 d-flex">
-          <div className="image">
-            <StyledUserImage
-              src={currentUser?.photoURL}
-              fallbackSrc="/img/default-profile.png"
-              alt="User"
-              width={34}
-              height={34}
-              rounded
-            />
-          </div>
-          <div className="info">
-            <Link to={"/profile"} className="d-block">
-              {currentUser?.email}
-            </Link>
+
+      {/* Sidebar Content */}
+      <div className="h-full overflow-y-auto overflow-x-hidden pb-16 custom-scrollbar">
+        {/* User Panel */}
+        <div
+          className={`px-4 py-6 border-b transition-colors ${
+            isLight ? "border-gray-200" : "border-slate-800"
+          }`}
+        >
+          <div className="flex items-center">
+            <div className="shrink-0 relative">
+              <Image
+                src={currentUser?.photoURL}
+                fallbackSrc="/img/default-profile.png"
+                alt="User"
+                width={40}
+                height={40}
+                rounded
+                className="shadow-md ring-2 ring-opacity-20 ring-white"
+              />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+            </div>
+            <div
+              className={`ml-3 overflow-hidden transition-all duration-300 ${
+                isMini ? "opacity-0 w-0" : "opacity-100 w-auto"
+              } group-hover:opacity-100 group-hover:w-auto`}
+            >
+              <Link
+                to={"/profile"}
+                className="block text-sm font-semibold truncate hover:text-blue-500 transition-colors"
+              >
+                {currentUser?.email?.split("@")[0]}
+              </Link>
+              <span className="text-xs opacity-60 truncate block">
+                Administrator
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="form-inline">
+        {/* Search */}
+        <div
+          className={`px-3 py-4 transition-all duration-300 ${
+            isMini ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
+          } group-hover:opacity-100 group-hover:h-auto group-hover:overflow-visible`}
+        >
           <SidebarSearch />
         </div>
 
-        <nav className="mt-2" style={{ overflowY: "hidden" }}>
+        {/* Navigation */}
+        <nav className="mt-2 px-3 overflow-y-hidden">
           <ul
-            className={`nav nav-pills nav-sidebar flex-column${
+            className={`flex flex-col gap-1 w-full m-0 p-0 list-none ${
               menuItemFlat ? " nav-flat" : ""
             }${menuChildIndent ? " nav-child-indent" : ""}`}
             role="menu"
@@ -158,8 +200,8 @@ const MenuSidebar = () => {
             ))}
           </ul>
         </nav>
-      </StyledSidebarInner>
-    </StyledSidebar>
+      </div>
+    </aside>
   );
 };
 

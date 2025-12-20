@@ -15,10 +15,11 @@ const Dashboard = () => {
     <div>
       <ContentHeader title="Dashboard" />
 
-      <section className="content">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-lg-3 col-6">
+      <section className="p-4">
+        <div className="container mx-auto">
+          {/* Row 1: Small Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
               <SmallBox
                 title="New Orders"
                 text="150"
@@ -28,13 +29,13 @@ const Dashboard = () => {
                   content: (
                     <FontAwesomeIcon
                       icon={faCartShopping}
-                      style={{ fontSize: '62px' }}
+                      className="text-6xl"
                     />
                   ),
                 }}
               />
             </div>
-            <div className="col-lg-3 col-6">
+            <div>
               <SmallBox
                 title="Bounce Rate"
                 text="53 %"
@@ -44,14 +45,14 @@ const Dashboard = () => {
                   content: (
                     <FontAwesomeIcon
                       icon={faChartSimple}
-                      style={{ fontSize: '62px' }}
+                      className="text-6xl"
                     />
                   ),
                 }}
                 loading
               />
             </div>
-            <div className="col-lg-3 col-6">
+            <div>
               <SmallBox
                 title="User Registrations"
                 text="44"
@@ -61,14 +62,14 @@ const Dashboard = () => {
                   content: (
                     <FontAwesomeIcon
                       icon={faUserPlus}
-                      style={{ fontSize: '62px' }}
+                      className="text-6xl"
                     />
                   ),
                 }}
                 loading="dark"
               />
             </div>
-            <div className="col-lg-3 col-6">
+            <div>
               <SmallBox
                 title="Unique Visitors"
                 text="65"
@@ -78,7 +79,7 @@ const Dashboard = () => {
                   content: (
                     <FontAwesomeIcon
                       icon={faChartPie}
-                      style={{ fontSize: '62px' }}
+                      className="text-6xl"
                     />
                   ),
                   variant: 'success',
@@ -86,8 +87,10 @@ const Dashboard = () => {
               />
             </div>
           </div>
-          <div className="row">
-            <div className="col-lg-3 col-md-6 col-sm-12">
+
+          {/* Row 2: Info Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
               <InfoBox
                 title="Messages"
                 text="1,410"
@@ -97,7 +100,7 @@ const Dashboard = () => {
                 }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 variant="success"
                 title="Messages"
@@ -106,7 +109,7 @@ const Dashboard = () => {
                 icon={{ content: <FontAwesomeIcon icon={faEnvelope} /> }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 variant="warning"
                 title="Messages"
@@ -114,7 +117,7 @@ const Dashboard = () => {
                 icon={{ content: <FontAwesomeIcon icon={faEnvelope} /> }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 variant="danger"
                 title="Messages"
@@ -123,8 +126,10 @@ const Dashboard = () => {
               />
             </div>
           </div>
-          <div className="row">
-            <div className="col-lg-3 col-md-6 col-sm-12">
+
+          {/* Row 3: Progress Info Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
               <InfoBox
                 icon={{
                   content: <FontAwesomeIcon icon={faBookmark} />,
@@ -139,7 +144,7 @@ const Dashboard = () => {
                 }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 icon={{ content: <FontAwesomeIcon icon={faBookmark} /> }}
                 variant="success"
@@ -152,7 +157,7 @@ const Dashboard = () => {
                 }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 icon={{ content: <FontAwesomeIcon icon={faBookmark} /> }}
                 variant="warning"
@@ -166,7 +171,7 @@ const Dashboard = () => {
                 }}
               />
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-12">
+            <div>
               <InfoBox
                 icon={{ content: <FontAwesomeIcon icon={faBookmark} /> }}
                 variant="danger"

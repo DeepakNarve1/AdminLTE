@@ -261,346 +261,424 @@ const MpPublicProblem = () => {
   return (
     <div>
       <ContentHeader title="Public Problems Management" />
-      <section className="content">
-        <div className="container-fluid">
-          {/* Filters Card */}
-          <div className="card mb-3">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-2 mb-2">
-                  <label>Block</label>
-                  <select
-                    className="form-control"
-                    value={filterBlock}
-                    onChange={(e) => setFilterBlock(e.target.value)}
-                  >
-                    <option value="">Select Block</option>
-                    <option value="Bagh">Bagh</option>
-                    <option value="Tanda">Tanda</option>
-                  </select>
-                </div>
-                <div className="col-md-2 mb-2">
-                  <label>Year</label>
-                  <select
-                    className="form-control"
-                    value={filterYear}
-                    onChange={(e) => setFilterYear(e.target.value)}
-                  >
-                    <option value="">Select Year</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                  </select>
-                </div>
-                <div className="col-md-2 mb-2">
-                  <label>Month</label>
-                  <select
-                    className="form-control"
-                    value={filterMonth}
-                    onChange={(e) => setFilterMonth(e.target.value)}
-                  >
-                    <option value="">Select Month</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-                <div className="col-md-2 mb-2">
-                  <label>Department</label>
-                  <select
-                    className="form-control"
-                    value={filterDepartment}
-                    onChange={(e) => setFilterDepartment(e.target.value)}
-                  >
-                    <option value="">Select Department</option>
-                    <option value="PWD">PWD</option>
-                    <option value="Health">Health</option>
-                  </select>
-                </div>
-                <div className="col-md-2 mb-2">
-                  <label>Status</label>
-                  <select
-                    className="form-control"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
-                </div>
-                <div className="col-md-2 mb-2 d-flex align-items-end">
-                  <button
-                    className="btn btn-primary w-100"
-                    onClick={handleFilter}
-                  >
-                    Filter
-                  </button>
-                </div>
-              </div>
+      <section className="content p-4">
+        {/* Filters Card */}
+        <div className="bg-white rounded-lg shadow-md mb-6 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Block
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterBlock}
+                onChange={(e) => setFilterBlock(e.target.value)}
+              >
+                <option value="">Select Block</option>
+                <option value="Bagh">Bagh</option>
+                <option value="Tanda">Tanda</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Year
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+              >
+                <option value="">Select Year</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Month
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="">Select Month</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Department
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+              >
+                <option value="">Select Department</option>
+                <option value="PWD">PWD</option>
+                <option value="Health">Health</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Select Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                className="w-full bg-blue-600 text-white font-medium py-2 rounded shadow hover:bg-blue-700 transition duration-200"
+                onClick={handleFilter}
+              >
+                Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Table Card */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h3 className="text-xl font-bold text-gray-800">
+              Public Problems List
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                className="bg-yellow-500 text-white px-3 py-1.5 rounded shadow hover:bg-yellow-600 transition flex items-center text-sm font-medium"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Import <i className="fas fa-file-import ml-2"></i>
+              </button>
+              <button
+                className="bg-cyan-500 text-white px-3 py-1.5 rounded shadow hover:bg-cyan-600 transition flex items-center text-sm font-medium"
+                onClick={() => navigate("/mp-public-problems/create-entry")}
+              >
+                Add <i className="fas fa-plus ml-2"></i>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImport}
+                style={{ display: "none" }}
+              />
             </div>
           </div>
 
-          {/* Main Table Card */}
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h3 className="card-title font-weight-bold">
-                Public Problems List
-              </h3>
-              <div className="ml-auto">
+          <div className="p-4">
+            {/* Top Controls */}
+            <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center text-sm">
+                  <span className="mr-2 text-gray-600">Show</span>
+                  <select
+                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={entriesPerPage}
+                    onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+                  >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="1000">1000</option>
+                    <option value="-1">All</option>
+                  </select>
+                  <span className="ml-2 text-gray-600">entries</span>
+                </div>
+
                 <button
-                  className="btn btn-warning btn-sm mr-2"
-                  onClick={() => fileInputRef.current?.click()}
+                  className="border border-gray-300 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-50 transition"
+                  onClick={handleExport}
                 >
-                  Import <i className="fas fa-file-import ml-1"></i>
+                  Export Excel
                 </button>
-                <button
-                  className="btn btn-info btn-sm"
-                  onClick={() => navigate("/mp-public-problems/create-entry")}
-                >
-                  Add <i className="fas fa-plus ml-1"></i>
-                </button>
+
+                <div className="relative">
+                  <button
+                    className="border border-gray-300 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-50 transition"
+                    onClick={() => setShowColumnToggle(!showColumnToggle)}
+                  >
+                    Show/Hide Columns
+                  </button>
+                  {showColumnToggle && (
+                    <div className="absolute z-10 top-full left-0 mt-1 bg-white border border-gray-200 shadow-lg rounded p-3 min-w-[200px]">
+                      {Object.keys(visibleColumns).map((key) => (
+                        <div
+                          key={key}
+                          className="flex items-center mb-2 last:mb-0"
+                        >
+                          <input
+                            type="checkbox"
+                            id={`col-${key}`}
+                            className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            checked={
+                              visibleColumns[key as keyof typeof visibleColumns]
+                            }
+                            onChange={() =>
+                              toggleColumn(key as keyof typeof visibleColumns)
+                            }
+                          />
+                          <label
+                            htmlFor={`col-${key}`}
+                            className="text-sm text-gray-700 capitalize cursor-pointer"
+                          >
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <label className="mr-2 text-sm text-gray-600">Search:</label>
                 <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImport}
-                  style={{ display: "none" }}
+                  type="text"
+                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search..."
                 />
               </div>
             </div>
 
-            <div className="card-body">
-              {/* Top Controls */}
-              <div className="d-flex justify-content-between flex-wrap mb-3">
-                <div
-                  className="d-flex align-items-center mb-2"
-                  style={{ gap: "10px" }}
-                >
-                  <div className="d-flex align-items-center">
-                    <span className="mr-2">Show</span>
-                    <select
-                      className="form-control form-control-sm"
-                      style={{ width: "80px" }}
-                      value={entriesPerPage}
-                      onChange={(e) =>
-                        setEntriesPerPage(Number(e.target.value))
-                      }
-                    >
-                      <option value="10">10</option>
-                      <option value="20">20</option>
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                      <option value="1000">1000</option>
-                      <option value="-1">All</option>
-                    </select>
-                    <span className="ml-2">entries</span>
-                  </div>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+                <thead className="bg-[#002147] text-white">
+                  <tr>
+                    {visibleColumns.srNo && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Sr.No.
+                      </th>
+                    )}
+                    {visibleColumns.regNo && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Regl. No.
+                      </th>
+                    )}
+                    {visibleColumns.timer && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Timer
+                      </th>
+                    )}
+                    {visibleColumns.year && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Year
+                      </th>
+                    )}
+                    {visibleColumns.month && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Month
+                      </th>
+                    )}
+                    {visibleColumns.date && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Date
+                      </th>
+                    )}
+                    {visibleColumns.district && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        District
+                      </th>
+                    )}
+                    {visibleColumns.assembly && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Assembly
+                      </th>
+                    )}
+                    {visibleColumns.block && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Block
+                      </th>
+                    )}
+                    {visibleColumns.recLetterNo && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Recommended Letter No
+                      </th>
+                    )}
+                    {visibleColumns.boothNo && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                        Booth No
+                      </th>
+                    )}
+                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan={11}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : data.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="text-center py-8">
+                        {totalCount > 0 ? (
+                          <div>
+                            <strong className="text-gray-700">
+                              No records match the current filters
+                            </strong>
+                            <div className="mt-2 text-gray-500 text-sm">
+                              Try adjusting or clearing the filters
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <div className="mb-3 text-gray-600">
+                              No data available in the database
+                            </div>
+                            <button
+                              className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition text-sm font-medium"
+                              onClick={handleSeed}
+                            >
+                              Seed Database (Add Demo Data)
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ) : (
+                    data.map((row, idx) => (
+                      <tr
+                        key={row._id}
+                        className="hover:bg-gray-50 transition-colors even:bg-gray-50"
+                      >
+                        {visibleColumns.srNo && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {(currentPage - 1) * entriesPerPage + idx + 1}
+                          </td>
+                        )}
+                        {visibleColumns.regNo && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.regNo}
+                          </td>
+                        )}
+                        {visibleColumns.timer && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600 text-center border-r border-gray-100">
+                            {calculateTimer(row.submissionDate)}
+                          </td>
+                        )}
+                        {visibleColumns.year && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.year}
+                          </td>
+                        )}
+                        {visibleColumns.month && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.month}
+                          </td>
+                        )}
+                        {visibleColumns.date && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.dateString}
+                          </td>
+                        )}
+                        {visibleColumns.district && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.district}
+                          </td>
+                        )}
+                        {visibleColumns.assembly && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.assembly}
+                          </td>
+                        )}
+                        {visibleColumns.block && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.block}
+                          </td>
+                        )}
+                        {visibleColumns.recLetterNo && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.recommendedLetterNo}
+                          </td>
+                        )}
+                        {visibleColumns.boothNo && (
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
+                            {row.boothNo || "-"}
+                          </td>
+                        )}
+                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <button
+                            className="bg-yellow-400 text-white p-2 rounded hover:bg-yellow-500 transition shadow-sm"
+                            onClick={() =>
+                              navigate(`/mp-public-problems/${row._id}/edit`)
+                            }
+                            title="Edit"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
+            {/* Pagination */}
+            <div className="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-600 mb-2 md:mb-0">
+                Showing{" "}
+                <span className="font-medium">
+                  {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * entriesPerPage, totalCount)}
+                </span>{" "}
+                of <span className="font-medium">{totalCount}</span> entries
+              </div>
+
+              {entriesPerPage !== -1 && totalCount > entriesPerPage && (
+                <nav className="flex items-center space-x-1">
                   <button
-                    className="btn btn-default btn-sm border"
-                    onClick={handleExport}
+                    className={`px-3 py-1 rounded border ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                    }`}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
                   >
-                    Export Excel
+                    Previous
                   </button>
 
-                  <div className="position-relative">
-                    <button
-                      className="btn btn-default btn-sm border"
-                      onClick={() => setShowColumnToggle(!showColumnToggle)}
-                    >
-                      Show/Hide Columns
-                    </button>
-                    {showColumnToggle && (
-                      <div
-                        className="position-absolute bg-white border shadow p-2"
-                        style={{
-                          zIndex: 1000,
-                          top: "100%",
-                          left: 0,
-                          minWidth: "150px",
-                        }}
-                      >
-                        {Object.keys(visibleColumns).map((key) => (
-                          <div key={key} className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              checked={
-                                visibleColumns[
-                                  key as keyof typeof visibleColumns
-                                ]
-                              }
-                              onChange={() =>
-                                toggleColumn(key as keyof typeof visibleColumns)
-                              }
-                            />
-                            <label className="form-check-label text-capitalize">
-                              {key.replace(/([A-Z])/g, " $1").trim()}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <span className="px-3 py-1 bg-blue-600 text-white rounded border border-blue-600">
+                    {currentPage}
+                  </span>
 
-                <div className="d-flex align-items-center mb-2">
-                  <label className="mr-2 mb-0">Search:</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search..."
-                  />
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="table-responsive">
-                <table className="table table-bordered table-striped text-center">
-                  <thead style={{ backgroundColor: "#002147", color: "white" }}>
-                    <tr>
-                      {visibleColumns.srNo && <th>Sr.No.</th>}
-                      {visibleColumns.regNo && <th>Regl. No.</th>}
-                      {visibleColumns.timer && <th>Timer</th>}
-                      {visibleColumns.year && <th>Year</th>}
-                      {visibleColumns.month && <th>Month</th>}
-                      {visibleColumns.date && <th>Date</th>}
-                      {visibleColumns.district && <th>District</th>}
-                      {visibleColumns.assembly && <th>Assembly</th>}
-                      {visibleColumns.block && <th>Block</th>}
-                      {visibleColumns.recLetterNo && (
-                        <th>Recommended Letter No</th>
-                      )}
-                      {visibleColumns.boothNo && <th>Booth No</th>}
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={11} className="text-center py-4">
-                          Loading...
-                        </td>
-                      </tr>
-                    ) : data.length === 0 ? (
-                      <tr>
-                        <td colSpan={11} className="text-center py-4">
-                          {totalCount > 0 ? (
-                            <div>
-                              <strong>
-                                No records match the current filters
-                              </strong>
-                              <div className="mt-2 text-muted small">
-                                Try adjusting or clearing the filters
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="mb-3">
-                                No data available in the database
-                              </div>
-                              <button
-                                className="btn btn-warning btn-sm"
-                                onClick={handleSeed}
-                              >
-                                Seed Database (Add Demo Data)
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ) : (
-                      data.map((row, idx) => (
-                        <tr key={row._id}>
-                          {visibleColumns.srNo && (
-                            <td>
-                              {(currentPage - 1) * entriesPerPage + idx + 1}
-                            </td>
-                          )}
-                          {visibleColumns.regNo && <td>{row.regNo}</td>}
-                          {visibleColumns.timer && (
-                            <td style={{ color: "red", fontWeight: "bold" }}>
-                              {calculateTimer(row.submissionDate)}
-                            </td>
-                          )}
-                          {visibleColumns.year && <td>{row.year}</td>}
-                          {visibleColumns.month && <td>{row.month}</td>}
-                          {visibleColumns.date && <td>{row.dateString}</td>}
-                          {visibleColumns.district && <td>{row.district}</td>}
-                          {visibleColumns.assembly && <td>{row.assembly}</td>}
-                          {visibleColumns.block && <td>{row.block}</td>}
-                          {visibleColumns.recLetterNo && (
-                            <td>{row.recommendedLetterNo}</td>
-                          )}
-                          {visibleColumns.boothNo && (
-                            <td>{row.boothNo || "-"}</td>
-                          )}
-                          <td>
-                            <button
-                              className="btn btn-sm btn-warning"
-                              onClick={() =>
-                                navigate(`/mp-public-problems/${row._id}/edit`)
-                              }
-                              title="Edit"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
-                <div className="text-muted small">
-                  Showing{" "}
-                  {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0}{" "}
-                  to {Math.min(currentPage * entriesPerPage, totalCount)} of{" "}
-                  {totalCount} entries
-                </div>
-
-                {entriesPerPage !== -1 && totalCount > entriesPerPage && (
-                  <nav>
-                    <ul className="pagination pagination-sm m-0">
-                      <li
-                        className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() =>
-                            setCurrentPage((p) => Math.max(1, p - 1))
-                          }
-                        >
-                          Previous
-                        </button>
-                      </li>
-
-                      <li className="page-item active">
-                        <span className="page-link">{currentPage}</span>
-                      </li>
-
-                      <li
-                        className={`page-item ${
-                          currentPage * entriesPerPage >= totalCount
-                            ? "disabled"
-                            : ""
-                        }`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() => setCurrentPage((p) => p + 1)}
-                        >
-                          Next
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
-                )}
-              </div>
+                  <button
+                    className={`px-3 py-1 rounded border ${
+                      currentPage * entriesPerPage >= totalCount
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                    }`}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    disabled={currentPage * entriesPerPage >= totalCount}
+                  >
+                    Next
+                  </button>
+                </nav>
+              )}
             </div>
           </div>
         </div>

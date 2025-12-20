@@ -206,31 +206,26 @@ const Users = () => {
   return (
     <div>
       <ContentHeader title="Users" />
-      <section className="content">
-        <div className="container-fluid">
-          <div className="card p-3">
+      <section className="p-4">
+        <div className="w-full">
+          <div className="bg-white rounded shadow-sm p-4 border border-gray-200">
             {/* Search and Filter Bar */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <div
-                className="d-flex align-items-center"
-                style={{ gap: "12px" }}
-              >
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+              <div className="flex items-center gap-3 w-full md:w-auto">
                 {/* Search Input */}
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="form-control form-control-sm"
-                  style={{ width: "220px", height: "36px" }}
+                  className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-[220px]"
                 />
 
                 {/* Role Filter Dropdown */}
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="form-control form-control-sm"
-                  style={{ width: "140px", height: "36px" }}
+                  className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-[140px]"
                 >
                   <option value="">All Roles</option>
                   {roleOptions.map((role) => (
@@ -244,8 +239,7 @@ const Users = () => {
                 <select
                   value={entriesPerPage}
                   onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  className="form-control form-control-sm"
-                  style={{ width: "100px", height: "36px" }}
+                  className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-[100px]"
                   title="Show entries"
                 >
                   <option value={10}>10</option>
@@ -257,13 +251,12 @@ const Users = () => {
                 </select>
               </div>
 
-              {/* Create User Button */}
-              <div style={{ display: "flex", gap: "8px" }}>
+              {/* Action Buttons */}
+              <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
                 {checkPermission("create_users") && (
                   <button
-                    className="btn btn-primary btn-sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded whitespace-nowrap transition-colors"
                     onClick={() => navigate("/users/create")}
-                    style={{ height: "36px", padding: "0 16px" }}
                   >
                     Create User
                   </button>
@@ -271,9 +264,8 @@ const Users = () => {
 
                 {/* Export Button */}
                 <button
-                  className="btn btn-success btn-sm"
+                  className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded whitespace-nowrap transition-colors flex items-center gap-2"
                   onClick={handleExport}
-                  style={{ height: "36px", padding: "0 16px" }}
                   title="Export to Excel"
                 >
                   <i className="fas fa-download"></i> Export
@@ -281,9 +273,8 @@ const Users = () => {
 
                 {/* Import Button */}
                 <button
-                  className="btn btn-info btn-sm"
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium py-2 px-4 rounded whitespace-nowrap transition-colors flex items-center gap-2"
                   onClick={() => fileInputRef.current?.click()}
-                  style={{ height: "36px", padding: "0 16px" }}
                   title="Import from Excel"
                 >
                   <i className="fas fa-upload"></i> Import
@@ -295,58 +286,85 @@ const Users = () => {
                   type="file"
                   accept=".xlsx,.xls"
                   onChange={handleImport}
-                  style={{ display: "none" }}
+                  className="hidden"
                 />
               </div>
             </div>
 
-            <div className="card-body">
-              <table className="table table-bordered table-hover">
-                <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Mobile</th>
-                    <th>Role</th>
-                    <th>Created On</th>
-                    <th>Actions</th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Name
+                    </th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Email
+                    </th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Mobile
+                    </th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Role
+                    </th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Created On
+                    </th>
+                    <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="text-center">
+                      <td
+                        colSpan={6}
+                        className="border border-gray-200 px-4 py-8 text-center text-gray-500"
+                      >
                         Loading...
                       </td>
                     </tr>
                   ) : displayedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center">
+                      <td
+                        colSpan={6}
+                        className="border border-gray-200 px-4 py-8 text-center text-gray-500"
+                      >
                         No users found
                       </td>
                     </tr>
                   ) : (
                     displayedUsers.map((u) => (
-                      <tr key={u._id}>
-                        <td>{u.name}</td>
-                        <td>{u.email}</td>
-                        <td>{u.mobile || "-"}</td>
-                        <td>
+                      <tr
+                        key={u._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                          {u.name}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                          {u.email}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                          {u.mobile || "-"}
+                        </td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
                           {u.role && typeof u.role === "object"
                             ? u.role.displayName || u.role.name
                             : u.role || "-"}
                         </td>
-                        <td>
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
                           {u.createdAt
                             ? new Date(u.createdAt).toLocaleString()
                             : "-"}
                         </td>
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            {/* View Button - Always visible or checking users.view? for now leaving as is or add users.view */}
+                        <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                          <div className="flex items-center gap-2">
+                            {/* View Button */}
                             {checkPermission("view_users") && (
                               <button
-                                className="btn btn-sm btn-info p-2 mr-2"
+                                className="bg-cyan-500 hover:bg-cyan-600 text-white p-2 rounded transition-colors h-8 w-8 flex items-center justify-center"
                                 onClick={() => navigate(`/users/${u._id}/view`)}
                                 title="View"
                               >
@@ -357,7 +375,7 @@ const Users = () => {
                             {/* Edit Button */}
                             {checkPermission("edit_users") && (
                               <button
-                                className="btn btn-sm btn-warning p-2 mr-2"
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded transition-colors h-8 w-8 flex items-center justify-center"
                                 onClick={() => navigate(`/users/${u._id}/edit`)}
                                 title="Edit"
                               >
@@ -368,7 +386,7 @@ const Users = () => {
                             {/* Delete Button */}
                             {checkPermission("delete_users") && (
                               <button
-                                className="btn btn-sm btn-danger p-2 mr-2"
+                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded transition-colors h-8 w-8 flex items-center justify-center"
                                 onClick={() => handleDelete(u._id)}
                                 title="Delete"
                               >
@@ -382,135 +400,111 @@ const Users = () => {
                   )}
                 </tbody>
               </table>
+            </div>
 
-              {/* Pagination and Footer */}
-              <div
-                className="d-flex justify-content-between align-items-center mt-3"
-                style={{
-                  borderTop: "1px solid #dee2e6",
-                  paddingTop: "12px",
-                }}
-              >
-                {/* Showing Info */}
-                <div style={{ fontSize: "14px", color: "#666" }}>
-                  Showing{" "}
-                  <strong>
-                    {filteredUsers.length === 0
-                      ? 0
-                      : 1
-                        ? (currentPage - 1) * entriesPerPage + 1
-                        : 0}
-                  </strong>{" "}
-                  to{" "}
-                  <strong>
-                    {entriesPerPage === -1
-                      ? filteredUsers.length
-                      : Math.min(
-                          currentPage * entriesPerPage,
-                          filteredUsers.length
-                        )}
-                  </strong>{" "}
-                  of <strong>{filteredUsers.length}</strong> entries
-                </div>
+            {/* Pagination and Footer */}
+            <div className="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
+              {/* Showing Info */}
+              <div className="text-sm text-gray-600 mb-2 md:mb-0">
+                Showing{" "}
+                <strong className="font-semibold text-gray-800">
+                  {filteredUsers.length === 0
+                    ? 0
+                    : 1
+                      ? (currentPage - 1) * entriesPerPage + 1
+                      : 0}
+                </strong>{" "}
+                to{" "}
+                <strong className="font-semibold text-gray-800">
+                  {entriesPerPage === -1
+                    ? filteredUsers.length
+                    : Math.min(
+                        currentPage * entriesPerPage,
+                        filteredUsers.length
+                      )}
+                </strong>{" "}
+                of{" "}
+                <strong className="font-semibold text-gray-800">
+                  {filteredUsers.length}
+                </strong>{" "}
+                entries
+              </div>
 
-                {/* Pagination Controls */}
-                {entriesPerPage !== -1 &&
-                  filteredUsers.length > entriesPerPage && (
-                    <nav aria-label="Page navigation">
-                      <ul className="pagination mb-0" style={{ gap: "4px" }}>
-                        {/* Previous Button */}
-                        <li
-                          className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+              {/* Pagination Controls */}
+              {entriesPerPage !== -1 &&
+                filteredUsers.length > entriesPerPage && (
+                  <nav aria-label="Page navigation">
+                    <ul className="flex list-none gap-1 m-0 p-0">
+                      {/* Previous Button */}
+                      <li>
+                        <button
+                          className={`px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                              ${currentPage === 1 ? "bg-gray-100 text-gray-400" : "bg-white text-gray-700"}`}
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
                         >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((prev) => Math.max(prev - 1, 1))
-                            }
-                            disabled={currentPage === 1}
-                            style={{
-                              padding: "6px 10px",
-                              fontSize: "12px",
-                              border: "1px solid #dee2e6",
-                            }}
-                          >
-                            Previous
-                          </button>
-                        </li>
+                          Previous
+                        </button>
+                      </li>
 
-                        {/* Page Numbers */}
-                        {Array.from(
-                          {
-                            length: Math.ceil(
-                              filteredUsers.length / entriesPerPage
-                            ),
-                          },
-                          (_, i) => i + 1
-                        )
-                          .slice(
-                            Math.max(0, currentPage - 3),
-                            Math.min(
-                              Math.ceil(filteredUsers.length / entriesPerPage),
-                              currentPage + 2
-                            )
+                      {/* Page Numbers */}
+                      {Array.from(
+                        {
+                          length: Math.ceil(
+                            filteredUsers.length / entriesPerPage
+                          ),
+                        },
+                        (_, i) => i + 1
+                      )
+                        .slice(
+                          Math.max(0, currentPage - 3),
+                          Math.min(
+                            Math.ceil(filteredUsers.length / entriesPerPage),
+                            currentPage + 2
                           )
-                          .map((page) => (
-                            <li
-                              key={page}
-                              className={`page-item ${page === currentPage ? "active" : ""}`}
+                        )
+                        .map((page) => (
+                          <li key={page}>
+                            <button
+                              className={`px-3 py-1 text-sm border rounded transition-colors
+                                  ${
+                                    page === currentPage
+                                      ? "bg-blue-600 text-white border-blue-600"
+                                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                  }`}
+                              onClick={() => setCurrentPage(page)}
                             >
-                              <button
-                                className="page-link"
-                                onClick={() => setCurrentPage(page)}
-                                style={{
-                                  padding: "6px 10px",
-                                  fontSize: "12px",
-                                  border: "1px solid #dee2e6",
-                                }}
-                              >
-                                {page}
-                              </button>
-                            </li>
-                          ))}
+                              {page}
+                            </button>
+                          </li>
+                        ))}
 
-                        {/* Next Button */}
-                        <li
-                          className={`page-item ${
+                      {/* Next Button */}
+                      <li>
+                        <button
+                          className={`px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                              ${currentPage >= Math.ceil(filteredUsers.length / entriesPerPage) ? "bg-gray-100 text-gray-400" : "bg-white text-gray-700"}`}
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(
+                                prev + 1,
+                                Math.ceil(filteredUsers.length / entriesPerPage)
+                              )
+                            )
+                          }
+                          disabled={
                             currentPage >=
                             Math.ceil(filteredUsers.length / entriesPerPage)
-                              ? "disabled"
-                              : ""
-                          }`}
+                          }
                         >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((prev) =>
-                                Math.min(
-                                  prev + 1,
-                                  Math.ceil(
-                                    filteredUsers.length / entriesPerPage
-                                  )
-                                )
-                              )
-                            }
-                            disabled={
-                              currentPage >=
-                              Math.ceil(filteredUsers.length / entriesPerPage)
-                            }
-                            style={{
-                              padding: "6px 10px",
-                              fontSize: "12px",
-                              border: "1px solid #dee2e6",
-                            }}
-                          >
-                            Next
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  )}
-              </div>
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                )}
             </div>
           </div>
         </div>
