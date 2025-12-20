@@ -252,7 +252,7 @@ const Users = () => {
                     variant="outline"
                     size="lg"
                     onClick={handleExport}
-                    className="bg-[#368F8B]"
+                    className="bg-[#00563B] hover:bg-[#368F8B] hover:text-white text-white"
                   >
                     <Download className="w-5 h-5 mr-2" /> Export
                   </Button>
@@ -261,6 +261,7 @@ const Users = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => fileInputRef.current?.click()}
+                    className="bg-[#00563B] hover:bg-[#368F8B] hover:text-white text-white"
                   >
                     <Upload className="w-5 h-5 mr-2" /> Import
                   </Button>
@@ -269,7 +270,7 @@ const Users = () => {
                     <Button
                       size="lg"
                       onClick={() => navigate("/users/create")}
-                      className="bg-[#368F8B]"
+                      className="bg-[#00563B] hover:bg-[#368F8B]"
                     >
                       <Plus className="w-5 h-5 mr-2 " /> Add User
                     </Button>

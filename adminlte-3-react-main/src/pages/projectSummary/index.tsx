@@ -1,11 +1,50 @@
-import { ContentHeader } from "@components";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-// Updated Interface for Project Summary
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@app/components/ui/table";
+import { Button } from "@app/components/ui/button";
+import { Input } from "@app/components/ui/input";
+import { Badge } from "@app/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@app/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import { Skeleton } from "@app/components/ui/skeleton";
+
+import {
+  Search,
+  Plus,
+  Download,
+  Upload,
+  Eye,
+  Edit,
+  Columns,
+  MoreVertical,
+  Trash2,
+  FileText,
+} from "lucide-react";
+import { ContentHeader } from "@app/components";
+
 interface IProject {
   _id: string;
   district: string;
@@ -24,15 +63,17 @@ interface IProject {
 }
 
 const ProjectSummary = () => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [data, setData] = useState<IProject[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const navigate = useNavigate();
 
   // Filters
-  const [filterBlock, setFilterBlock] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterBlock, setFilterBlock] = useState("all");
+  const [filterDepartment, setFilterDepartment] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Pagination
@@ -40,7 +81,6 @@ const ProjectSummary = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Column Visibility
-  const [showColumnToggle, setShowColumnToggle] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
     srNo: true,
     district: true,
@@ -57,19 +97,20 @@ const ProjectSummary = () => {
     remarks: true,
   });
 
+  const [selectedRemark, setSelectedRemark] = useState<string | null>(null);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? -1 : entriesPerPage,
+        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        block: filterBlock === "all" ? undefined : filterBlock,
+        department: filterDepartment === "all" ? undefined : filterDepartment,
+        status: filterStatus === "all" ? undefined : filterStatus,
+        search: searchTerm || undefined,
       };
-      if (filterBlock) params.block = filterBlock;
-      if (filterDepartment) params.department = filterDepartment;
-      if (filterStatus) params.status = filterStatus;
-      if (searchTerm) params.search = searchTerm;
 
-      // Update endpoint if different from public-problems
       const res = await axios.get("http://localhost:5000/api/projects", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         params,
@@ -78,7 +119,6 @@ const ProjectSummary = () => {
       setData(res.data.data || []);
       setTotalCount(res.data.count || 0);
     } catch (err: any) {
-      console.error(err);
       toast.error("Failed to fetch project data");
     } finally {
       setLoading(false);
@@ -96,26 +136,8 @@ const ProjectSummary = () => {
     searchTerm,
   ]);
 
-  // Debounced search
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setCurrentPage(1);
-      fetchData();
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
-  const handleFilter = () => {
-    setCurrentPage(1);
-    fetchData();
-    toast.info("Filters applied");
-  };
-
   const handleExport = () => {
-    if (data.length === 0) {
-      toast.warning("No data to export");
-      return;
-    }
+    if (data.length === 0) return toast.warning("No data to export");
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Projects");
@@ -123,366 +145,488 @@ const ProjectSummary = () => {
     toast.success("Exported successfully");
   };
 
+  const handleImport = () => {
+    toast.info("Import feature coming soon");
+  };
+
   const toggleColumn = (key: keyof typeof visibleColumns) => {
     setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Implement import logic later if needed
-    toast.info("Import feature coming soon");
+  const getStatusVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "default";
+      case "in progress":
+        return "secondary";
+      default:
+        return "outline";
+    }
   };
 
   return (
-    <div>
+    <>
       <ContentHeader title="Project Summary" />
 
-      <section className="content-header">
-        <div className="container-fluid">
-          <div className="row mb-4 align-items-center">
-            <div className="col-sm-6">
-              <h1 className="m-0 text-dark">
-                <i className="fas fa-project-diagram mr-2 text-primary"></i>
-                Project Summary Management
-              </h1>
-            </div>
-            <div className="col-sm-6">
-              <div className="d-flex justify-content-end align-items-center gap-3">
-                <button
-                  type="button"
-                  className="btn btn-warning btn-sm shadow-sm px-2 mr-1 rounded"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <i className="fas fa-file-import mr-2"></i>
-                  Import Excel
-                </button>
-
-                <button
-                  type="button"
-                  className="btn btn-success btn-sm shadow-sm px-2 mr-1 rounded"
-                  onClick={() => navigate("/projects/create")}
-                >
-                  <i className="fas fa-plus mr-2"></i>
-                  Add Project
-                </button>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImport}
-                  style={{ display: "none" }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="content">
-        <div className="container-fluid">
-          {/* Filters */}
-          <div className="card mb-3">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-3 mb-2">
-                  <label>Block</label>
-                  <select
-                    className="form-control"
-                    value={filterBlock}
-                    onChange={(e) => setFilterBlock(e.target.value)}
-                  >
-                    <option value="">All Blocks</option>
-                    <option value="Bagh">Bagh</option>
-                    <option value="Tanda">Tanda</option>
-                    {/* Add more */}
-                  </select>
-                </div>
-                <div className="col-md-3 mb-2">
-                  <label>Department</label>
-                  <select
-                    className="form-control"
-                    value={filterDepartment}
-                    onChange={(e) => setFilterDepartment(e.target.value)}
-                  >
-                    <option value="">All Departments</option>
-                    <option value="PWD">PWD</option>
-                    <option value="Health">Health</option>
-                    <option value="Education">Education</option>
-                  </select>
-                </div>
-                <div className="col-md-3 mb-2">
-                  <label>Status</label>
-                  <select
-                    className="form-control"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-                <div className="col-md-3 mb-2 d-flex align-items-end">
-                  <button
-                    className="btn btn-primary w-100"
-                    onClick={handleFilter}
-                  >
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Table */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <strong>Project List</strong>
-              </h3>
-            </div>
-
-            <div className="card-body">
-              {/* Controls */}
-              <div className="d-flex justify-content-between flex-wrap mb-3">
-                <div className="d-flex align-items-center gap-3 mb-2">
-                  <div className="d-flex align-items-center">
-                    <span className="mr-2">Show</span>
-                    <select
-                      className="form-control form-control-sm"
-                      style={{ width: "80px" }}
-                      value={entriesPerPage}
-                      onChange={(e) =>
-                        setEntriesPerPage(Number(e.target.value))
-                      }
-                    >
-                      <option value="10">10</option>
-                      <option value="25">25</option>
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                      <option value="-1">All</option>
-                    </select>
-                    <span className="ml-2 mr-2">entries</span>
-                  </div>
-
-                  <button
-                    className="btn btn-secondary btn-sm mr-2"
-                    onClick={handleExport}
-                  >
-                    Export Excel
-                  </button>
-
-                  <div className="position-relative">
-                    <button
-                      className="btn btn-default btn-sm border"
-                      onClick={() => setShowColumnToggle(!showColumnToggle)}
-                    >
-                      Columns
-                    </button>
-                    {showColumnToggle && (
-                      <div
-                        className="position-absolute bg-white border shadow p-3 mt-1"
-                        style={{ zIndex: 1000, minWidth: "200px" }}
-                      >
-                        {Object.keys(visibleColumns).map((key) => (
-                          <div key={key} className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              checked={
-                                visibleColumns[
-                                  key as keyof typeof visibleColumns
-                                ]
-                              }
-                              onChange={() =>
-                                toggleColumn(key as keyof typeof visibleColumns)
-                              }
-                            />
-                            <label className="form-check-label text-capitalize">
-                              {key.replace(/([A-Z])/g, " $1").trim()}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="d-flex align-items-center mb-2">
-                  <label className="mr-2 mb-0">Search:</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+        <div className="container-fluid px-4">
+          {/* Detached Main Block */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
+            {/* Actions Bar */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+                <div className="relative flex-1 max-w-lg">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
                     placeholder="Search projects..."
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchTerm(e.target.value)
+                    }
+                    className="pl-12 h-12 text-base"
                   />
                 </div>
-              </div>
 
-              {/* Table */}
-              <div className="table-responsive">
-                <table className="table table-bordered table-hover text-center">
-                  <thead className="bg-primary text-white">
-                    <tr>
-                      {visibleColumns.srNo && <th>Sr. No.</th>}
-                      {visibleColumns.district && <th>District</th>}
-                      {visibleColumns.block && <th>Block</th>}
-                      {visibleColumns.department && <th>Department</th>}
-                      {visibleColumns.workName && <th>Work Name</th>}
-                      {visibleColumns.projectCost && <th>Project Cost (₹)</th>}
-                      {visibleColumns.proposalEstimate && (
-                        <th>Proposal Estimate (₹)</th>
-                      )}
-                      {visibleColumns.tsNoDate && <th>TS No/Date</th>}
-                      {visibleColumns.asNoDate && <th>AS No/Date</th>}
-                      {visibleColumns.status && <th>Status</th>}
-                      {visibleColumns.officerName && <th>Officer Name</th>}
-                      {visibleColumns.contactNumber && <th>Contact Number</th>}
-                      {visibleColumns.remarks && <th>Remarks</th>}
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={14} className="text-center py-4">
-                          Loading...
-                        </td>
-                      </tr>
-                    ) : data.length === 0 ? (
-                      <tr>
-                        <td colSpan={14} className="text-center py-4">
-                          <strong>No projects found</strong>
-                          <div className="mt-2 text-muted">
-                            Try adjusting filters or add a new project
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      data.map((project, idx) => (
-                        <tr key={project._id}>
-                          {visibleColumns.srNo && (
-                            <td>
-                              {(currentPage - 1) * entriesPerPage + idx + 1}
-                            </td>
-                          )}
-                          {visibleColumns.district && (
-                            <td>{project.district}</td>
-                          )}
-                          {visibleColumns.block && <td>{project.block}</td>}
-                          {visibleColumns.department && (
-                            <td>{project.department}</td>
-                          )}
-                          {visibleColumns.workName && (
-                            <td>{project.workName}</td>
-                          )}
-                          {visibleColumns.projectCost && (
-                            <td>₹{project.projectCost.toLocaleString()}</td>
-                          )}
-                          {visibleColumns.proposalEstimate && (
-                            <td>
-                              ₹{project.proposalEstimate.toLocaleString()}
-                            </td>
-                          )}
-                          {visibleColumns.tsNoDate && (
-                            <td>{project.tsNoDate || "-"}</td>
-                          )}
-                          {visibleColumns.asNoDate && (
-                            <td>{project.asNoDate || "-"}</td>
-                          )}
-                          {visibleColumns.status && (
-                            <td>
-                              <span
-                                className={`badge badge-${project.status === "Completed" ? "success" : project.status === "In Progress" ? "warning" : "secondary"}`}
-                              >
-                                {project.status}
-                              </span>
-                            </td>
-                          )}
-                          {visibleColumns.officerName && (
-                            <td>{project.officerName || "-"}</td>
-                          )}
-                          {visibleColumns.contactNumber && (
-                            <td>{project.contactNumber || "-"}</td>
-                          )}
-                          {visibleColumns.remarks && (
-                            <td>{project.remarks || "-"}</td>
-                          )}
-                          <td>
-                            <button
-                              className="btn btn-sm btn-primary mr-1"
-                              onClick={() =>
-                                navigate(`/projects/${project._id}`)
-                              }
-                              title="View"
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-warning"
-                              onClick={() =>
-                                navigate(`/projects/${project._id}/edit`)
-                              }
-                              title="Edit"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                <div className="flex flex-wrap items-center gap-3">
+                  <Select value={filterBlock} onValueChange={setFilterBlock}>
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="All Blocks" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Blocks</SelectItem>
+                      <SelectItem value="Bagh">Bagh</SelectItem>
+                      <SelectItem value="Tanda">Tanda</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={filterDepartment}
+                    onValueChange={setFilterDepartment}
+                  >
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="All Departments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectItem value="PWD">PWD</SelectItem>
+                      <SelectItem value="Health">Health</SelectItem>
+                      <SelectItem value="Education">Education</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={entriesPerPage.toString()}
+                    onValueChange={(v: string) =>
+                      setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                    }
+                  >
+                    <SelectTrigger className="w-32 h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="-1">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleExport}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Download className="w-5 h-5 mr-2" /> Export
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Upload className="w-5 h-5 mr-2" /> Import
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/projects/create")}
+                    className="bg-[#00563B] hover:bg-[#368F8B]"
+                  >
+                    <Plus className="w-5 h-5 mr-2" /> Add Project
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImport}
+              className="hidden"
+            />
+
+            {/* Column Visibility Toggle */}
+            <div className="px-6 py-3 border-b border-gray-200 flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Columns className="w-4 h-4 mr-2" /> Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {Object.keys(visibleColumns).map((key) => (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={
+                        visibleColumns[key as keyof typeof visibleColumns]
+                      }
+                      onCheckedChange={() =>
+                        toggleColumn(key as keyof typeof visibleColumns)
+                      }
+                    >
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    {visibleColumns.srNo && (
+                      <TableHead className="font-semibold">Sr. No.</TableHead>
                     )}
-                  </tbody>
-                </table>
-              </div>
+                    {visibleColumns.district && (
+                      <TableHead className="font-semibold">District</TableHead>
+                    )}
+                    {visibleColumns.block && (
+                      <TableHead className="font-semibold">Block</TableHead>
+                    )}
+                    {visibleColumns.department && (
+                      <TableHead className="font-semibold">
+                        Department
+                      </TableHead>
+                    )}
+                    {visibleColumns.workName && (
+                      <TableHead className="font-semibold">Work Name</TableHead>
+                    )}
+                    {visibleColumns.projectCost && (
+                      <TableHead className="font-semibold">
+                        Project Cost (₹)
+                      </TableHead>
+                    )}
+                    {visibleColumns.proposalEstimate && (
+                      <TableHead className="font-semibold">
+                        Proposal Estimate (₹)
+                      </TableHead>
+                    )}
+                    {visibleColumns.tsNoDate && (
+                      <TableHead className="font-semibold">
+                        TS No/Date
+                      </TableHead>
+                    )}
+                    {visibleColumns.asNoDate && (
+                      <TableHead className="font-semibold">
+                        AS No/Date
+                      </TableHead>
+                    )}
+                    {visibleColumns.status && (
+                      <TableHead className="font-semibold">Status</TableHead>
+                    )}
+                    {visibleColumns.officerName && (
+                      <TableHead className="font-semibold">
+                        Officer Name
+                      </TableHead>
+                    )}
+                    {visibleColumns.contactNumber && (
+                      <TableHead className="font-semibold">
+                        Contact Number
+                      </TableHead>
+                    )}
+                    {visibleColumns.remarks && (
+                      <TableHead className="font-semibold">Remarks</TableHead>
+                    )}
+                    <TableHead className="text-right font-semibold">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 8 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {visibleColumns.srNo && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-16" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.district && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.block && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.department && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.workName && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-64" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.projectCost && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.proposalEstimate && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.tsNoDate && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.asNoDate && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-24" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.officerName && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-48" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.contactNumber && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
+                        )}
+                        {visibleColumns.remarks && (
+                          <TableCell>
+                            <Skeleton className="h-10 w-64" />
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <Skeleton className="h-10 w-20 ml-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={14}
+                        className="text-center py-20 text-gray-500"
+                      >
+                        No projects found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.map((project, idx) => (
+                      <TableRow
+                        key={project._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        {visibleColumns.srNo && (
+                          <TableCell>
+                            {(currentPage - 1) * entriesPerPage + idx + 1}
+                          </TableCell>
+                        )}
+                        {visibleColumns.district && (
+                          <TableCell>{project.district}</TableCell>
+                        )}
+                        {visibleColumns.block && (
+                          <TableCell>{project.block}</TableCell>
+                        )}
+                        {visibleColumns.department && (
+                          <TableCell>{project.department}</TableCell>
+                        )}
+                        {visibleColumns.workName && (
+                          <TableCell>{project.workName}</TableCell>
+                        )}
+                        {visibleColumns.projectCost && (
+                          <TableCell>
+                            ₹{project.projectCost.toLocaleString()}
+                          </TableCell>
+                        )}
+                        {visibleColumns.proposalEstimate && (
+                          <TableCell>
+                            ₹{project.proposalEstimate.toLocaleString()}
+                          </TableCell>
+                        )}
+                        {visibleColumns.tsNoDate && (
+                          <TableCell>{project.tsNoDate || "-"}</TableCell>
+                        )}
+                        {visibleColumns.asNoDate && (
+                          <TableCell>{project.asNoDate || "-"}</TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell>
+                            <Badge variant={getStatusVariant(project.status)}>
+                              {project.status}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.officerName && (
+                          <TableCell>{project.officerName || "-"}</TableCell>
+                        )}
+                        {visibleColumns.contactNumber && (
+                          <TableCell>{project.contactNumber || "-"}</TableCell>
+                        )}
+                        {visibleColumns.remarks && (
+                          <TableCell
+                            className="max-w-[150px] truncate cursor-pointer hover:text-[#368F8B] transition-colors"
+                            onClick={() =>
+                              setSelectedRemark(project.remarks || "No remarks")
+                            }
+                            title="Click to view full remarks"
+                          >
+                            {project.remarks || "-"}
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/projects/${project._id}`)
+                                }
+                              >
+                                <Eye className="mr-2 h-4 w-4" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/projects/${project._id}/edit`)
+                                }
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Edit Project
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                Project
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
-              {/* Pagination */}
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <div className="text-muted small">
+            {/* Pagination */}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
                   Showing {(currentPage - 1) * entriesPerPage + 1} to{" "}
                   {Math.min(currentPage * entriesPerPage, totalCount)} of{" "}
                   {totalCount} entries
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="px-4 py-2 bg-[#00563B] text-white rounded-md text-sm font-medium">
+                    {currentPage}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={currentPage * entriesPerPage >= totalCount}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
                 </div>
-                {entriesPerPage !== -1 && totalCount > entriesPerPage && (
-                  <nav>
-                    <ul className="pagination pagination-sm">
-                      <li
-                        className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() =>
-                            setCurrentPage((p) => Math.max(1, p - 1))
-                          }
-                        >
-                          Previous
-                        </button>
-                      </li>
-                      <li className="page-item active">
-                        <span className="page-link">{currentPage}</span>
-                      </li>
-                      <li
-                        className={`page-item ${currentPage * entriesPerPage >= totalCount ? "disabled" : ""}`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() => setCurrentPage((p) => p + 1)}
-                        >
-                          Next
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
-                )}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Remarks Modal */}
+        {selectedRemark && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4"
+            onClick={() => setSelectedRemark(null)}
+          >
+            <div
+              className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all animate-in fade-in zoom-in duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-xl text-gray-900">
+                  Project Remarks
+                </h3>
+                <button
+                  onClick={() => setSelectedRemark(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Plus className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedRemark}
+                </p>
+              </div>
+              <div className="mt-8 flex justify-end">
+                <Button
+                  onClick={() => setSelectedRemark(null)}
+                  className="bg-[#00563B] hover:bg-[#368F8B] px-8"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
-    </div>
+    </>
   );
 };
 
