@@ -1,8 +1,8 @@
-import { IMenuItem, MENU } from '@app/utils/menu';
-import { Dropdown } from '@profabric/react-components';
-import { useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import styled from 'styled-components';
+import { IMenuItem, MENU } from "@app/utils/menu";
+import { Dropdown } from "@profabric/react-components";
+import { useEffect, useRef, useState } from "react";
+import { NavLink } from "react-router-dom";
+import styled from "styled-components";
 
 export const StyledDropdown = styled(Dropdown)`
   border: none;
@@ -16,7 +16,7 @@ export const StyledDropdown = styled(Dropdown)`
   --pf-dropdown-menu-margin-top: 0px;
 
   .menu {
-    background-color: #454d55;
+    background-color: #2c4a59;
   }
 
   .dropdown-item {
@@ -42,7 +42,7 @@ export const StyledDropdown = styled(Dropdown)`
 `;
 
 export const SidebarSearch = () => {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [foundMenuItems, setFoundMenuItems] = useState<IMenuItem[]>([]);
   const dropdown = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -52,7 +52,7 @@ export const SidebarSearch = () => {
     if (searchText) {
       setFoundMenuItems(findMenuItems(MENU));
     } else {
-      setSearchText('');
+      setSearchText("");
       setFoundMenuItems([]);
     }
   }, [searchText]);
@@ -66,12 +66,12 @@ export const SidebarSearch = () => {
   }, [foundMenuItems]);
 
   const handleIconClick = () => {
-    setSearchText('');
+    setSearchText("");
     setIsDropdownOpen(false);
   };
 
   const handleMenuItemClick = () => {
-    setSearchText('');
+    setSearchText("");
     setIsDropdownOpen(false);
   };
 
@@ -121,8 +121,8 @@ export const SidebarSearch = () => {
               onClick={() => handleIconClick()}
             >
               <i
-                className={`fas ${searchText.length === 0 && 'fa-search'} ${
-                  searchText.length > 0 && 'fa-times'
+                className={`fas ${searchText.length === 0 && "fa-search"} ${
+                  searchText.length > 0 && "fa-times"
                 } fa-fw`}
               />
             </button>

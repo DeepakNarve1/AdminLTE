@@ -68,11 +68,11 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
 
   const activeClasses = isLight
     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-    : "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/20";
+    : "bg-[#368F8B] text-white shadow-lg shadow-[#368F8B]/30"; // Using the Red to match the badges!
 
   const inactiveClasses = isLight
     ? "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
-    : "text-slate-400 hover:bg-white/5 hover:text-white";
+    : "text-black/70 hover:bg-white/10 hover:text-emerald-800";
 
   return (
     <li className={`relative w-full ${isMenuExtended ? "menu-open" : ""}`}>
@@ -109,7 +109,7 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
 
       {isExpandable && isMenuExtended && (
         <ul
-          className={`pl-2 mt-1 list-none space-y-0.5 border-l-2 ml-4 ${isLight ? "border-gray-200" : "border-slate-700/50"}`}
+          className={`pl-2 mt-1 list-none space-y-0.5 border-l-2 ml-4 ${isLight ? "border-gray-200" : "border-white/10"}`}
         >
           {menuItem.children?.map((item) => (
             <li key={item.name} className="relative w-full">

@@ -86,8 +86,8 @@ const MenuSidebar = () => {
     if (sidebarSkin === "sidebar-light-primary") {
       classes += "bg-white text-slate-700 border-gray-200";
     } else {
-      // "Premium Dark" - darker slate/zinc instead of pure gray
-      classes += "bg-slate-900 text-slate-300 border-slate-800";
+      // Premium Dark - using the Teal color theme
+      classes += "bg-white text-gray border-[#2c4a59]";
     }
 
     if (screenSize === "lg") {
@@ -116,7 +116,7 @@ const MenuSidebar = () => {
         className={`flex items-center h-[57px] px-6 border-b transition-colors ${
           isLight
             ? "border-gray-200 hover:bg-gray-50"
-            : "border-slate-800 hover:bg-slate-800/50"
+            : "border-[#2c4a59] hover:bg-[#2c4a59]/50"
         }`}
       >
         <Image
@@ -141,7 +141,7 @@ const MenuSidebar = () => {
         {/* User Panel */}
         <div
           className={`px-4 py-6 border-b transition-colors ${
-            isLight ? "border-gray-200" : "border-slate-800"
+            isLight ? "border-gray-200" : "border-[#2c4a59]"
           }`}
         >
           <div className="flex items-center">
