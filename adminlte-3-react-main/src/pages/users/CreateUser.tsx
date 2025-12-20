@@ -1,10 +1,21 @@
-import { useEffect, useState } from "react";
 import { ContentHeader } from "@components";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-// (no redux selector needed here)
 import { toast } from "react-toastify";
 import { IRoleOption, UserForm } from "@app/types/user";
+
+import { Input } from "@app/components/ui/input";
+import { Button } from "@app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import { AlertCircle } from "lucide-react";
+import { Label } from "@app/components/ui/label";
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -29,12 +40,11 @@ const CreateUser = () => {
     const fetchRoles = async () => {
       try {
         setRolesLoading(true);
-        const res = await axios.get("http://localhost:5000/api/roles", {
+        const res = await axios.get("http://localhost:5000/api/rbac/roles", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setRoles(res.data?.data || []);
       } catch (error: any) {
-        console.error(error);
         toast.error(error.response?.data?.message || "Failed to load roles");
       } finally {
         setRolesLoading(false);
@@ -44,14 +54,11 @@ const CreateUser = () => {
     fetchRoles();
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (name: string, value: string) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const createUser = async () => {
-    // Inline validation with field highlighting
     const newErrors: Record<string, string> = {};
     const required = [
       "name",
@@ -61,9 +68,10 @@ const CreateUser = () => {
       "role",
       "block",
     ];
-    required.forEach((f) => {
-      // @ts-ignore
-      if (!form[f]) newErrors[f] = "This field is required";
+    required.forEach((field) => {
+      if (!form[field as keyof UserForm]) {
+        newErrors[field] = "This field is required";
+      }
     });
 
     if (
@@ -71,7 +79,7 @@ const CreateUser = () => {
       form.confirmPassword &&
       form.password !== form.confirmPassword
     ) {
-      newErrors["confirmPassword"] = "Passwords do not match";
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -84,7 +92,6 @@ const CreateUser = () => {
 
     try {
       setLoading(true);
-
       const payload = {
         name: form.name,
         email: form.email,
@@ -95,308 +102,293 @@ const CreateUser = () => {
         block: form.block || "",
       };
 
-      // Use backend auth register endpoint (no axiosInstance)
-      await axios.post("http://localhost:5000/api/auth/register", payload);
-
-      toast.success("User Created Successfully!");
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        mobile: "",
-        role: "",
-        userType: "",
-        block: "",
+      await axios.post("http://localhost:5000/api/auth/register", payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+
+      toast.success("User created successfully!");
       navigate("/users");
     } catch (error: any) {
-      console.error(error);
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create user";
+      const errorMsg = error.response?.data?.message || "Failed to create user";
       toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50/50">
-      <ContentHeader title="User Management" />
+  const resetForm = () => {
+    setForm({
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      mobile: "",
+      role: "",
+      userType: "",
+      block: "",
+    });
+    setErrors({});
+  };
 
-      <section className="p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-xl">
-              <h5 className="font-semibold text-lg text-gray-800">
+  return (
+    <>
+      <ContentHeader title="Create User" />
+
+      <section className="content">
+        <div className="container-fluid px-4">
+          {/* Detached Main Block */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-4xl mx-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">
                 Enter User Details
-              </h5>
+              </h2>
+              <p className="text-gray-600 mt-1">
+                Fill in the information below to create a new user account.
+              </p>
             </div>
 
-            <div className="p-6">
+            <div className="p-8">
+              {/* Error Summary */}
               {Object.keys(errors).length > 0 && (
-                <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
-                  <div className="flex items-start">
-                    <div className="shrink-0">
-                      <i className="fas fa-exclamation-circle text-red-500 mt-1"></i>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">
-                        Please fix the following:
-                      </h3>
-                      <ul className="mt-1 text-sm text-red-700 list-disc list-inside">
-                        {Object.keys(errors).map((k) => (
-                          <li key={k}>{errors[k]}</li>
-                        ))}
-                      </ul>
-                    </div>
+                <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-medium text-red-800">
+                      Please fix the following errors:
+                    </h3>
+                    <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+                      {Object.values(errors).map((msg, i) => (
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               )}
 
-              {/* Grid Layout */}
+              {/* Form Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Full Name */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Full Name
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
                     name="name"
                     value={form.name}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.name
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleChange("name", e.target.value)
+                    }
                     placeholder="Enter full name"
+                    className={
+                      errors.name
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.name && (
-                    <p className="text-xs text-red-500 mt-1">{errors.name}</p>
+                    <p className="text-sm text-red-600">{errors.name}</p>
                   )}
                 </div>
 
                 {/* Email */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Email Address
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
                     name="email"
+                    type="email"
                     value={form.email}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleChange("email", e.target.value)
+                    }
+                    placeholder="Enter email address"
+                    className={
                       errors.email
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
-                    placeholder="Enter email"
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.email && (
-                    <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+                    <p className="text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Password */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Password
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
                     name="password"
                     type="password"
                     value={form.password}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.password
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleChange("password", e.target.value)
+                    }
                     placeholder="Enter password"
+                    className={
+                      errors.password
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.password && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.password}
-                    </p>
+                    <p className="text-sm text-red-600">{errors.password}</p>
                   )}
                 </div>
 
                 {/* Confirm Password */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
                     name="confirmPassword"
                     type="password"
                     value={form.confirmPassword}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.confirmPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleChange("confirmPassword", e.target.value)
+                    }
                     placeholder="Re-enter password"
+                    className={
+                      errors.confirmPassword
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.confirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">
+                    <p className="text-sm text-red-600">
                       {errors.confirmPassword}
                     </p>
                   )}
                 </div>
 
-                {/* Mobile Number */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Mobile Number
-                  </label>
-                  <input
+                {/* Mobile */}
+                <div className="space-y-2">
+                  <Label htmlFor="mobile">Mobile Number</Label>
+                  <Input
+                    id="mobile"
                     name="mobile"
                     value={form.mobile}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.mobile
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleChange("mobile", e.target.value)
+                    }
                     placeholder="Enter mobile number"
                   />
-                  {errors.mobile && (
-                    <p className="text-xs text-red-500 mt-1">{errors.mobile}</p>
-                  )}
                 </div>
 
                 {/* Role */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Role
-                  </label>
-                  <select
-                    name="role"
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
                     value={form.role}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.role
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onValueChange={(value: string) =>
+                      handleChange("role", value)
+                    }
                     disabled={rolesLoading}
                   >
-                    <option value="">Select Role</option>
-                    {roles.map((r) => (
-                      <option
-                        key={r._id}
-                        value={r.role || r.displayName || r.name || r._id}
-                      >
-                        {r.displayName || r.name || r.role}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      id="role"
+                      className={errors.role ? "border-red-500" : ""}
+                    >
+                      <SelectValue
+                        placeholder={
+                          rolesLoading ? "Loading roles..." : "Select a role"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r._id} value={r._id}>
+                          {r.displayName || r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.role && (
-                    <p className="text-xs text-red-500 mt-1">{errors.role}</p>
+                    <p className="text-sm text-red-600">{errors.role}</p>
                   )}
                 </div>
 
                 {/* User Type */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    User Type
-                  </label>
-                  <select
-                    name="userType"
+                <div className="space-y-2">
+                  <Label htmlFor="userType">User Type</Label>
+                  <Select
                     value={form.userType}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.userType
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onValueChange={(value: string) =>
+                      handleChange("userType", value)
+                    }
                   >
-                    <option value="">Select User Type</option>
-                    <option value="regularUser">Regular User</option>
-                    <option value="systemAdministrator">
-                      System Administrator
-                    </option>
-                  </select>
-                  {errors.userType && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.userType}
-                    </p>
-                  )}
+                    <SelectTrigger id="userType">
+                      <SelectValue placeholder="Select user type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regularUser">Regular User</SelectItem>
+                      <SelectItem value="systemAdministrator">
+                        System Administrator
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Select Block */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Select Block
-                  </label>
-                  <select
-                    name="block"
+                {/* Block */}
+                <div className="space-y-2">
+                  <Label htmlFor="block">Block</Label>
+                  <Select
                     value={form.block}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-opacity-50 transition-colors ${
-                      errors.block
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    onValueChange={(value: string) =>
+                      handleChange("block", value)
+                    }
                   >
-                    <option value="">Select Block</option>
-                    <option value="tanda">Tanda</option>
-                    <option value="gandhwani">Gandhwani</option>
-                    <option value="bagh">Bagh</option>
-                    <option value="tirla">Tirla</option>
-                    <option value="bhopal">Bhopal</option>
-                    <option value="other">Other</option>
-                  </select>
+                    <SelectTrigger
+                      id="block"
+                      className={errors.block ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Select block" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tanda">Tanda</SelectItem>
+                      <SelectItem value="gandhwani">Gandhwani</SelectItem>
+                      <SelectItem value="bagh">Bagh</SelectItem>
+                      <SelectItem value="tirla">Tirla</SelectItem>
+                      <SelectItem value="bhopal">Bhopal</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {errors.block && (
-                    <p className="text-xs text-red-500 mt-1">{errors.block}</p>
+                    <p className="text-sm text-red-600">{errors.block}</p>
                   )}
                 </div>
               </div>
 
-              {/* Submit Buttons */}
-              <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100">
-                <button
-                  className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-100 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              {/* Action Buttons */}
+              <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
+                <Button
+                  size="lg"
                   onClick={createUser}
                   disabled={loading}
+                  className="bg-[#00563B] hover:bg-[#368F8B]"
                 >
-                  {loading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>{" "}
-                      Creating...
-                    </>
-                  ) : (
-                    "Create User"
-                  )}
-                </button>
-                <button
-                  className="px-6 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                  onClick={() =>
-                    setForm({
-                      name: "",
-                      email: "",
-                      password: "",
-                      confirmPassword: "",
-                      mobile: "",
-                      role: "",
-                      userType: "",
-                      block: "",
-                    })
-                  }
+                  {loading ? "Creating..." : "Create User"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={resetForm}
                   disabled={loading}
                 >
                   Reset Form
-                </button>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={() => navigate("/users")}
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 

@@ -52,17 +52,17 @@ export const MENU: IMenuItem[] = [
     allowedRoles: ["superadmin"],
   },
   {
-    name: "Member List",
-    icon: "fas fa-list nav-icon",
-    path: "/member-list",
-    allowedRoles: ["superadmin"],
-  },
-  {
     name: "MP Public Problem",
     icon: "fas fa-exclamation-circle nav-icon",
     path: "/mp-public-problem",
     allowedRoles: ["superadmin"],
     resource: "mp_public_problem",
+  },
+  {
+    name: "Member List",
+    icon: "fas fa-list nav-icon",
+    path: "/member-list",
+    allowedRoles: ["superadmin"],
   },
   {
     name: "Assembly Issue",
