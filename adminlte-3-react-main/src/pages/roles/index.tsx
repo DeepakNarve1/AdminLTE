@@ -1,43 +1,69 @@
-import { ContentHeader } from "@components";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuthorization } from "@app/hooks/useAuthorization";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@app/components/ui/table";
+import { Button } from "@app/components/ui/button";
+import { Input } from "@app/components/ui/input";
+import { Badge } from "@app/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@app/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import { Skeleton } from "@app/components/ui/skeleton";
+
+import { Search, Plus, MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
+import { ContentHeader } from "@app/components";
 
 interface IRoleRow {
   _id: string;
-  role: string;
-  status: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  isSystem?: boolean;
   createdAt?: string;
 }
-
-import { useAuthorization } from "@app/hooks/useAuthorization";
 
 const RoleList = () => {
   const { checkPermission } = useAuthorization();
   const navigate = useNavigate();
+
   const [roles, setRoles] = useState<IRoleRow[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<IRoleRow[]>([]);
-  const [displayedRoles, setDisplayedRoles] = useState<IRoleRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
-  const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchRoles = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-
-      const res = await axios.get("http://localhost:5000/api/roles", {
+      const res = await axios.get("http://localhost:5000/api/rbac/roles", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setRoles(res.data?.data || []);
-      setFilteredRoles(res.data?.data || []);
+      const data = res.data?.data || [];
+      setRoles(data);
+      setFilteredRoles(data);
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to load roles");
     } finally {
       setLoading(false);
@@ -52,232 +78,252 @@ const RoleList = () => {
   useEffect(() => {
     let filtered = roles;
 
-    if (searchTerm !== "") {
+    if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (r) =>
-          r.role.toLowerCase().includes(term) ||
-          r.status.toLowerCase().includes(term)
+          r.name.toLowerCase().includes(term) ||
+          r.displayName.toLowerCase().includes(term) ||
+          (r.description && r.description.toLowerCase().includes(term))
       );
     }
 
     setFilteredRoles(filtered);
+    setCurrentPage(1);
   }, [searchTerm, roles]);
 
-  // Pagination Reset
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, entriesPerPage]);
+  // Pagination
+  const paginatedRoles = useMemo(() => {
+    if (entriesPerPage === -1) return filteredRoles;
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredRoles.slice(start, start + entriesPerPage);
+  }, [filteredRoles, currentPage, entriesPerPage]);
 
-  // Paginated Roles
-  useEffect(() => {
-    if (entriesPerPage === -1) {
-      setDisplayedRoles(filteredRoles);
-    } else {
-      const startIndex = (currentPage - 1) * entriesPerPage;
-      const endIndex = startIndex + entriesPerPage;
-      setDisplayedRoles(filteredRoles.slice(startIndex, endIndex));
-    }
-  }, [filteredRoles, entriesPerPage, currentPage]);
+  const totalPages = Math.ceil(
+    filteredRoles.length /
+      (entriesPerPage === -1 ? filteredRoles.length || 1 : entriesPerPage)
+  );
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this role?")) return;
 
     try {
       const token = localStorage.getItem("token");
-
-      await axios.delete(`http://localhost:5000/api/roles/${id}`, {
+      await axios.delete(`http://localhost:5000/api/rbac/roles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       toast.success("Role deleted successfully");
       fetchRoles();
     } catch (err: any) {
-      toast.error("Could not delete role");
+      toast.error(err.response?.data?.message || "Could not delete role");
     }
   };
 
   return (
-    <div>
+    <>
       <ContentHeader title="Role Management" />
-      <section className="content">
-        <div className="container-fluid">
-          <div className="card p-3">
-            {/* Search + Create Button */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="form-control form-control-sm"
-                style={{ width: "220px", height: "36px" }}
-              />
 
-              {checkPermission("roles.create") && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => navigate("/roles/create")}
-                  style={{ height: "36px", padding: "0 16px" }}
-                >
-                  Create New Role
-                </button>
-              )}
+      <section className="content">
+        <div className="container-fluid px-4">
+          {/* Detached Main Block */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
+            {/* Actions Bar */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+                <div className="relative flex-1 max-w-lg">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search roles by name or description..."
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchTerm(e.target.value)
+                    }
+                    className="pl-12 h-12 text-base"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Select
+                    value={entriesPerPage.toString()}
+                    onValueChange={(v: string) =>
+                      setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                    }
+                  >
+                    <SelectTrigger className="w-32 h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="-1">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {checkPermission("create_roles") && (
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/roles/create")}
+                      className="bg-[#00563B] hover:bg-[#368F8B]"
+                    >
+                      <Plus className="w-5 h-5 mr-2" /> Create New Role
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Table */}
-            <div className="card-body">
-              <table className="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created On</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold">Role Name</TableHead>
+                    <TableHead className="font-semibold">
+                      Display Name
+                    </TableHead>
+                    <TableHead className="font-semibold">Description</TableHead>
+                    <TableHead className="font-semibold">Created On</TableHead>
+                    <TableHead className="text-right font-semibold">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {loading ? (
-                    <tr>
-                      <td colSpan={4} className="text-center">
-                        Loading...
-                      </td>
-                    </tr>
-                  ) : displayedRoles.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="text-center">
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-10 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-10 w-48" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-10 w-64" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-10 w-32" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-10 w-10 ml-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : paginatedRoles.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-20 text-gray-500"
+                      >
                         No roles found
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ) : (
-                    displayedRoles.map((r) => (
-                      <tr key={r._id}>
-                        <td>{r.role}</td>
-                        <td>
-                          {r.status === "active" ? (
-                            <span className="badge bg-success">Active</span>
-                          ) : (
-                            <span className="badge bg-secondary">Inactive</span>
-                          )}
-                        </td>
-                        <td>
-                          {r.createdAt
-                            ? new Date(r.createdAt).toLocaleString()
-                            : "-"}
-                        </td>
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            {checkPermission("roles.edit") && (
-                              <button
-                                className="btn btn-sm btn-warning p-2 mr-2"
-                                onClick={() => navigate(`/roles/${r._id}/edit`)}
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                            )}
-
-                            {checkPermission("roles.delete") && (
-                              <button
-                                className="btn btn-sm btn-danger p-2 mr-2"
-                                onClick={() => handleDelete(r._id)}
-                              >
-                                <i className="fas fa-trash-alt"></i>
-                              </button>
-                            )}
+                    paginatedRoles.map((role) => (
+                      <TableRow
+                        key={role._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm">
+                              {role.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>{role.name}</span>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell>{role.displayName}</TableCell>
+                        <TableCell className="text-gray-600">
+                          {role.description || "-"}
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {role.createdAt
+                            ? new Date(role.createdAt).toLocaleDateString()
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-10 w-10"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {checkPermission("view_roles") && (
+                                <DropdownMenuItem
+                                  onClick={() => navigate(`/roles/${role._id}`)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" /> View
+                                </DropdownMenuItem>
+                              )}
+                              {checkPermission("edit_roles") &&
+                                !role.isSystem && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      navigate(`/roles/${role._id}/edit`)
+                                    }
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" /> Edit
+                                  </DropdownMenuItem>
+                                )}
+                              {checkPermission("delete_roles") &&
+                                !role.isSystem && (
+                                  <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={() => handleDelete(role._id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                     ))
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
+            </div>
 
-              {/* Pagination Footer */}
-              <div
-                className="d-flex justify-content-between align-items-center mt-3"
-                style={{ borderTop: "1px solid #dee2e6", paddingTop: "12px" }}
-              >
-                <div style={{ fontSize: "14px", color: "#666" }}>
-                  Showing{" "}
-                  <strong>
-                    {filteredRoles.length > 0
-                      ? (currentPage - 1) * entriesPerPage + 1
-                      : 0}
-                  </strong>{" "}
-                  to{" "}
-                  <strong>
-                    {entriesPerPage === -1
-                      ? filteredRoles.length
-                      : Math.min(
-                          currentPage * entriesPerPage,
-                          filteredRoles.length
-                        )}
-                  </strong>{" "}
-                  of <strong>{filteredRoles.length}</strong> entries
+            {/* Pagination */}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing {(currentPage - 1) * entriesPerPage + 1} to{" "}
+                  {Math.min(currentPage * entriesPerPage, filteredRoles.length)}{" "}
+                  of {filteredRoles.length} roles
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="px-4 py-2 bg-[#00563B] text-white rounded-md text-sm font-medium">
+                    {currentPage}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
                 </div>
-
-                {entriesPerPage !== -1 &&
-                  filteredRoles.length > entriesPerPage && (
-                    <nav aria-label="Page navigation">
-                      <ul className="pagination mb-0" style={{ gap: "4px" }}>
-                        <li
-                          className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((prev) => Math.max(prev - 1, 1))
-                            }
-                          >
-                            Previous
-                          </button>
-                        </li>
-
-                        {Array.from(
-                          {
-                            length: Math.ceil(
-                              filteredRoles.length / entriesPerPage
-                            ),
-                          },
-                          (_, i) => i + 1
-                        ).map((page) => (
-                          <li
-                            key={page}
-                            className={`page-item ${page === currentPage ? "active" : ""}`}
-                          >
-                            <button
-                              className="page-link"
-                              onClick={() => setCurrentPage(page)}
-                            >
-                              {page}
-                            </button>
-                          </li>
-                        ))}
-
-                        <li
-                          className={`page-item ${
-                            currentPage >=
-                            Math.ceil(filteredRoles.length / entriesPerPage)
-                              ? "disabled"
-                              : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => setCurrentPage((prev) => prev + 1)}
-                          >
-                            Next
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  )}
               </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 

@@ -1,8 +1,10 @@
 import { IMenuItem, MENU } from "@app/utils/menu";
 import { Dropdown } from "@profabric/react-components";
+import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
+import { Input } from "../ui/input";
 
 export const StyledDropdown = styled(Dropdown)`
   border: none;
@@ -105,27 +107,17 @@ export const SidebarSearch = () => {
       openOnButtonClick={false}
     >
       <div slot="head">
-        <div className="input-group">
-          <input
-            className="form-control form-control-sidebar"
-            type="text"
-            placeholder="Search"
-            aria-label="Search"
-            value={searchText}
-            onInput={(e: any) => setSearchText(e?.target?.value)}
-          />
-          <div className="input-group-append">
-            <button
-              type="button"
-              className="btn btn-sidebar"
-              onClick={() => handleIconClick()}
-            >
-              <i
-                className={`fas ${searchText.length === 0 && "fa-search"} ${
-                  searchText.length > 0 && "fa-times"
-                } fa-fw`}
-              />
-            </button>
+        <div className="px-4 pt-4 pb-2">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search menu..."
+              className="pl-12 pr-4 py-6 text-base bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              // Add your search logic here if needed
+              // value={searchQuery}
+              // onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
       </div>
