@@ -1,26 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { toggleSidebarMenu } from '@app/store/reducers/ui';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { toggleSidebarMenu } from "@app/store/reducers/ui";
 import {
   addWindowClass,
   removeWindowClass,
   scrollbarVisible,
-} from '@app/utils/helpers';
-import ControlSidebar from '@app/modules/main/control-sidebar/ControlSidebar';
-import Header from '@app/modules/main/header/Header';
-import Footer from '@app/modules/main/footer/Footer';
-import { useAppDispatch, useAppSelector } from '@app/store/store';
-import MenuSidebar from './menu-sidebar/MenuSidebar';
-import { styled } from 'styled-components';
-import { Outlet } from 'react-router-dom';
-import { Loading } from '@app/components/Loading';
+} from "@app/utils/helpers";
+import ControlSidebar from "@app/modules/main/control-sidebar/ControlSidebar";
+import Header from "@app/modules/main/header/Header";
+import Footer from "@app/modules/main/footer/Footer";
+import { useAppDispatch, useAppSelector } from "@app/store/store";
+import MenuSidebar from "./menu-sidebar/MenuSidebar";
+import { Outlet } from "react-router-dom";
+import { Loading } from "@app/components/Loading";
 
 const MENU_WIDTH = 250;
-
-export const Container = styled.div<{ $isScrollbarVisible: boolean }>`
-  min-height: 100%;
-  ${(props) =>
-    `width: calc(100% - ${props.$isScrollbarVisible ? '16px' : '0px'});`};
-`;
+const MENU_WIDTH_COLLAPSED = 73; // Width of mini sidebar
 
 const Main = () => {
   const dispatch = useAppDispatch();
@@ -48,37 +42,36 @@ const Main = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    removeWindowClass('register-page');
-    removeWindowClass('login-page');
-    removeWindowClass('hold-transition');
+    removeWindowClass("register-page");
+    removeWindowClass("login-page");
+    removeWindowClass("hold-transition");
 
-    addWindowClass('sidebar-mini');
+    addWindowClass("sidebar-mini");
 
-    // fetchProfile();
     return () => {
-      removeWindowClass('sidebar-mini');
+      removeWindowClass("sidebar-mini");
     };
   }, []);
 
   useEffect(() => {
-    removeWindowClass('sidebar-closed');
-    removeWindowClass('sidebar-collapse');
-    removeWindowClass('sidebar-open');
-    if (menuSidebarCollapsed && screenSize === 'lg') {
-      addWindowClass('sidebar-collapse');
-    } else if (menuSidebarCollapsed && screenSize === 'xs') {
-      addWindowClass('sidebar-open');
-    } else if (!menuSidebarCollapsed && screenSize !== 'lg') {
-      addWindowClass('sidebar-closed');
-      addWindowClass('sidebar-collapse');
+    removeWindowClass("sidebar-closed");
+    removeWindowClass("sidebar-collapse");
+    removeWindowClass("sidebar-open");
+    if (menuSidebarCollapsed && screenSize === "lg") {
+      addWindowClass("sidebar-collapse");
+    } else if (menuSidebarCollapsed && screenSize === "xs") {
+      addWindowClass("sidebar-open");
+    } else if (!menuSidebarCollapsed && screenSize !== "lg") {
+      addWindowClass("sidebar-closed");
+      addWindowClass("sidebar-collapse");
     }
   }, [screenSize, menuSidebarCollapsed]);
 
   useEffect(() => {
     if (controlSidebarCollapsed) {
-      removeWindowClass('control-sidebar-slide-open');
+      removeWindowClass("control-sidebar-slide-open");
     } else {
-      addWindowClass('control-sidebar-slide-open');
+      addWindowClass("control-sidebar-slide-open");
     }
   }, [screenSize, controlSidebarCollapsed]);
 
@@ -87,12 +80,12 @@ const Main = () => {
   };
 
   useEffect(() => {
-    window.document.addEventListener('scroll', handleUIChanges);
-    window.document.addEventListener('resize', handleUIChanges);
+    window.document.addEventListener("scroll", handleUIChanges);
+    window.document.addEventListener("resize", handleUIChanges);
 
     return () => {
-      window.document.removeEventListener('scroll', handleUIChanges);
-      window.document.removeEventListener('resize', handleUIChanges);
+      window.document.removeEventListener("scroll", handleUIChanges);
+      window.document.removeEventListener("resize", handleUIChanges);
     };
   }, []);
 
@@ -100,64 +93,53 @@ const Main = () => {
     handleUIChanges();
   }, [mainRef.current]);
 
+  const getMarginLeft = useCallback(() => {
+    if (topNavigation) return "0px";
+
+    if (screenSize === "lg") {
+      if (menuSidebarCollapsed) return `${MENU_WIDTH_COLLAPSED}px`;
+      return `${MENU_WIDTH}px`;
+    }
+
+    // For smaller screens, sidebar is absolute/overlay, so content doesn't push
+    return "0px";
+  }, [screenSize, topNavigation, menuSidebarCollapsed]);
+
   const getAppTemplate = useCallback(() => {
     if (!isAppLoaded) {
       return <Loading />;
     }
+
+    const marginLeft = getMarginLeft();
+
     return (
       <>
-        <Header
-          containered={layoutBoxed}
-          style={{
-            marginLeft: !['sm', 'xs'].includes(screenSize)
-              ? topNavigation
-                ? '0px'
-                : `${MENU_WIDTH}px`
-              : '0px',
-          }}
-        />
+        <Header containered={layoutBoxed} style={{ marginLeft }} />
 
         {!topNavigation && <MenuSidebar />}
 
         <div
           ref={mainRef as any}
-          className="content-wrapper"
-          style={{
-            marginLeft: !['sm', 'xs'].includes(screenSize)
-              ? topNavigation
-                ? '0px'
-                : `${MENU_WIDTH}px`
-              : '0px',
-          }}
+          className="bg-gray-100 min-h-screen transition-[margin-left] duration-300 ease-in-out pt-[57px]"
+          style={{ marginLeft }}
         >
-          <section className="content">
-            <div className={layoutBoxed ? 'container' : ''}>
+          <section className="p-4">
+            <div className={layoutBoxed ? "container mx-auto" : ""}>
               <Outlet />
             </div>
           </section>
         </div>
 
-        {/* <Content  containered={layoutBoxed} /> */}
-        <Footer
-          containered={layoutBoxed}
-          style={{
-            marginLeft:
-            !['sm', 'xs'].includes(screenSize)                ? topNavigation
-                  ? '0px'
-                  : `${MENU_WIDTH}px`
-                : '0px',
-          }}
-        />
+        <Footer containered={layoutBoxed} style={{ marginLeft }} />
         <ControlSidebar />
         <div
           id="sidebar-overlay"
           role="presentation"
           onClick={handleToggleMenuSidebar}
           onKeyDown={() => {}}
-          style={{
-            display:
-              screenSize === 'sm' && menuSidebarCollapsed ? 'block' : undefined,
-          }}
+          className={`fixed inset-0 z-1037 bg-black/50 transition-opacity ${
+            screenSize === "sm" && !menuSidebarCollapsed ? "block" : "hidden"
+          }`}
         />
       </>
     );
@@ -167,12 +149,13 @@ const Main = () => {
     screenSize,
     layoutBoxed,
     topNavigation,
+    getMarginLeft,
   ]);
 
   return (
-    <Container $isScrollbarVisible={isScrollbarVisible} className="wrapper">
+    <div className="wrapper min-h-screen relative w-full overflow-x-hidden">
       {getAppTemplate()}
-    </Container>
+    </div>
   );
 };
 

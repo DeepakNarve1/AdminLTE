@@ -8,7 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import ReactGA from "react-ga4";
 
 import "./utils/i18n";
-import "./index.scss";
+import "./index.css";
 
 export const { VITE_NODE_ENV, VITE_GA_ID } = import.meta.env;
 

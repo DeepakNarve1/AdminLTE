@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from "react";
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,22 +9,8 @@ import MessagesDropdown from "@app/modules/main/header/messages-dropdown/Message
 import NotificationsDropdown from "@app/modules/main/header/notifications-dropdown/NotificationsDropdown";
 import LanguagesDropdown from "@app/modules/main/header/languages-dropdown/LanguagesDropdown";
 import UserDropdown from "@app/modules/main/header/user-dropdown/UserDropdown";
-import { styled } from "styled-components";
 import { Image } from "@profabric/react-components";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
-
-const StyledBrandImage = styled(Image)`
-  float: left;
-  line-height: 0.8;
-  opacity: 0.8;
-  --pf-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19),
-    0 6px 6px rgba(0, 0, 0, 0.23) !important;
-  margin: -1px 4px 0 6px;
-
-  &:hover {
-    color: inherit;
-  }
-`;
 
 const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
   const [t] = useTranslation();
@@ -42,9 +28,9 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
   };
 
   const getContainerClasses = useCallback(() => {
-    let classes = `main-header navbar navbar-expand ${navbarVariant}`;
+    let classes = `w-full min-h-[57px] flex items-center justify-between px-4 bg-white border-b border-gray-200 z-[1034] transition-[margin-left] duration-300 ease-in-out ${navbarVariant}`;
     if (headerBorder) {
-      classes = `${classes} border-bottom-0`;
+      classes = `${classes} border-b-0`;
     }
     return classes;
   }, [navbarVariant, headerBorder]);
@@ -52,72 +38,77 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
   return (
     <nav className={getContainerClasses()} {...rest}>
       <div
-        style={{ width: "100%", display: "flex", alignItems: "center" }}
-        className={containered ? "container" : ""}
+        className={`w-full flex items-center justify-between ${
+          containered ? "container mx-auto" : ""
+        }`}
       >
-        {topNavigation && (
-          <>
-            <Link to="/" className="brand-link" style={{ display: "contents" }}>
-              <StyledBrandImage
-                src="/img/logo.png"
-                alt="RBAC System Logo"
-                width={33}
-                height={33}
-                rounded
-              />
-              <span
-                className="brand-text font-weight-light"
-                style={{ color: "rgba(0, 0, 0, 0.9)" }}
-              >
-                RBAC System
-              </span>
-            </Link>
-
-            <button
-              className="navbar-toggler order-1"
-              type="button"
-              data-toggle="collapse"
-              data-target="#navbarCollapse"
-              aria-controls="navbarCollapse"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon"></span>
-            </button>
-          </>
-        )}
-        <ul className="navbar-nav">
-          {!topNavigation && (
-            <li className="nav-item">
+        <div className="flex items-center gap-4">
+          {topNavigation && (
+            <div className="flex items-center gap-3">
+              <Link to="/" className="flex items-center gap-2">
+                <Image
+                  src="/img/logo.png"
+                  alt="RBAC System Logo"
+                  width={33}
+                  height={33}
+                  rounded
+                  className="opacity-80 shadow-md"
+                />
+                <span className="font-light text-xl text-black/90">
+                  RBAC System
+                </span>
+              </Link>
               <button
-                onClick={handleToggleMenuSidebar}
+                className="p-2 border rounded md:hidden"
                 type="button"
-                className="nav-link"
+                data-toggle="collapse"
+                data-target="#navbarCollapse"
               >
                 <i className="fas fa-bars" />
               </button>
-            </li>
+            </div>
           )}
-          <li className="nav-item d-none d-sm-inline-block">
-            <Link to="/" className="nav-link">
-              {t("header.label.home")}
-            </Link>
-          </li>
-          <li className="nav-item d-none d-sm-inline-block">
-            <Link to="/profile" className="nav-link">
-              Profile
-            </Link>
-          </li>
-        </ul>
-        <ul className="navbar-nav ml-auto">
+
+          <ul className="flex list-none gap-2 m-0 p-0 items-center">
+            {!topNavigation && (
+              <li>
+                <button
+                  onClick={handleToggleMenuSidebar}
+                  type="button"
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                >
+                  <i className="fas fa-bars" />
+                </button>
+              </li>
+            )}
+            <li className="hidden sm:block">
+              <Link
+                to="/"
+                className="block px-3 py-2 text-gray-500 hover:text-gray-700"
+              >
+                {t("header.label.home")}
+              </Link>
+            </li>
+            <li className="hidden sm:block">
+              <Link
+                to="/profile"
+                className="block px-3 py-2 text-gray-500 hover:text-gray-700"
+              >
+                Profile
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        <ul className="flex list-none gap-2 m-0 p-0 items-center ml-auto">
           <MessagesDropdown />
           <NotificationsDropdown />
           <LanguagesDropdown />
           <UserDropdown />
-          <li className="nav-item">
+          <li>
             <button
               type="button"
-              className="nav-link"
+              className="p-2 text-gray-500 hover:text-gray-700"
               onClick={handleToggleControlSidebar}
             >
               <i className="fas fa-th-large" />

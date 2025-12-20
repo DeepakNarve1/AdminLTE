@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from "react";
 import {
   setNavbarVariant,
   setSidebarSkin,
@@ -12,43 +12,34 @@ import {
   toggleMenuItemFlat,
   toggleSidebarMenu,
   toggleTopNavigation,
-} from '@app/store/reducers/ui';
+} from "@app/store/reducers/ui";
 import {
   NAVBAR_DARK_VARIANTS,
   NAVBAR_LIGHT_VARIANTS,
   SIDEBAR_DARK_SKINS,
   SIDEBAR_LIGHT_SKINS,
-} from '@app/utils/themes';
-import useScrollPosition from '@app/hooks/useScrollPosition';
-import styled from 'styled-components';
-import { Checkbox, Select } from '@app/styles/common';
-import { useAppDispatch, useAppSelector } from '@app/store/store';
-import { addWindowClass, removeWindowClass } from '@app/utils/helpers';
+} from "@app/utils/themes";
+import useScrollPosition from "@app/hooks/useScrollPosition";
+import { Checkbox } from "@profabric/react-components";
+import { useAppDispatch, useAppSelector } from "@app/store/store";
+import { addWindowClass, removeWindowClass } from "@app/utils/helpers";
 
-export const HorizontalFormItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-
-  label {
-    margin: 0;
-    padding-left: 8px;
-    font-weight: 500 !important;
-  }
-`;
-
-export const VerticalFormItem = styled.div`
-  display: flex;
-  align-items: start;
-  flex-direction: column;
-  margin-bottom: 1rem;
-
-  label {
-    margin: 0;
-    padding: 0;
-    font-weight: 500 !important;
-  }
-`;
+const Select = ({ value, options, onChange, style, disabled }: any) => (
+  <select
+    value={value}
+    onChange={onChange}
+    disabled={disabled}
+    className="block w-full rounded-md border-gray-600 bg-slate-700 py-1.5 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+    style={style}
+  >
+    {options &&
+      options.map((opt: any) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+  </select>
+);
 
 const ControlSidebar = () => {
   const dispatch = useAppDispatch();
@@ -65,6 +56,9 @@ const ControlSidebar = () => {
   const menuChildIndent = useAppSelector((state) => state.ui.menuChildIndent);
   const menuSidebarCollapsed = useAppSelector(
     (state) => state.ui.menuSidebarCollapsed
+  );
+  const controlSidebarCollapsed = useAppSelector(
+    (state) => state.ui.controlSidebarCollapsed
   );
   const scrollPosition = useScrollPosition();
 
@@ -125,194 +119,210 @@ const ControlSidebar = () => {
 
   useEffect(() => {
     if (footerFixed) {
-      addWindowClass('layout-footer-fixed');
+      addWindowClass("layout-footer-fixed");
     } else {
-      removeWindowClass('layout-footer-fixed');
+      removeWindowClass("layout-footer-fixed");
     }
   }, [footerFixed]);
 
   useEffect(() => {
     if (headerFixed) {
-      addWindowClass('layout-navbar-fixed');
+      addWindowClass("layout-navbar-fixed");
     } else {
-      removeWindowClass('layout-navbar-fixed');
+      removeWindowClass("layout-navbar-fixed");
     }
   }, [headerFixed]);
 
   useEffect(() => {
     if (layoutBoxed) {
-      addWindowClass('layout-boxed');
+      addWindowClass("layout-boxed");
     } else {
-      removeWindowClass('layout-boxed');
+      removeWindowClass("layout-boxed");
     }
   }, [layoutBoxed]);
 
   useEffect(() => {
     if (layoutFixed) {
-      addWindowClass('layout-fixed');
+      addWindowClass("layout-fixed");
     } else {
-      removeWindowClass('layout-fixed');
+      removeWindowClass("layout-fixed");
     }
   }, [layoutFixed]);
 
   useEffect(() => {
     if (darkMode) {
-      addWindowClass('dark-mode');
+      addWindowClass("dark-mode");
     } else {
-      removeWindowClass('dark-mode');
+      removeWindowClass("dark-mode");
     }
   }, [darkMode]);
 
   return (
     <aside
-      className="control-sidebar control-sidebar-dark"
+      className={`fixed top-0 right-0 z-1038 h-full w-[250px] bg-slate-800 text-gray-300 transition-transform duration-300 ease-in-out border-l border-slate-700 shadow-xl ${
+        controlSidebarCollapsed ? "translate-x-[250px]" : "translate-x-0"
+      }`}
       style={{
-        top: 0,
-        bottom: footerFixed ? '57px' : '0px',
-        padding: `${getContainerPaddingTop()} 16px 16px 16px`,
-        overflowY: 'scroll',
-        height: '100%',
+        paddingTop: getContainerPaddingTop(),
+        paddingBottom: footerFixed ? "57px" : "0px",
+        overflowY: "auto",
       }}
     >
-      <h5>Customize AdminLTE</h5>
-      <hr className="mb-2" />
+      <div className="p-4">
+        <h5 className="mb-4 text-white font-semibold">Customize AdminLTE</h5>
 
-      <div style={{ padding: '8px 0' }}>
-        <div className="mb-4">
-          <HorizontalFormItem>
+        <div className="mb-4 pb-4 border-b border-slate-700">
+          <div className="flex items-center mb-3">
             <Checkbox checked={darkMode} onChange={handleDarkModeChange} />
-            <label>Dark mode</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Dark mode</label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               checked={layoutBoxed}
               onChange={handleLayoutBoxedChange}
             />
-            <label>Boxed</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Boxed</label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               checked={topNavigation}
               onChange={handleTopNavigationChange}
             />
-            <label>Top Navigation</label>
-          </HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">
+              Top Navigation
+            </label>
+          </div>
         </div>
 
-        <h6>Header Options</h6>
-
-        <div className="mb-4">
-          <HorizontalFormItem>
+        <h6 className="mb-3 text-gray-400 text-sm uppercase tracking-wide">
+          Header Options
+        </h6>
+        <div className="mb-4 pb-4 border-b border-slate-700">
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={layoutBoxed}
               checked={headerFixed}
               onChange={handleHeaderFixedChange}
             />
-            <label>Fixed</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Fixed</label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               checked={headerBorder}
               onChange={handleHeaderBorderChange}
             />
-            <label>No Border</label>
-          </HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">No Border</label>
+          </div>
         </div>
 
-        <h6>Sidebar Options</h6>
-
-        <div className="mb-4">
-          <HorizontalFormItem>
+        <h6 className="mb-3 text-gray-400 text-sm uppercase tracking-wide">
+          Sidebar Options
+        </h6>
+        <div className="mb-4 pb-4 border-b border-slate-700">
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={topNavigation}
               checked={menuSidebarCollapsed}
               onChange={handleMenuSidebarCollapsed}
             />
-            <label>Collapse</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Collapse</label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={layoutBoxed}
               checked={layoutFixed}
               onChange={handleLayoutFixedChange}
             />
-            <label>Fixed</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Fixed</label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={topNavigation}
               checked={menuItemFlat}
               onChange={handleMenuItemFlatChange}
             />
-            <label>Nav Flat Style</label>
-          </HorizontalFormItem>
-          <HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">
+              Nav Flat Style
+            </label>
+          </div>
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={topNavigation}
               checked={menuChildIndent}
               onChange={handleMenuChildIndentChange}
             />
-            <label>Nav Child Indent</label>
-          </HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">
+              Nav Child Indent
+            </label>
+          </div>
         </div>
 
-        <h6>Footer Options</h6>
-
-        <div className="mb-4">
-          <HorizontalFormItem>
+        <h6 className="mb-3 text-gray-400 text-sm uppercase tracking-wide">
+          Footer Options
+        </h6>
+        <div className="mb-4 pb-4 border-b border-slate-700">
+          <div className="flex items-center mb-3">
             <Checkbox
               disabled={layoutBoxed}
               checked={footerFixed}
               onChange={handleFooterFixedChange}
             />
-            <label>Fixed</label>
-          </HorizontalFormItem>
+            <label className="ml-2 cursor-pointer font-medium">Fixed</label>
+          </div>
         </div>
 
-        <VerticalFormItem>
-          <label>Light Navbar Variants</label>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">
+            Light Navbar Variants
+          </label>
           <Select
-            className="mt-1"
             value={navbarVariant}
             options={NAVBAR_LIGHT_VARIANTS}
             onChange={(e: any) => onNavbarVariantChange(e?.target?.value)}
+            style={{ width: "100%" }}
           />
-        </VerticalFormItem>
-        <VerticalFormItem>
-          <label>Dark Navbar Variants</label>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">Dark Navbar Variants</label>
           <Select
-            className="mt-1"
             value={navbarVariant}
             options={NAVBAR_DARK_VARIANTS}
             onChange={(e: any) => onNavbarVariantChange(e.target.value)}
+            style={{ width: "100%" }}
           />
-        </VerticalFormItem>
-        <VerticalFormItem>
-          <label>Accent Color Variants</label>
-          <Select className="mt-1" options={[]} disabled />
-        </VerticalFormItem>
-        <VerticalFormItem>
-          <label>Light Sidebar Variants</label>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">
+            Accent Color Variants
+          </label>
+          <Select options={[]} disabled style={{ width: "100%" }} />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">
+            Light Sidebar Variants
+          </label>
           <Select
-            className="mt-1"
             value={sidebarSkin}
             options={SIDEBAR_LIGHT_SKINS}
             onChange={(e: any) => onSidebarSkinChange(e.target.value)}
+            style={{ width: "100%" }}
           />
-        </VerticalFormItem>
-        <VerticalFormItem>
-          <label>Dark Sidebar Variants</label>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">
+            Dark Sidebar Variants
+          </label>
           <Select
-            className="mt-1"
             value={sidebarSkin}
             options={SIDEBAR_DARK_SKINS}
             onChange={(e: any) => onSidebarSkinChange(e.target.value)}
+            style={{ width: "100%" }}
           />
-        </VerticalFormItem>
-        <VerticalFormItem>
-          <label>Brand Logo Variants</label>
-          <Select className="mt-1" options={[]} disabled />
-        </VerticalFormItem>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">Brand Logo Variants</label>
+          <Select options={[]} disabled style={{ width: "100%" }} />
+        </div>
       </div>
     </aside>
   );
