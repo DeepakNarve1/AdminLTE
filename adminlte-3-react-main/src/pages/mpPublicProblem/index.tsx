@@ -1,9 +1,47 @@
-import { ContentHeader } from "@components";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@app/components/ui/table";
+import { Button } from "@app/components/ui/button";
+import { Input } from "@app/components/ui/input";
+import { Badge } from "@app/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@app/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import { Skeleton } from "@app/components/ui/skeleton";
+
+import {
+  Search,
+  Plus,
+  Download,
+  Upload,
+  MoreVertical,
+  Eye,
+  Edit,
+  Columns,
+} from "lucide-react";
+import { ContentHeader } from "@app/components";
 
 interface IPublicProblem {
   _id: string;
@@ -37,16 +75,19 @@ const calculateTimer = (dateStr: string) => {
 };
 
 const MpPublicProblem = () => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [data, setData] = useState<IPublicProblem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0); // Total records in DB (unfiltered)
-  const navigate = useNavigate();
+  const [totalCount, setTotalCount] = useState(0);
+
   // Filters
-  const [filterBlock, setFilterBlock] = useState("");
-  const [filterYear, setFilterYear] = useState("");
-  const [filterMonth, setFilterMonth] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterBlock, setFilterBlock] = useState("all");
+  const [filterYear, setFilterYear] = useState("all");
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterDepartment, setFilterDepartment] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Pagination
@@ -54,7 +95,6 @@ const MpPublicProblem = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Column Visibility
-  const [showColumnToggle, setShowColumnToggle] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
     srNo: true,
     regNo: true,
@@ -81,14 +121,14 @@ const MpPublicProblem = () => {
       setLoading(true);
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? -1 : entriesPerPage,
+        limit: entriesPerPage,
+        block: filterBlock === "all" ? undefined : filterBlock,
+        year: filterYear === "all" ? undefined : filterYear,
+        month: filterMonth === "all" ? undefined : filterMonth,
+        department: filterDepartment === "all" ? undefined : filterDepartment,
+        status: filterStatus === "all" ? undefined : filterStatus,
+        search: searchTerm || undefined,
       };
-      if (filterBlock) params.block = filterBlock;
-      if (filterYear) params.year = filterYear;
-      if (filterMonth) params.month = filterMonth;
-      if (filterDepartment) params.department = filterDepartment;
-      if (filterStatus) params.status = filterStatus;
-      if (searchTerm) params.search = searchTerm;
 
       const res = await axios.get("http://localhost:5000/api/public-problems", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -96,9 +136,8 @@ const MpPublicProblem = () => {
       });
 
       setData(res.data.data || []);
-      setTotalCount(res.data.count || 0); // This is now the TRUE total in DB
+      setTotalCount(res.data.filteredCount || 0);
     } catch (err: any) {
-      console.error(err);
       toast.error("Failed to fetch data");
     } finally {
       setLoading(false);
@@ -118,21 +157,6 @@ const MpPublicProblem = () => {
     searchTerm,
   ]);
 
-  // Debounced search
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setCurrentPage(1);
-      fetchData();
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
-  const handleFilter = () => {
-    setCurrentPage(1);
-    fetchData();
-    toast.info("Filters applied");
-  };
-
   const handleSeed = async () => {
     try {
       await axios.post(
@@ -150,10 +174,7 @@ const MpPublicProblem = () => {
   };
 
   const handleExport = () => {
-    if (data.length === 0) {
-      toast.warning("No data to export");
-      return;
-    }
+    if (data.length === 0) return toast.warning("No data to export");
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "PublicProblems");
@@ -161,13 +182,6 @@ const MpPublicProblem = () => {
     toast.success("Exported successfully");
   };
 
-  const toggleColumn = (key: keyof typeof visibleColumns) => {
-    setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Import from Excel
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -191,45 +205,35 @@ const MpPublicProblem = () => {
         let successCount = 0;
         let failureCount = 0;
 
-        // Iterate and create entries
         for (const row of jsonData) {
           try {
             const anyRow = row as any;
             const payload = {
-              srNo: anyRow["Sr.No."] || anyRow["SrNo"] || anyRow["srNo"] || "",
               regNo:
                 anyRow["Regl. No."] || anyRow["RegNo"] || anyRow["regNo"] || "",
-              timer: anyRow["Timer"] || anyRow["timer"] || "",
               year:
                 anyRow["Year"] ||
                 anyRow["year"] ||
                 new Date().getFullYear().toString(),
               month: anyRow["Month"] || anyRow["month"] || "",
-              day: anyRow["Date"] || anyRow["Day"] || anyRow["day"] || "",
+              dateString: anyRow["Date"] || anyRow["dateString"] || "",
               district: anyRow["District"] || anyRow["district"] || "",
               assembly: anyRow["Assembly"] || anyRow["assembly"] || "",
               block: anyRow["Block"] || anyRow["block"] || "",
               recommendedLetterNo:
                 anyRow["Recommended Letter No"] ||
-                anyRow["RecLetterNo"] ||
                 anyRow["recommendedLetterNo"] ||
                 "",
-              boothNo:
-                anyRow["Booth No"] ||
-                anyRow["Booth"] ||
-                anyRow["boothNo"] ||
-                "",
+              boothNo: anyRow["Booth No"] || anyRow["boothNo"] || "",
               department: anyRow["Department"] || anyRow["department"] || "",
               status: anyRow["Status"] || anyRow["status"] || "Pending",
             };
 
-            // Basic validation
             if (!payload.regNo || !payload.district) {
               failureCount++;
               continue;
             }
 
-            // Using existing create endpoint
             await axios.post(
               "http://localhost:5000/api/public-problems",
               payload,
@@ -244,12 +248,11 @@ const MpPublicProblem = () => {
         }
 
         toast.success(
-          `Import complete: ${successCount} entries added, ${failureCount} failed`
+          `Import complete: ${successCount} added, ${failureCount} failed`
         );
         fetchData();
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to import file. Please check the format.");
+        toast.error("Failed to import file");
       } finally {
         setLoading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -258,432 +261,450 @@ const MpPublicProblem = () => {
     reader.readAsBinaryString(file);
   };
 
+  const toggleColumn = (key: keyof typeof visibleColumns) => {
+    setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
-    <div>
+    <>
       <ContentHeader title="Public Problems Management" />
-      <section className="content p-4">
-        {/* Filters Card */}
-        <div className="bg-white rounded-lg shadow-md mb-6 p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-gray-700 mb-1">
-                Block
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filterBlock}
-                onChange={(e) => setFilterBlock(e.target.value)}
-              >
-                <option value="">Select Block</option>
-                <option value="Bagh">Bagh</option>
-                <option value="Tanda">Tanda</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-gray-700 mb-1">
-                Year
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filterYear}
-                onChange={(e) => setFilterYear(e.target.value)}
-              >
-                <option value="">Select Year</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-gray-700 mb-1">
-                Month
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filterMonth}
-                onChange={(e) => setFilterMonth(e.target.value)}
-              >
-                <option value="">Select Month</option>
-                <option value="November">November</option>
-                <option value="December">December</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-gray-700 mb-1">
-                Department
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-              >
-                <option value="">Select Department</option>
-                <option value="PWD">PWD</option>
-                <option value="Health">Health</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">Select Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Resolved">Resolved</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button
-                className="w-full bg-blue-600 text-white font-medium py-2 rounded shadow hover:bg-blue-700 transition duration-200"
-                onClick={handleFilter}
-              >
-                Filter
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Main Table Card */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-            <h3 className="text-xl font-bold text-gray-800">
-              Public Problems List
-            </h3>
-            <div className="flex items-center gap-2">
-              <button
-                className="bg-yellow-500 text-white px-3 py-1.5 rounded shadow hover:bg-yellow-600 transition flex items-center text-sm font-medium"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Import <i className="fas fa-file-import ml-2"></i>
-              </button>
-              <button
-                className="bg-cyan-500 text-white px-3 py-1.5 rounded shadow hover:bg-cyan-600 transition flex items-center text-sm font-medium"
-                onClick={() => navigate("/mp-public-problems/create-entry")}
-              >
-                Add <i className="fas fa-plus ml-2"></i>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleImport}
-                style={{ display: "none" }}
-              />
-            </div>
-          </div>
-
-          <div className="p-4">
-            {/* Top Controls */}
-            <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center text-sm">
-                  <span className="mr-2 text-gray-600">Show</span>
-                  <select
-                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={entriesPerPage}
-                    onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  >
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="1000">1000</option>
-                    <option value="-1">All</option>
-                  </select>
-                  <span className="ml-2 text-gray-600">entries</span>
+      <section className="content">
+        <div className="container-fluid px-4">
+          {/* Detached Main Block */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
+            {/* Actions Bar */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+                <div className="relative flex-1 max-w-lg">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search by Reg No, district, block..."
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchTerm(e.target.value)
+                    }
+                    className="pl-12 h-12 text-base"
+                  />
                 </div>
 
-                <button
-                  className="border border-gray-300 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-50 transition"
-                  onClick={handleExport}
-                >
-                  Export Excel
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Select value={filterBlock} onValueChange={setFilterBlock}>
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="All Blocks" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Blocks</SelectItem>
+                      <SelectItem value="Bagh">Bagh</SelectItem>
+                      <SelectItem value="Tanda">Tanda</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <div className="relative">
-                  <button
-                    className="border border-gray-300 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-50 transition"
-                    onClick={() => setShowColumnToggle(!showColumnToggle)}
+                  <Select value={filterYear} onValueChange={setFilterYear}>
+                    <SelectTrigger className="w-40 h-12">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Years</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterMonth} onValueChange={setFilterMonth}>
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Months</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={filterDepartment}
+                    onValueChange={setFilterDepartment}
                   >
-                    Show/Hide Columns
-                  </button>
-                  {showColumnToggle && (
-                    <div className="absolute z-10 top-full left-0 mt-1 bg-white border border-gray-200 shadow-lg rounded p-3 min-w-[200px]">
-                      {Object.keys(visibleColumns).map((key) => (
-                        <div
-                          key={key}
-                          className="flex items-center mb-2 last:mb-0"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`col-${key}`}
-                            className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            checked={
-                              visibleColumns[key as keyof typeof visibleColumns]
-                            }
-                            onChange={() =>
-                              toggleColumn(key as keyof typeof visibleColumns)
-                            }
-                          />
-                          <label
-                            htmlFor={`col-${key}`}
-                            className="text-sm text-gray-700 capitalize cursor-pointer"
-                          >
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectItem value="PWD">PWD</SelectItem>
+                      <SelectItem value="Health">Health</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-48 h-12">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={entriesPerPage.toString()}
+                    onValueChange={(v: string) =>
+                      setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                    }
+                  >
+                    <SelectTrigger className="w-32 h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="-1">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleExport}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Download className="w-5 h-5 mr-2" /> Export
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Upload className="w-5 h-5 mr-2" /> Import
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/mp-public-problems/create-entry")}
+                    className="bg-[#00563B] hover:bg-[#368F8B]"
+                  >
+                    <Plus className="w-5 h-5 mr-2" /> Add Entry
+                  </Button>
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center">
-                <label className="mr-2 text-sm text-gray-600">Search:</label>
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search..."
-                />
-              </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImport}
+              className="hidden"
+            />
+
+            {/* Column Visibility */}
+            <div className="px-6 py-3 border-b border-gray-200 flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Columns className="w-4 h-4 mr-2" /> Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  {Object.keys(visibleColumns).map((key) => (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={
+                        visibleColumns[key as keyof typeof visibleColumns]
+                      }
+                      onCheckedChange={() =>
+                        toggleColumn(key as keyof typeof visibleColumns)
+                      }
+                    >
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-                <thead className="bg-[#002147] text-white">
-                  <tr>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#00563B]">
                     {visibleColumns.srNo && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                        Sr.No.
-                      </th>
+                      <TableHead className="text-white font-semibold">
+                        Sr. No.
+                      </TableHead>
                     )}
                     {visibleColumns.regNo && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Regl. No.
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.timer && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Timer
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.year && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Year
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.month && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Month
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.date && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Date
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.district && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         District
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.assembly && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Assembly
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.block && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Block
-                      </th>
+                      </TableHead>
                     )}
                     {visibleColumns.recLetterNo && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                        Recommended Letter No
-                      </th>
+                      <TableHead className="text-white font-semibold">
+                        Rec. Letter No
+                      </TableHead>
                     )}
                     {visibleColumns.boothNo && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                      <TableHead className="text-white font-semibold">
                         Booth No
-                      </th>
+                      </TableHead>
                     )}
-                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                    <TableHead className="text-white font-semibold text-right">
                       Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {loading ? (
-                    <tr>
-                      <td
-                        colSpan={11}
-                        className="text-center py-6 text-gray-500"
-                      >
-                        Loading...
-                      </td>
-                    </tr>
-                  ) : data.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="text-center py-8">
-                        {totalCount > 0 ? (
-                          <div>
-                            <strong className="text-gray-700">
-                              No records match the current filters
-                            </strong>
-                            <div className="mt-2 text-gray-500 text-sm">
-                              Try adjusting or clearing the filters
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center">
-                            <div className="mb-3 text-gray-600">
-                              No data available in the database
-                            </div>
-                            <button
-                              className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition text-sm font-medium"
-                              onClick={handleSeed}
-                            >
-                              Seed Database (Add Demo Data)
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ) : (
-                    data.map((row, idx) => (
-                      <tr
-                        key={row._id}
-                        className="hover:bg-gray-50 transition-colors even:bg-gray-50"
-                      >
+                    Array.from({ length: 10 }).map((_, i) => (
+                      <TableRow key={i}>
                         {visibleColumns.srNo && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {(currentPage - 1) * entriesPerPage + idx + 1}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-16" />
+                          </TableCell>
                         )}
                         {visibleColumns.regNo && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.regNo}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
                         )}
                         {visibleColumns.timer && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600 text-center border-r border-gray-100">
-                            {calculateTimer(row.submissionDate)}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
                         )}
                         {visibleColumns.year && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.year}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-24" />
+                          </TableCell>
                         )}
                         {visibleColumns.month && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.month}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
                         )}
                         {visibleColumns.date && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.dateString}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
                         )}
                         {visibleColumns.district && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.district}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
                         )}
                         {visibleColumns.assembly && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.assembly}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-40" />
+                          </TableCell>
                         )}
                         {visibleColumns.block && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.block}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
                         )}
                         {visibleColumns.recLetterNo && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.recommendedLetterNo}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-48" />
+                          </TableCell>
                         )}
                         {visibleColumns.boothNo && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center border-r border-gray-100">
-                            {row.boothNo || "-"}
-                          </td>
+                          <TableCell>
+                            <Skeleton className="h-10 w-32" />
+                          </TableCell>
                         )}
-                        <td className="px-4 py-3 whitespace-nowrap text-center">
-                          <button
-                            className="bg-yellow-400 text-white p-2 rounded hover:bg-yellow-500 transition shadow-sm"
-                            onClick={() =>
-                              navigate(`/mp-public-problems/${row._id}/edit`)
-                            }
-                            title="Edit"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                        </td>
-                      </tr>
+                        <TableCell>
+                          <Skeleton className="h-10 w-20 ml-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={12}
+                        className="text-center py-20 text-gray-500"
+                      >
+                        {totalCount > 0 ? (
+                          "No records match the current filters"
+                        ) : (
+                          <div className="flex flex-col items-center gap-4">
+                            <p>No data available</p>
+                            <Button
+                              onClick={handleSeed}
+                              className="bg-yellow-500 hover:bg-yellow-600"
+                            >
+                              Seed Database (Demo Data)
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.map((row, idx) => (
+                      <TableRow
+                        key={row._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        {visibleColumns.srNo && (
+                          <TableCell>
+                            {(currentPage - 1) * entriesPerPage + idx + 1}
+                          </TableCell>
+                        )}
+                        {visibleColumns.regNo && (
+                          <TableCell className="font-medium">
+                            {row.regNo}
+                          </TableCell>
+                        )}
+                        {visibleColumns.timer && (
+                          <TableCell className="font-bold text-red-600">
+                            {calculateTimer(row.submissionDate)}
+                          </TableCell>
+                        )}
+                        {visibleColumns.year && (
+                          <TableCell>{row.year}</TableCell>
+                        )}
+                        {visibleColumns.month && (
+                          <TableCell>{row.month}</TableCell>
+                        )}
+                        {visibleColumns.date && (
+                          <TableCell>{row.dateString}</TableCell>
+                        )}
+                        {visibleColumns.district && (
+                          <TableCell>{row.district}</TableCell>
+                        )}
+                        {visibleColumns.assembly && (
+                          <TableCell>{row.assembly}</TableCell>
+                        )}
+                        {visibleColumns.block && (
+                          <TableCell>{row.block}</TableCell>
+                        )}
+                        {visibleColumns.recLetterNo && (
+                          <TableCell>
+                            {row.recommendedLetterNo || "-"}
+                          </TableCell>
+                        )}
+                        {visibleColumns.boothNo && (
+                          <TableCell>{row.boothNo || "-"}</TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-10 w-10 rounded-full hover:bg-gray-200"
+                              >
+                                <MoreVertical className="w-5 h-5 text-gray-600" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/mp-public-problems/${row._id}`)
+                                }
+                              >
+                                <Eye className="mr-2 h-4 w-4" /> View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(
+                                    `/mp-public-problems/${row._id}/edit`
+                                  )
+                                }
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                     ))
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             {/* Pagination */}
-            <div className="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200">
-              <div className="text-sm text-gray-600 mb-2 md:mb-0">
-                Showing{" "}
-                <span className="font-medium">
-                  {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium">
-                  {Math.min(currentPage * entriesPerPage, totalCount)}
-                </span>{" "}
-                of <span className="font-medium">{totalCount}</span> entries
-              </div>
-
-              {entriesPerPage !== -1 && totalCount > entriesPerPage && (
-                <nav className="flex items-center space-x-1">
-                  <button
-                    className={`px-3 py-1 rounded border ${
-                      currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                    }`}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing{" "}
+                  {entriesPerPage === -1
+                    ? 1
+                    : Math.min(
+                        (currentPage - 1) * entriesPerPage + 1,
+                        totalCount
+                      )}{" "}
+                  to{" "}
+                  {entriesPerPage === -1
+                    ? totalCount
+                    : Math.min(currentPage * entriesPerPage, totalCount)}{" "}
+                  of {totalCount} entries
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
                     disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
                   >
                     Previous
-                  </button>
-
-                  <span className="px-3 py-1 bg-blue-600 text-white rounded border border-blue-600">
+                  </Button>
+                  <span className="px-4 py-2 bg-[#00563B] text-white rounded-md text-sm font-medium">
                     {currentPage}
                   </span>
-
-                  <button
-                    className={`px-3 py-1 rounded border ${
-                      currentPage * entriesPerPage >= totalCount
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                    }`}
-                    onClick={() => setCurrentPage((p) => p + 1)}
+                  <Button
+                    variant="outline"
                     disabled={currentPage * entriesPerPage >= totalCount}
+                    onClick={() => setCurrentPage((p) => p + 1)}
                   >
                     Next
-                  </button>
-                </nav>
-              )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 
