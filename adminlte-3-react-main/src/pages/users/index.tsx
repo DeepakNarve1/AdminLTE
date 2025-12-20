@@ -410,9 +410,7 @@ const Users = () => {
                 <strong className="font-semibold text-gray-800">
                   {filteredUsers.length === 0
                     ? 0
-                    : 1
-                      ? (currentPage - 1) * entriesPerPage + 1
-                      : 0}
+                    : (currentPage - 1) * entriesPerPage + 1}
                 </strong>{" "}
                 to{" "}
                 <strong className="font-semibold text-gray-800">
