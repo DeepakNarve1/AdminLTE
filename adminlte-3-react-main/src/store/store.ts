@@ -1,17 +1,24 @@
-import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit';
+import { Action, ThunkAction, configureStore } from "@reduxjs/toolkit";
 
-import { authSlice } from '@app/store/reducers/auth';
-import { uiSlice } from '@app/store/reducers/ui';
-import { createLogger } from 'redux-logger';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { authSlice } from "@app/store/reducers/auth";
+import { uiSlice } from "@app/store/reducers/ui";
+import { createLogger } from "redux-logger";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
     ui: uiSlice.reducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false }).concat(createLogger()),
+  middleware: (getDefaultMiddleware) => {
+    const middleware = getDefaultMiddleware({
+      serializableCheck: false,
+    });
+    if (typeof window !== "undefined") {
+      return middleware.concat(createLogger());
+    }
+    return middleware;
+  },
 });
 
 export default store;

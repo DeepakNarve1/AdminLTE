@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { setWindowClass } from "@app/utils/helpers";
-import { Checkbox } from "@profabric/react-components";
+import Checkbox from "@app/components/Checkbox";
 
 import { setCurrentUser } from "@app/store/reducers/auth";
 // backend handles registration via axios; firebase helpers removed
@@ -19,7 +21,7 @@ const Register = () => {
   const [t] = useTranslation();
   const dispatch = useAppDispatch();
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const register = async (email: string, password: string) => {
     try {
@@ -42,7 +44,7 @@ const Register = () => {
       }
 
       toast.success("Registration success");
-      navigate("/dashboard");
+      router.push("/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed");
       setAuthLoading(false);
@@ -71,13 +73,15 @@ const Register = () => {
       },
     });
 
-  setWindowClass("hold-transition register-page");
+  useEffect(() => {
+    setWindowClass("hold-transition register-page");
+  }, []);
 
   return (
     <div className="register-box w-[360px] mx-auto mt-[10vh]">
       <div className="bg-white rounded shadow-sm border border-gray-200 border-t-[3px] border-t-blue-600">
         <div className="text-center p-4 border-b border-gray-100">
-          <Link to="/" className="text-3xl font-light text-gray-800">
+          <Link href="/" className="text-3xl font-light text-gray-800">
             <b>Admin</b>
             <span>LTE</span>
           </Link>
@@ -172,7 +176,10 @@ const Register = () => {
                   <Checkbox checked={false} />
                   <label className="m-0 p-0 pl-1">
                     <span>I agree to the </span>
-                    <Link to="/" className="text-blue-600 hover:text-blue-500">
+                    <Link
+                      href="/"
+                      className="text-blue-600 hover:text-blue-500"
+                    >
                       terms
                     </Link>{" "}
                   </label>
@@ -225,7 +232,7 @@ const Register = () => {
             </button>
           </div>
           <Link
-            to="/"
+            href="/login"
             className="text-center block text-blue-600 hover:text-blue-500"
           >
             {t("register.alreadyHave")}

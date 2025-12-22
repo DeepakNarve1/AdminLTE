@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { MenuItem } from "@components";
-import { Image } from "@profabric/react-components";
+import Image from "@app/components/Image";
 import { SidebarSearch } from "@app/components/sidebar-search/SidebarSearch";
 import { useAppSelector } from "@app/store/store";
 import { MENU, IMenuItem } from "@app/utils/menu";
@@ -112,7 +112,7 @@ const MenuSidebar = () => {
     <aside className={sidebarClasses}>
       {/* Brand Logo */}
       <Link
-        to="/"
+        href="/"
         className={`flex items-center h-[57px] px-6 border-b transition-colors ${
           isLight
             ? "border-gray-200 hover:bg-gray-50"
@@ -163,7 +163,7 @@ const MenuSidebar = () => {
               } group-hover:opacity-100 group-hover:w-auto`}
             >
               <Link
-                to={"/profile"}
+                href={"/profile"}
                 className="block text-sm font-semibold truncate hover:text-blue-500 transition-colors"
               >
                 {currentUser?.email?.split("@")[0]}

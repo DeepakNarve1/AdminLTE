@@ -1,6 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
+"use client";
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate, useLocation, Location } from "react-router-dom";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { IMenuItem } from "@app/utils/menu";
 import { useAppSelector } from "@app/store/store";
@@ -11,8 +13,8 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
   const [isExpandable, setIsExpandable] = useState(false);
   const [isMainActive, setIsMainActive] = useState(false);
   const [isOneOfChildrenActive, setIsOneOfChildrenActive] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   const sidebarSkin = useAppSelector((state) => state.ui.sidebarSkin);
 
   const toggleMenu = () => {
@@ -24,29 +26,29 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
       toggleMenu();
       return;
     }
-    navigate(menuItem.path ? menuItem.path : "/");
+    router.push(menuItem.path ? menuItem.path : "/");
   };
 
-  const calculateIsActive = (url: Location) => {
+  const calculateIsActive = (path: string) => {
     setIsMainActive(false);
     setIsOneOfChildrenActive(false);
     if (isExpandable && menuItem && menuItem.children) {
       menuItem.children.forEach((item) => {
-        if (item.path === url.pathname) {
+        if (item.path === path) {
           setIsOneOfChildrenActive(true);
           setIsMenuExtended(true);
         }
       });
-    } else if (menuItem.path === url.pathname) {
+    } else if (menuItem.path === path) {
       setIsMainActive(true);
     }
   };
 
   useEffect(() => {
-    if (location) {
-      calculateIsActive(location);
+    if (pathname) {
+      calculateIsActive(pathname);
     }
-  }, [location, isExpandable, menuItem]);
+  }, [pathname, isExpandable, menuItem]);
 
   useEffect(() => {
     if (!isMainActive && !isOneOfChildrenActive) {
@@ -68,7 +70,7 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
 
   const activeClasses = isLight
     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-    : "bg-[#368F8B] text-white shadow-lg shadow-[#368F8B]/30"; // Using the Red to match the badges!
+    : "bg-[#368F8B] text-white shadow-lg shadow-[#368F8B]/30";
 
   const inactiveClasses = isLight
     ? "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
@@ -111,29 +113,28 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
         <ul
           className={`pl-2 mt-1 list-none space-y-0.5 border-l-2 ml-4 ${isLight ? "border-gray-200" : "border-white/10"}`}
         >
-          {menuItem.children?.map((item) => (
-            <li key={item.name} className="relative w-full">
-              <NavLink
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                    isActive
-                      ? isLight
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "bg-white/10 text-white font-medium"
-                      : isLight
-                        ? "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
-                  }`
-                }
-                to={`${item.path}`}
-              >
-                <i
-                  className={`${item.icon} w-4 text-center text-xs opacity-70`}
-                />
-                <p className="flex-1 truncate">{t(item.name)}</p>
-              </NavLink>
-            </li>
-          ))}
+          {menuItem.children?.map((item) => {
+            const isActive = pathname === item.path;
+            const fullLinkClass = `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+              isActive
+                ? isLight
+                  ? "bg-blue-50 text-blue-700 font-medium"
+                  : "bg-white/10 text-white font-medium"
+                : isLight
+                  ? "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`;
+            return (
+              <li key={item.name} className="relative w-full">
+                <Link className={fullLinkClass} href={item.path || "#"}>
+                  <i
+                    className={`${item.icon} w-4 text-center text-xs opacity-70`}
+                  />
+                  <p className="flex-1 truncate">{t(item.name)}</p>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </li>

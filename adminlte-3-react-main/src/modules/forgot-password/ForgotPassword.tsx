@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+import { useEffect } from "react";
+import Link from "next/link";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { setWindowClass } from "@app/utils/helpers";
@@ -21,13 +23,15 @@ const ForgotPassword = () => {
     },
   });
 
-  setWindowClass("hold-transition login-page");
+  useEffect(() => {
+    setWindowClass("hold-transition login-page");
+  }, []);
 
   return (
     <div className="login-box w-[360px] mx-auto mt-[10vh]">
       <div className="bg-white rounded shadow-sm border border-gray-200 border-t-[3px] border-t-blue-600">
         <div className="text-center p-4 border-b border-gray-100">
-          <Link to="/" className="text-3xl font-light text-gray-800">
+          <Link href="/" className="text-3xl font-light text-gray-800">
             <b>Admin</b>
             <span>LTE</span>
           </Link>
@@ -72,7 +76,7 @@ const ForgotPassword = () => {
             </div>
           </form>
           <p className="mt-4 mb-0 text-center">
-            <Link to="/login" className="text-blue-600 hover:text-blue-500">
+            <Link href="/login" className="text-blue-600 hover:text-blue-500">
               {t("login.button.signIn.label")}
             </Link>
           </p>

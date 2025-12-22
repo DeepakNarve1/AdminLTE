@@ -1,13 +1,15 @@
+"use client";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { Image } from "@profabric/react-components";
+import Image from "@app/components/Image";
 import { useAppSelector, useAppDispatch } from "@app/store/store";
 import { setCurrentUser } from "@app/store/reducers/auth";
 import { DateTime } from "luxon";
 
 const UserDropdown = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [t] = useTranslation();
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -44,13 +46,13 @@ const UserDropdown = () => {
     }
     dispatch(setCurrentUser(null));
     setDropdownOpen(false);
-    navigate("/");
+    router.push("/");
   };
 
   const navigateToProfile = (event: any) => {
     event.preventDefault();
     setDropdownOpen(false);
-    navigate("/profile");
+    router.push("/profile");
   };
 
   return (
@@ -100,7 +102,7 @@ const UserDropdown = () => {
           <div className="flex border-b border-gray-100 py-3 bg-gray-50/50">
             <div className="flex-1 text-center border-r border-gray-200 px-2 last:border-0 hover:bg-gray-50">
               <Link
-                to="/"
+                href="/"
                 className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
               >
                 Followers
@@ -108,7 +110,7 @@ const UserDropdown = () => {
             </div>
             <div className="flex-1 text-center border-r border-gray-200 px-2 last:border-0 hover:bg-gray-50">
               <Link
-                to="/"
+                href="/"
                 className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
               >
                 Sales
@@ -116,7 +118,7 @@ const UserDropdown = () => {
             </div>
             <div className="flex-1 text-center px-2 hover:bg-gray-50">
               <Link
-                to="/"
+                href="/"
                 className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
               >
                 Friends

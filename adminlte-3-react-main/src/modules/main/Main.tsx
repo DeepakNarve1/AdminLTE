@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+"use client";
+import { useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { toggleSidebarMenu } from "@app/store/reducers/ui";
 import {
   addWindowClass,
@@ -10,13 +11,13 @@ import Header from "@app/modules/main/header/Header";
 import Footer from "@app/modules/main/footer/Footer";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
 import MenuSidebar from "./menu-sidebar/MenuSidebar";
-import { Outlet } from "react-router-dom";
+// import { Outlet } from "react-router-dom";
 import { Loading } from "@app/components/Loading";
 
 const MENU_WIDTH = 250;
 const MENU_WIDTH_COLLAPSED = 73; // Width of mini sidebar
 
-const Main = () => {
+const Main = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
   const menuSidebarCollapsed = useAppSelector(
     (state) => state.ui.menuSidebarCollapsed
@@ -125,7 +126,7 @@ const Main = () => {
         >
           <section className="p-4">
             <div className={layoutBoxed ? "container mx-auto" : ""}>
-              <Outlet />
+              {children}
             </div>
           </section>
         </div>

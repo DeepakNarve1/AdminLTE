@@ -2,24 +2,12 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "paths": {
-      "@app/*": [
-        "src/*"
-      ],
-      "@store/*": [
-        "src/store/*"
-      ],
-      "@store": [
-        "src/store/"
-      ],
-      "@components": [
-        "src/components/index"
-      ],
-      "@modules/*": [
-        "src/modules/*"
-      ],
-      "@pages/*": [
-        "src/pages/*"
-      ]
+      "@app/*": ["src/*"],
+      "@store/*": ["src/store/*"],
+      "@store": ["src/store/"],
+      "@components": ["src/components/index"],
+      "@modules/*": ["src/modules/*"],
+      "@pages/*": ["src/views/*"]
     }
   }
 }

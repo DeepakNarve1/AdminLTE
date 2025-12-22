@@ -3,43 +3,44 @@ export const sleep = (time: number) =>
 
 export const calculateWindowSize = (windowWidth: number) => {
   if (windowWidth >= 1200) {
-    return 'lg';
+    return "lg";
   }
   if (windowWidth >= 992) {
-    return 'md';
+    return "md";
   }
   if (windowWidth >= 768) {
-    return 'sm';
+    return "sm";
   }
-  return 'xs';
+  return "xs";
 };
 
 export const setWindowClass = (classList: string) => {
-  const window: HTMLElement | null =
-    document && document.getElementById('root');
-  if (window) {
-    // @ts-ignore
-    window.classList = classList;
+  if (typeof document !== "undefined") {
+    const root = document.body;
+    if (root) {
+      root.className = classList;
+    }
   }
 };
+
 export const addWindowClass = (classList: string) => {
-  const window: HTMLElement | null =
-    document && document.getElementById('root');
-  if (window) {
-    // @ts-ignore
-    window.classList.add(classList);
+  if (typeof document !== "undefined") {
+    const root = document.body;
+    if (root) {
+      root.classList.add(classList);
+    }
   }
 };
 
 export const removeWindowClass = (classList: string) => {
-  const window: HTMLElement | null =
-    document && document.getElementById('root');
-  if (window) {
-    // @ts-ignore
-    window.classList.remove(classList);
+  if (typeof document !== "undefined") {
+    const root = document.body;
+    if (root) {
+      root.classList.remove(classList);
+    }
   }
 };
 
-export const scrollbarVisible = (element: HTMLElement) => {
+export const scrollbarVisible = (element: any) => {
   return element.scrollHeight > element.clientHeight;
 };
