@@ -1,11 +1,26 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate, useParams } from "react-router-dom";
 
-const EditEntry: React.FC = () => {
-  const navigate = useNavigate();
+import { Input } from "@app/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import { Button } from "@app/components/ui/button";
+import { Label } from "@app/components/ui/label";
+import { ContentHeader } from "@app/components";
+
+const EditEntry = () => {
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
+
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -21,11 +36,12 @@ const EditEntry: React.FC = () => {
     block: "",
     recommendedLetterNo: "",
     boothNo: "",
-    status: "",
+    status: "Pending",
   });
 
   useEffect(() => {
     const fetchEntry = async () => {
+      if (!id) return;
       try {
         setFetching(true);
         const token = localStorage.getItem("token");
@@ -43,7 +59,7 @@ const EditEntry: React.FC = () => {
             timer: data.timer || "",
             year: data.year || "",
             month: data.month || "",
-            date: data.day || "",
+            date: data.day || data.dateString?.split("-")[2] || "",
             district: data.district || "",
             assembly: data.assembly || "",
             block: data.block || "",
@@ -53,25 +69,21 @@ const EditEntry: React.FC = () => {
           });
         }
       } catch (error: any) {
-        console.error(error);
         toast.error("Failed to fetch entry details");
-        navigate("/mp-public-problem");
+        router.push("/mp-public-problem");
       } finally {
         setFetching(false);
       }
     };
 
-    if (id) fetchEntry();
-  }, [id, navigate]);
+    fetchEntry();
+  }, [id, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,220 +116,245 @@ const EditEntry: React.FC = () => {
         }
       );
 
-      toast.success("Entry Updated Successfully!");
-      navigate("/mp-public-problem");
+      toast.success("Entry updated successfully!");
+      router.push("/mp-public-problem");
     } catch (error: any) {
-      console.error(error);
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to update entry";
-      toast.error(errorMsg);
+      toast.error(error.response?.data?.message || "Failed to update entry");
     } finally {
       setLoading(false);
     }
   };
 
   if (fetching) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <>
+        <ContentHeader title="Edit Public Problem Entry" />
+        <section className="content">
+          <div className="container-fluid px-4">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 p-8">
+              <p className="text-center text-gray-600">
+                Loading entry details...
+              </p>
+            </div>
+          </div>
+        </section>
+      </>
+    );
   }
 
   return (
-    <div className="container-fluid">
-      <h2 className="mt-4 mb-4">Edit Public Problem</h2>
+    <>
+      <ContentHeader title="Edit Public Problem Entry" />
 
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">Update Entry Details</h3>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Sr. No.</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="srNo"
-                  value={formData.srNo}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Regl. No.</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="reglNo"
-                  value={formData.reglNo}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Timer</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="timer"
-                  value={formData.timer}
-                  onChange={handleChange}
-                />
-              </div>
+      <section className="content">
+        <div className="container-fluid px-4">
+          {/* Detached Main Block */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-5xl mx-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Update Entry Details
+              </h2>
+              <p className="text-gray-600 mt-1">
+                Modify the public problem entry below.
+              </p>
             </div>
 
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Year</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="year"
-                  min="2000"
-                  max="2030"
-                  value={formData.year}
-                  onChange={handleChange}
-                  required
-                />
+            <form onSubmit={handleSubmit} className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Sr. No. */}
+                <div className="space-y-2">
+                  <Label>Sr. No.</Label>
+                  <Input
+                    name="srNo"
+                    value={formData.srNo}
+                    onChange={handleChange}
+                    placeholder="Enter serial number"
+                  />
+                </div>
+
+                {/* Regl. No. */}
+                <div className="space-y-2">
+                  <Label>Regl. No.</Label>
+                  <Input
+                    name="reglNo"
+                    value={formData.reglNo}
+                    onChange={handleChange}
+                    placeholder="Enter registration number"
+                  />
+                </div>
+
+                {/* Timer */}
+                <div className="space-y-2">
+                  <Label>Timer</Label>
+                  <Input
+                    name="timer"
+                    value={formData.timer}
+                    onChange={handleChange}
+                    placeholder="e.g. 10d, 5h, 30m"
+                  />
+                </div>
+
+                {/* Year */}
+                <div className="space-y-2">
+                  <Label>Year</Label>
+                  <Input
+                    type="number"
+                    name="year"
+                    min="2000"
+                    max="2030"
+                    value={formData.year}
+                    onChange={handleChange}
+                    placeholder="2025"
+                  />
+                </div>
+
+                {/* Month */}
+                <div className="space-y-2">
+                  <Label>Month</Label>
+                  <Select
+                    value={formData.month}
+                    onValueChange={(v: string) =>
+                      handleChange({
+                        target: { name: "month", value: v },
+                      } as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="January">January</SelectItem>
+                      <SelectItem value="February">February</SelectItem>
+                      <SelectItem value="March">March</SelectItem>
+                      <SelectItem value="April">April</SelectItem>
+                      <SelectItem value="May">May</SelectItem>
+                      <SelectItem value="June">June</SelectItem>
+                      <SelectItem value="July">July</SelectItem>
+                      <SelectItem value="August">August</SelectItem>
+                      <SelectItem value="September">September</SelectItem>
+                      <SelectItem value="October">October</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date */}
+                <div className="space-y-2">
+                  <Label>Date (Day)</Label>
+                  <Input
+                    type="number"
+                    name="date"
+                    min="1"
+                    max="31"
+                    value={formData.date}
+                    onChange={handleChange}
+                    placeholder="1-31"
+                  />
+                </div>
+
+                {/* District */}
+                <div className="space-y-2">
+                  <Label>District</Label>
+                  <Input
+                    name="district"
+                    value={formData.district}
+                    onChange={handleChange}
+                    placeholder="Enter district"
+                  />
+                </div>
+
+                {/* Assembly */}
+                <div className="space-y-2">
+                  <Label>Assembly</Label>
+                  <Input
+                    name="assembly"
+                    value={formData.assembly}
+                    onChange={handleChange}
+                    placeholder="Enter assembly"
+                  />
+                </div>
+
+                {/* Block */}
+                <div className="space-y-2">
+                  <Label>Block</Label>
+                  <Input
+                    name="block"
+                    value={formData.block}
+                    onChange={handleChange}
+                    placeholder="Enter block"
+                  />
+                </div>
+
+                {/* Recommended Letter No */}
+                <div className="space-y-2">
+                  <Label>Recommended Letter No</Label>
+                  <Input
+                    name="recommendedLetterNo"
+                    value={formData.recommendedLetterNo}
+                    onChange={handleChange}
+                    placeholder="Enter letter number"
+                  />
+                </div>
+
+                {/* Booth No */}
+                <div className="space-y-2">
+                  <Label>Booth No</Label>
+                  <Input
+                    name="boothNo"
+                    value={formData.boothNo}
+                    onChange={handleChange}
+                    placeholder="Enter booth number"
+                  />
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(v: string) =>
+                      handleChange({
+                        target: { name: "status", value: v },
+                      } as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Month</label>
-                <select
-                  className="form-control"
-                  name="month"
-                  value={formData.month}
-                  onChange={handleChange}
-                  required
+              {/* Action Buttons */}
+              <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
+                <Button
+                  size="lg"
+                  type="submit"
+                  disabled={loading}
+                  className="bg-[#00563B] hover:bg-[#368F8B]"
                 >
-                  <option value="">Select Month</option>
-                  <option value="January">January</option>
-                  <option value="February">February</option>
-                  <option value="March">March</option>
-                  <option value="April">April</option>
-                  <option value="May">May</option>
-                  <option value="June">June</option>
-                  <option value="July">July</option>
-                  <option value="August">August</option>
-                  <option value="September">September</option>
-                  <option value="October">October</option>
-                  <option value="November">November</option>
-                  <option value="December">December</option>
-                </select>
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Date</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="date"
-                  placeholder="1-31"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <label className="form-label">District</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="district"
-                  value={formData.district}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Assembly</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="assembly"
-                  value={formData.assembly}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Block</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="block"
-                  value={formData.block}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Recommended Letter No</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="recommendedLetterNo"
-                  value={formData.recommendedLetterNo}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Booth No</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="boothNo"
-                  value={formData.boothNo}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Status</label>
-                <select
-                  className="form-control"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
+                  {loading ? "Updating..." : "Update Entry"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  type="button"
+                  onClick={() => router.push("/mp-public-problem")}
+                  disabled={loading}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
+                  Cancel
+                </Button>
               </div>
-            </div>
-
-            <div className="text-start">
-              <button
-                type="submit"
-                className="btn btn-primary btn-sm"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Update Entry"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm ml-2"
-                onClick={() => navigate("/mp-public-problem")}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 };
 

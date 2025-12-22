@@ -1,10 +1,10 @@
+"use client";
 import { ContentHeader } from "@components";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { IRoleOption, UserForm } from "@app/types/user";
-
 import { Input } from "@app/components/ui/input";
 import { Button } from "@app/components/ui/button";
 import {

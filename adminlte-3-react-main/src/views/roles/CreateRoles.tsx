@@ -1,9 +1,9 @@
+"use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { flattenMenu } from "@app/utils/sidebarMenu";
-
 import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
 import { Label } from "@app/components/ui/label";
@@ -35,7 +35,7 @@ interface IPermission {
 }
 
 const CreateRole = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [role, setRole] = useState({
     name: "",
@@ -125,7 +125,7 @@ const CreateRole = () => {
         }
       );
       toast.success("Role created successfully!");
-      navigate("/roles");
+      router.push("/roles");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to create role");
     } finally {
@@ -359,7 +359,7 @@ const CreateRole = () => {
                 <Button
                   size="lg"
                   variant="ghost"
-                  onClick={() => navigate("/roles")}
+                  onClick={() => router.push("/roles")}
                 >
                   Cancel
                 </Button>

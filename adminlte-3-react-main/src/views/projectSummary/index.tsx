@@ -1,9 +1,9 @@
+"use client";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -63,7 +63,7 @@ interface IProject {
 }
 
 const ProjectSummary = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [data, setData] = useState<IProject[]>([]);
@@ -172,9 +172,10 @@ const ProjectSummary = () => {
         <div className="container-fluid px-4">
           {/* Detached Main Block */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
-            {/* Actions Bar */}
+            {/* Row 1: Search Bar and Action Buttons */}
             <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                {/* Search Bar - Left */}
                 <div className="relative flex-1 max-w-lg">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
@@ -187,101 +188,95 @@ const ProjectSummary = () => {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-5">
-                  {/* Filters Group */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <Select value={filterBlock} onValueChange={setFilterBlock}>
-                      <SelectTrigger className="w-48 h-12">
-                        <SelectValue placeholder="All Blocks" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Blocks</SelectItem>
-                        <SelectItem value="Bagh">Bagh</SelectItem>
-                        <SelectItem value="Tanda">Tanda</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {/* Action Buttons - Right */}
+                <div className="flex flex-wrap items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleExport}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Download className="w-5 h-5 mr-2" /> Export
+                  </Button>
 
-                    <Select
-                      value={filterDepartment}
-                      onValueChange={setFilterDepartment}
-                    >
-                      <SelectTrigger className="w-48 h-12">
-                        <SelectValue placeholder="All Departments" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Departments</SelectItem>
-                        <SelectItem value="PWD">PWD</SelectItem>
-                        <SelectItem value="Health">Health</SelectItem>
-                        <SelectItem value="Education">Education</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Upload className="w-5 h-5 mr-2" /> Import
+                  </Button>
 
-                    <Select
-                      value={filterStatus}
-                      onValueChange={setFilterStatus}
-                    >
-                      <SelectTrigger className="w-48 h-12">
-                        <SelectValue placeholder="All Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select
-                      value={entriesPerPage.toString()}
-                      onValueChange={(v: string) =>
-                        setEntriesPerPage(v === "-1" ? -1 : Number(v))
-                      }
-                    >
-                      <SelectTrigger className="w-32 h-12">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                        <SelectItem value="-1">All</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Divider for better separation */}
-                  <div className="hidden 2xl:block h-8 w-px bg-gray-200 mx-4" />
-
-                  {/* Actions Group */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={handleExport}
-                      className="bg-[#00563B] hover:bg-[#368F8B] text-white"
-                    >
-                      <Download className="w-5 h-5 mr-2" /> Export
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-[#00563B] hover:bg-[#368F8B] text-white"
-                    >
-                      <Upload className="w-5 h-5 mr-2" /> Import
-                    </Button>
-
-                    <Button
-                      size="lg"
-                      onClick={() => navigate("/projects/create")}
-                      className="bg-[#00563B] hover:bg-[#368F8B]"
-                    >
-                      <Plus className="w-5 h-5 mr-2" /> Add Project
-                    </Button>
-                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => router.push("/project-summary/create")}
+                    className="bg-[#00563B] hover:bg-[#368F8B]"
+                  >
+                    <Plus className="w-5 h-5 mr-2" /> Add Project
+                  </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Row 2: Filters */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex flex-wrap items-center gap-3">
+                <Select value={filterBlock} onValueChange={setFilterBlock}>
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="All Blocks" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Blocks</SelectItem>
+                    <SelectItem value="Bagh">Bagh</SelectItem>
+                    <SelectItem value="Tanda">Tanda</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filterDepartment}
+                  onValueChange={setFilterDepartment}
+                >
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="PWD">PWD</SelectItem>
+                    <SelectItem value="Health">Health</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={entriesPerPage.toString()}
+                  onValueChange={(v: string) =>
+                    setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                  }
+                >
+                  <SelectTrigger className="w-32 h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="-1">All</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -542,14 +537,16 @@ const ProjectSummary = () => {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  navigate(`/projects/${project._id}`)
+                                  router.push(`/project-summary/${project._id}`)
                                 }
                               >
                                 <Eye className="mr-2 h-4 w-4" /> View Details
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
-                                  navigate(`/projects/${project._id}/edit`)
+                                  router.push(
+                                    `/project-summary/${project._id}/edit`
+                                  )
                                 }
                               >
                                 <Edit className="mr-2 h-4 w-4" /> Edit Project

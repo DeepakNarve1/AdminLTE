@@ -23,6 +23,10 @@ module.exports = {
       spacing: {
         "sidebar-width": "250px",
       },
+      zIndex: {
+        1000: "1000",
+        9999: "9999",
+      },
     },
   },
   plugins: [],

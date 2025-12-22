@@ -16,10 +16,85 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
+    "/(protected)/users/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/users/create/page.js"
+    ],
+    "/(protected)/roles/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/roles/page.js"
+    ],
+    "/(protected)/roles/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/roles/[id]/page.js"
+    ],
+    "/(protected)/roles/[id]/edit/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/roles/[id]/edit/page.js"
+    ],
     "/(protected)/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(protected)/dashboard/page.js"
+    ],
+    "/(protected)/roles/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/roles/create/page.js"
+    ],
+    "/(protected)/users/[id]/edit/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/users/[id]/edit/page.js"
+    ],
+    "/(protected)/users/[id]/view/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/users/[id]/view/page.js"
+    ],
+    "/(protected)/project-summary/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/project-summary/page.js"
+    ],
+    "/(protected)/mp-public-problem/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/mp-public-problem/page.js"
+    ],
+    "/(protected)/project-summary/[id]/edit/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/project-summary/[id]/edit/page.js"
+    ],
+    "/(protected)/project-summary/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/project-summary/[id]/page.js"
+    ],
+    "/(protected)/mp-public-problem/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/mp-public-problem/[id]/page.js"
+    ],
+    "/(protected)/mp-public-problem/[id]/edit/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/mp-public-problem/[id]/edit/page.js"
+    ],
+    "/(protected)/project-summary/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/project-summary/create/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

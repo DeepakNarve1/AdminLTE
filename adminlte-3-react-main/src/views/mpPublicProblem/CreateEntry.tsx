@@ -1,10 +1,10 @@
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
+import { useRouter } from "next/navigation";
 const MPPublicProblem: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     srNo: "",
@@ -56,7 +56,7 @@ const MPPublicProblem: React.FC = () => {
       });
 
       toast.success("Entry Created Successfully!");
-      navigate("/mp-public-problem"); // Redirect to list page
+      router.push("/mp-public-problem"); // Redirect to list page
     } catch (error: any) {
       console.error(error);
       const errorMsg =
