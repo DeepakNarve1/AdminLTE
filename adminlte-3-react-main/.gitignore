@@ -28,3 +28,7 @@ dist
 
 firebase-debug.log
 ui-debug.log
+
+# Next.js
+.next/
+out/

@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import axios from "axios";
+import { useDebounce } from "@app/hooks/useDebounce";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -76,9 +77,15 @@ const ProjectSummary = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   // Pagination
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // AbortController ref for cancelling previous requests
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Column Visibility
   const [visibleColumns, setVisibleColumns] = useState({
@@ -99,8 +106,16 @@ const ProjectSummary = () => {
 
   const [selectedRemark, setSelectedRemark] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+
       setLoading(true);
       const params: any = {
         page: currentPage,
@@ -108,33 +123,44 @@ const ProjectSummary = () => {
         block: filterBlock === "all" ? undefined : filterBlock,
         department: filterDepartment === "all" ? undefined : filterDepartment,
         status: filterStatus === "all" ? undefined : filterStatus,
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
       };
 
       const res = await axios.get("http://localhost:5000/api/projects", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         params,
+        signal: abortControllerRef.current.signal,
       });
 
       setData(res.data.data || []);
       setTotalCount(res.data.count || 0);
     } catch (err: any) {
-      toast.error("Failed to fetch project data");
+      // Don't show error if request was cancelled
+      if (err.name !== "CanceledError" && err.name !== "AbortError") {
+        toast.error("Failed to fetch project data");
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
   }, [
     currentPage,
     entriesPerPage,
     filterBlock,
     filterDepartment,
     filterStatus,
-    searchTerm,
+    debouncedSearchTerm,
   ]);
+
+  useEffect(() => {
+    fetchData();
+
+    // Cleanup function to abort request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchData]);
 
   const handleExport = () => {
     if (data.length === 0) return toast.warning("No data to export");

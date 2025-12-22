@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import axios from "axios";
+import { useDebounce } from "@app/hooks/useDebounce";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -42,6 +43,7 @@ import {
   Columns,
 } from "lucide-react";
 import { ContentHeader } from "@app/components";
+import { TimerDisplay } from "@app/components/TimerDisplay";
 
 interface IPublicProblem {
   _id: string;
@@ -59,20 +61,7 @@ interface IPublicProblem {
   department: string;
 }
 
-const calculateTimer = (dateStr: string) => {
-  const now = new Date();
-  const sub = new Date(dateStr);
-  const diff = now.getTime() - sub.getTime();
-
-  if (diff < 0) return "0d, 0h, 0m, 0s";
-
-  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-  return `${d}d, ${h}h, ${m}m, ${s}s`;
-};
+// Removed calculateTimer function - now using memoized TimerDisplay component
 
 const MpPublicProblem = () => {
   const router = useRouter();
@@ -90,9 +79,15 @@ const MpPublicProblem = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   // Pagination
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // AbortController ref for cancelling previous requests
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Column Visibility
   const [visibleColumns, setVisibleColumns] = useState({
@@ -109,15 +104,24 @@ const MpPublicProblem = () => {
     boothNo: true,
   });
 
-  // Live timer
+  // Live timer - optimized to update less frequently (every 5 seconds instead of every second)
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    // Update every 5 seconds instead of every second for better performance
+    const interval = setInterval(() => setNow(Date.now()), 5000);
     return () => clearInterval(interval);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+
       setLoading(true);
       const params: any = {
         page: currentPage,
@@ -127,25 +131,25 @@ const MpPublicProblem = () => {
         month: filterMonth === "all" ? undefined : filterMonth,
         department: filterDepartment === "all" ? undefined : filterDepartment,
         status: filterStatus === "all" ? undefined : filterStatus,
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
       };
 
       const res = await axios.get("http://localhost:5000/api/public-problems", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         params,
+        signal: abortControllerRef.current.signal,
       });
 
       setData(res.data.data || []);
       setTotalCount(res.data.filteredCount || 0);
     } catch (err: any) {
-      toast.error("Failed to fetch data");
+      // Don't show error if request was cancelled
+      if (err.name !== "CanceledError" && err.name !== "AbortError") {
+        toast.error("Failed to fetch data");
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
   }, [
     currentPage,
     entriesPerPage,
@@ -154,8 +158,19 @@ const MpPublicProblem = () => {
     filterMonth,
     filterDepartment,
     filterStatus,
-    searchTerm,
+    debouncedSearchTerm,
   ]);
+
+  useEffect(() => {
+    fetchData();
+
+    // Cleanup function to abort request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchData]);
 
   const handleSeed = async () => {
     try {
@@ -597,8 +612,11 @@ const MpPublicProblem = () => {
                           </TableCell>
                         )}
                         {visibleColumns.timer && (
-                          <TableCell className="font-bold text-red-600">
-                            {calculateTimer(row.submissionDate)}
+                          <TableCell>
+                            <TimerDisplay
+                              submissionDate={row.submissionDate}
+                              now={now}
+                            />
                           </TableCell>
                         )}
                         {visibleColumns.year && (

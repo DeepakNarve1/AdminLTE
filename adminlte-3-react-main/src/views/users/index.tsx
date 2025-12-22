@@ -78,7 +78,42 @@ const Users = () => {
       const res = await axios.get("http://localhost:5000/api/auth/users", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      const data = res.data?.data || [];
+      let data = res.data?.data || [];
+
+      // Check if roles need to be populated (if first user has role as string ID)
+      if (data.length > 0 && typeof data[0].role === "string") {
+        try {
+          // Fetch all roles
+          const rolesRes = await axios.get(
+            "http://localhost:5000/api/rbac/roles",
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          const roles = rolesRes.data?.data || [];
+
+          // Create a map of role ID to role object
+          const roleMap = new Map();
+          roles.forEach((role: any) => {
+            roleMap.set(role._id, role);
+          });
+
+          // Populate role data for each user
+          data = data.map((user: IUserRow) => ({
+            ...user,
+            role:
+              typeof user.role === "string" && roleMap.has(user.role)
+                ? roleMap.get(user.role)
+                : user.role,
+          }));
+        } catch (err) {
+          console.error("Failed to populate roles:", err);
+          // Continue with unpopulated data
+        }
+      }
+
       setUsers(data);
       setFilteredUsers(data);
     } catch (err: any) {
