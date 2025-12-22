@@ -1,9 +1,7 @@
-import { Image } from '@profabric/react-components';
-
 export const Loading = () => {
   return (
-    <div className="preloader flex-column justify-content-center align-items-center">
-      <Image
+    <div className="preloader flex flex-col justify-center items-center fixed inset-0 z-[9999] bg-[#f4f6f9]">
+      <img
         className="animation__shake"
         src="/img/logo.png"
         alt="AdminLTELogo"

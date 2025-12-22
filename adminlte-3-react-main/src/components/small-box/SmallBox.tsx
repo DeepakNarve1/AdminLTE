@@ -1,11 +1,11 @@
-import { ReactNode, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { VARIANT_TYPES } from '../../utils/component-properties';
-import { OverlayLoading } from '../OverlayLoading';
+import { ReactNode, useMemo } from "react";
+import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import { VARIANT_TYPES } from "../../utils/component-properties";
+import { OverlayLoading } from "../OverlayLoading";
 
 export interface SmallBoxProps {
-  loading?: 'dark' | boolean;
+  loading?: "dark" | boolean;
   variant: VARIANT_TYPES;
   icon?: {
     content: ReactNode;
@@ -17,7 +17,7 @@ export interface SmallBoxProps {
 }
 
 const SmallBox = ({
-  variant = 'info',
+  variant = "info",
   icon,
   text,
   title,
@@ -30,7 +30,7 @@ const SmallBox = ({
     const iconVariant = icon?.variant || variant;
 
     return (
-      <span className={`icon ${iconVariant ? `bg-${iconVariant}` : ''}`}>
+      <span className={`icon ${iconVariant ? `bg-${iconVariant}` : ""}`}>
         {icon?.content || <i className="far fa-envelope" />}
       </span>
     );
@@ -43,14 +43,14 @@ const SmallBox = ({
         <p>{title}</p>
       </div>
       {iconContent}
-      <Link to={navigateTo} className="small-box-footer">
-        <span className="mr-2">{t('main.label.moreInfo')}</span>
+      <Link href={navigateTo} className="small-box-footer">
+        <span className="mr-2">{t("main.label.moreInfo")}</span>
         <i className="fa fa-arrow-circle-right" />
       </Link>
 
       {loading && (
         <OverlayLoading
-          type={typeof loading === 'string' ? loading : 'light'}
+          type={typeof loading === "string" ? loading : "light"}
         />
       )}
     </div>

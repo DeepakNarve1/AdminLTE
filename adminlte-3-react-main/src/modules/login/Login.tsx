@@ -1,15 +1,18 @@
+"use client";
 import axios from "axios";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import { setCurrentUser } from "@store/reducers/auth";
 import { setWindowClass } from "@app/utils/helpers";
-import { Checkbox } from "@profabric/react-components";
+import Checkbox from "@app/components/Checkbox";
 import * as Yup from "yup";
 
 import { useAppDispatch } from "@app/store/store";
+import { API_BASE_URL } from "@app/utils/api";
 
 const Login = () => {
   const [isAuthLoading, setAuthLoading] = useState(false);
@@ -17,19 +20,21 @@ const Login = () => {
   const [isFacebookAuthLoading, setFacebookAuthLoading] = useState(false);
   const dispatch = useAppDispatch();
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const [t] = useTranslation();
 
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
 
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password,
       });
 
       const { data } = res.data;
+
+      const { VITE_NODE_ENV } = process.env;
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -37,7 +42,7 @@ const Login = () => {
       dispatch(setCurrentUser(data.user));
 
       toast.success("Login is succeed!");
-      navigate("/dashboard");
+      router.push("/dashboard");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Invalid credentials");
     } finally {
@@ -61,14 +66,15 @@ const Login = () => {
       login(values.email, values.password);
     },
   });
-
-  setWindowClass("hold-transition login-page");
+  useEffect(() => {
+    setWindowClass("hold-transition login-page");
+  }, []);
 
   return (
     <div className="login-box w-[360px] mx-auto mt-[10vh]">
       <div className="bg-white rounded shadow-sm border border-gray-200 border-t-[3px] border-t-blue-600">
         <div className="text-center p-4 border-b border-gray-100">
-          <Link to="/" className="text-3xl font-light text-gray-800">
+          <Link href="/" className="text-3xl font-light text-gray-800">
             <b>Admin</b>
             <span>LTE</span>
           </Link>
@@ -132,10 +138,10 @@ const Login = () => {
             <div className="flex flex-wrap -mx-2 mb-2">
               <div className="w-8/12 px-2">
                 <div className="flex items-center h-full">
-                  <Checkbox checked={false} />
-                  <label className="m-0 p-0 pl-1 font-normal">
-                    {t("login.label.rememberMe")}
-                  </label>
+                  <Checkbox
+                    checked={false}
+                    label={t("login.label.rememberMe") as string}
+                  />
                 </div>
               </div>
               <div className="w-4/12 px-2">
@@ -186,7 +192,7 @@ const Login = () => {
           </div>
           <p className="mb-1">
             <Link
-              to="/forgot-password"
+              href="/forgot-password"
               className="text-blue-600 hover:text-blue-500"
             >
               {t("login.label.forgotPass")}
@@ -194,7 +200,7 @@ const Login = () => {
           </p>
           <p className="mb-0">
             <Link
-              to="/register"
+              href="/register"
               className="text-center text-blue-600 hover:text-blue-500"
             >
               {t("login.label.registerNew")}

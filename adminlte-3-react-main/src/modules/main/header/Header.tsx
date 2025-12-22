@@ -1,5 +1,6 @@
+"use client";
 import { useCallback } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
   toggleControlSidebar,
@@ -9,7 +10,7 @@ import MessagesDropdown from "@app/modules/main/header/messages-dropdown/Message
 import NotificationsDropdown from "@app/modules/main/header/notifications-dropdown/NotificationsDropdown";
 import LanguagesDropdown from "@app/modules/main/header/languages-dropdown/LanguagesDropdown";
 import UserDropdown from "@app/modules/main/header/user-dropdown/UserDropdown";
-import { Image } from "@profabric/react-components";
+import Image from "@app/components/Image";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
 
 const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
@@ -45,7 +46,7 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
         <div className="flex items-center gap-4">
           {topNavigation && (
             <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <Image
                   src="/img/logo.png"
                   alt="RBAC System Logo"
@@ -83,7 +84,7 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
             )}
             <li className="hidden sm:block">
               <Link
-                to="/"
+                href="/"
                 className="block px-3 py-2 text-gray-500 hover:text-gray-700"
               >
                 {t("header.label.home")}
@@ -91,7 +92,7 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
             </li>
             <li className="hidden sm:block">
               <Link
-                to="/profile"
+                href="/profile"
                 className="block px-3 py-2 text-gray-500 hover:text-gray-700"
               >
                 Profile

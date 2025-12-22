@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 const NotificationsDropdown = () => {
@@ -46,7 +46,7 @@ const NotificationsDropdown = () => {
           </span>
 
           <Link
-            to="/"
+            href="/"
             className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-center text-gray-700 text-sm">
@@ -61,7 +61,7 @@ const NotificationsDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-center text-gray-700 text-sm">
@@ -78,7 +78,7 @@ const NotificationsDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-center text-gray-700 text-sm">
@@ -93,7 +93,7 @@ const NotificationsDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="block py-2 text-center text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
           >
             {t("header.notifications.seeAll")}

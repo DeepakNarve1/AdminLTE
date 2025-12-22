@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { Image } from "@profabric/react-components";
+import Image from "@app/components/Image";
 
 const MessagesDropdown = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -43,7 +43,7 @@ const MessagesDropdown = () => {
       {dropdownOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
           <Link
-            to="/"
+            href="/"
             className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-start">
@@ -82,7 +82,7 @@ const MessagesDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-start">
@@ -121,7 +121,7 @@ const MessagesDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-start">
@@ -160,7 +160,7 @@ const MessagesDropdown = () => {
           </Link>
 
           <Link
-            to="/"
+            href="/"
             className="block py-3 text-center text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
           >
             {t("header.messages.seeAll")}

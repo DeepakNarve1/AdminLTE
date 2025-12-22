@@ -1,11 +1,11 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { calculateWindowSize } from '@app/utils/helpers';
+import { createSlice } from "@reduxjs/toolkit";
+import { calculateWindowSize } from "@app/utils/helpers";
 import {
   NAVBAR_DARK_VARIANTS,
   NAVBAR_LIGHT_VARIANTS,
   SIDEBAR_DARK_SKINS,
   SIDEBAR_LIGHT_SKINS,
-} from '@app/utils/themes';
+} from "@app/utils/themes";
 
 export interface UiState {
   screenSize: string;
@@ -25,10 +25,12 @@ export interface UiState {
 }
 
 const initialState: UiState = {
-  screenSize: calculateWindowSize(window.innerWidth),
+  screenSize: calculateWindowSize(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  ),
   darkMode: false,
-  navbarVariant: 'navbar-light',
-  sidebarSkin: 'sidebar-dark-primary',
+  navbarVariant: "navbar-light",
+  sidebarSkin: "sidebar-dark-primary",
   menuSidebarCollapsed: false,
   controlSidebarCollapsed: true,
   headerBorder: false,
@@ -42,7 +44,7 @@ const initialState: UiState = {
 };
 
 export const uiSlice = createSlice({
-  name: 'ui',
+  name: "ui",
   initialState,
   reducers: {
     toggleTopNavigation: (state) => {

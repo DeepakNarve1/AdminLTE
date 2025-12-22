@@ -12,7 +12,6 @@
 
 /* AdminLTE 3.2 (Includes Bootstrap 4) */
 @import url("https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css");
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 

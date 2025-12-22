@@ -20,7 +20,7 @@ import {
   SIDEBAR_LIGHT_SKINS,
 } from "@app/utils/themes";
 import useScrollPosition from "@app/hooks/useScrollPosition";
-import { Checkbox } from "@profabric/react-components";
+import Checkbox from "@app/components/Checkbox";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
 import { addWindowClass, removeWindowClass } from "@app/utils/helpers";
 
