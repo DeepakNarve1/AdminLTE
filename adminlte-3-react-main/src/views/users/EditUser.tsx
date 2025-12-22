@@ -1,13 +1,16 @@
+"use client";
 import { useState, useEffect } from "react";
 import { ContentHeader } from "@components";
-import { useNavigate, useParams } from "react-router-dom";
+import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { IRoleOption, UserForm } from "@app/types/user";
+import { API_BASE_URL } from "@app/utils/api";
 
 const EditUser = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
 
   const [form, setForm] = useState<
     Omit<UserForm, "password" | "confirmPassword">
@@ -30,7 +33,7 @@ const EditUser = () => {
     const fetchRoles = async () => {
       try {
         setRolesLoading(true);
-        const res = await axios.get("http://localhost:5000/api/roles", {
+        const res = await axios.get(`${API_BASE_URL}/roles`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setRoles(res.data?.data || []);
@@ -46,12 +49,9 @@ const EditUser = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/auth/users/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await axios.get(`${API_BASE_URL}/auth/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.data?.data) {
           const user = res.data.data;
           setForm({
@@ -69,7 +69,7 @@ const EditUser = () => {
       } catch (error: any) {
         console.error(error);
         toast.error(error.response?.data?.message || "Failed to load user");
-        setTimeout(() => navigate("/users"), 2000);
+        setTimeout(() => router.push("/users"), 2000);
       } finally {
         setLoading(false);
       }
@@ -79,7 +79,7 @@ const EditUser = () => {
     if (id) {
       fetchUser();
     }
-  }, [id, navigate]);
+  }, [id, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -116,12 +116,12 @@ const EditUser = () => {
         block: form.block || "",
       };
 
-      await axios.put(`http://localhost:5000/api/auth/users/${id}`, payload, {
+      await axios.put(`${API_BASE_URL}/auth/users/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("User updated successfully!");
-      navigate("/users");
+      router.push("/users");
     } catch (error: any) {
       console.error(error);
       const errorMsg =
@@ -338,7 +338,7 @@ const EditUser = () => {
                 </button>
                 <button
                   className="px-6 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                  onClick={() => navigate("/users")}
+                  onClick={() => router.push("/users")}
                   disabled={loading}
                 >
                   Cancel

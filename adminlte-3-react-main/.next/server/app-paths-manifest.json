@@ -1,4 +1,8 @@
 {
-  "/(protected)/users/page": "app/(protected)/users/page.js",
-  "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(protected)/mp-public-problem/page": "app/(protected)/mp-public-problem/page.js",
+  "/(protected)/mp-public-problem/[id]/page": "app/(protected)/mp-public-problem/[id]/page.js",
+  "/(protected)/project-summary/page": "app/(protected)/project-summary/page.js",
+  "/(protected)/roles/page": "app/(protected)/roles/page.js",
+  "/(protected)/users/page": "app/(protected)/users/page.js"
 }

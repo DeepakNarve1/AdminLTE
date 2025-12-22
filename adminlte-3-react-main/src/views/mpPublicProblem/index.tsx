@@ -1,9 +1,9 @@
+"use client";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -75,7 +75,7 @@ const calculateTimer = (dateStr: string) => {
 };
 
 const MpPublicProblem = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [data, setData] = useState<IPublicProblem[]>([]);
@@ -271,11 +271,9 @@ const MpPublicProblem = () => {
 
       <section className="content">
         <div className="container-fluid px-4">
-          {/* Detached Main Block */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
-            {/* Actions Bar */}
             <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <div className="relative flex-1 max-w-lg">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
@@ -289,82 +287,6 @@ const MpPublicProblem = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <Select value={filterBlock} onValueChange={setFilterBlock}>
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="All Blocks" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Blocks</SelectItem>
-                      <SelectItem value="Bagh">Bagh</SelectItem>
-                      <SelectItem value="Tanda">Tanda</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterYear} onValueChange={setFilterYear}>
-                    <SelectTrigger className="w-40 h-12">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Years</SelectItem>
-                      <SelectItem value="2024">2024</SelectItem>
-                      <SelectItem value="2025">2025</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterMonth} onValueChange={setFilterMonth}>
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Months</SelectItem>
-                      <SelectItem value="November">November</SelectItem>
-                      <SelectItem value="December">December</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={filterDepartment}
-                    onValueChange={setFilterDepartment}
-                  >
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="Department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
-                      <SelectItem value="PWD">PWD</SelectItem>
-                      <SelectItem value="Health">Health</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-48 h-12">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Resolved">Resolved</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={entriesPerPage.toString()}
-                    onValueChange={(v: string) =>
-                      setEntriesPerPage(v === "-1" ? -1 : Number(v))
-                    }
-                  >
-                    <SelectTrigger className="w-32 h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="-1">All</SelectItem>
-                    </SelectContent>
-                  </Select>
-
                   <Button
                     variant="outline"
                     size="lg"
@@ -385,12 +307,92 @@ const MpPublicProblem = () => {
 
                   <Button
                     size="lg"
-                    onClick={() => navigate("/mp-public-problems/create-entry")}
+                    onClick={() => router.push("/mp-public-problem/create")}
                     className="bg-[#00563B] hover:bg-[#368F8B]"
                   >
                     <Plus className="w-5 h-5 mr-2" /> Add Entry
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex flex-wrap items-center gap-3">
+                <Select value={filterBlock} onValueChange={setFilterBlock}>
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="All Blocks" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Blocks</SelectItem>
+                    <SelectItem value="Bagh">Bagh</SelectItem>
+                    <SelectItem value="Tanda">Tanda</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterYear} onValueChange={setFilterYear}>
+                  <SelectTrigger className="w-40 h-11">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Years</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterMonth} onValueChange={setFilterMonth}>
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Months</SelectItem>
+                    <SelectItem value="November">November</SelectItem>
+                    <SelectItem value="December">December</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filterDepartment}
+                  onValueChange={setFilterDepartment}
+                >
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="PWD">PWD</SelectItem>
+                    <SelectItem value="Health">Health</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-48 h-11">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={entriesPerPage.toString()}
+                  onValueChange={(v: string) =>
+                    setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                  }
+                >
+                  <SelectTrigger className="w-32 h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="-1">All</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -639,15 +641,15 @@ const MpPublicProblem = () => {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  navigate(`/mp-public-problems/${row._id}`)
+                                  router.push(`/mp-public-problem/${row._id}`)
                                 }
                               >
                                 <Eye className="mr-2 h-4 w-4" /> View
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
-                                  navigate(
-                                    `/mp-public-problems/${row._id}/edit`
+                                  router.push(
+                                    `/mp-public-problem/${row._id}/edit`
                                   )
                                 }
                               >

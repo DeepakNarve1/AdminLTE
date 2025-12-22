@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
+"use client";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuthorization } from "@app/hooks/useAuthorization";
-
 import {
   Table,
   TableBody,
@@ -14,7 +14,6 @@ import {
 } from "@app/components/ui/table";
 import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
-import { Badge } from "@app/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +43,7 @@ interface IRoleRow {
 
 const RoleList = () => {
   const { checkPermission } = useAuthorization();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [roles, setRoles] = useState<IRoleRow[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<IRoleRow[]>([]);
@@ -164,7 +163,7 @@ const RoleList = () => {
                   {checkPermission("create_roles") && (
                     <Button
                       size="lg"
-                      onClick={() => navigate("/roles/create")}
+                      onClick={() => router.push("/roles/create")}
                       className="bg-[#00563B] hover:bg-[#368F8B]"
                     >
                       <Plus className="w-5 h-5 mr-2" /> Create New Role
@@ -257,7 +256,9 @@ const RoleList = () => {
                             <DropdownMenuContent align="end">
                               {checkPermission("view_roles") && (
                                 <DropdownMenuItem
-                                  onClick={() => navigate(`/roles/${role._id}`)}
+                                  onClick={() =>
+                                    router.push(`/roles/${role._id}`)
+                                  }
                                 >
                                   <Eye className="mr-2 h-4 w-4" /> View
                                 </DropdownMenuItem>
@@ -266,7 +267,7 @@ const RoleList = () => {
                                 !role.isSystem && (
                                   <DropdownMenuItem
                                     onClick={() =>
-                                      navigate(`/roles/${role._id}/edit`)
+                                      router.push(`/roles/${role._id}/edit`)
                                     }
                                   >
                                     <Edit className="mr-2 h-4 w-4" /> Edit

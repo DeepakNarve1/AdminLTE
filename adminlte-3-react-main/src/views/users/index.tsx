@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 import axios from "axios";

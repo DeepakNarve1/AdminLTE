@@ -1,10 +1,32 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { ContentHeader } from "@components";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { flattenMenu } from "@app/utils/sidebarMenu";
+
+import { AlertCircle } from "lucide-react";
+import { ContentHeader } from "@app/components";
+import { Label } from "@app/components/ui/label";
+import { Input } from "@app/components/ui/input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@app/components/ui/tabs";
+import { Textarea } from "@app/components/ui/textarea";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@app/components/ui/table";
+import { Button } from "@app/components/ui/button";
 
 interface IPermission {
   _id: string;
@@ -15,8 +37,8 @@ interface IPermission {
 }
 
 const EditRole = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
 
   const [role, setRole] = useState({
     name: "",
@@ -31,16 +53,21 @@ const EditRole = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch all permissions
+  // Fetch permissions
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/permissions", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const res = await axios.get(
+          "http://localhost:5000/api/rbac/permissions",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         setPermissions(res.data.data || []);
       } catch (err) {
-        console.error("Failed to fetch permissions:", err);
+        toast.error("Failed to load permissions");
       }
     };
     fetchPermissions();
@@ -49,22 +76,24 @@ const EditRole = () => {
   // Fetch current role
   useEffect(() => {
     const fetchRole = async () => {
-      if (!id) return;
+      if (!params.id) return;
       try {
-        const res = await axios.get(`http://localhost:5000/api/roles/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const res = await axios.get(
+          `http://localhost:5000/api/rbac/roles/${params.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
         const roleData = res.data.data;
-
         setRole({
           name: roleData.name || "",
           displayName: roleData.displayName || "",
           description: roleData.description || "",
-          permissions:
-            roleData.permissions?.map((p: IPermission) => p._id) || [],
+          permissions: roleData.permissions?.map((p: any) => p._id || p) || [],
         });
-
         setSidebarAccess(roleData.sidebarAccess || []);
       } catch (err: any) {
         toast.error(err.response?.data?.message || "Failed to load role");
@@ -72,12 +101,10 @@ const EditRole = () => {
     };
 
     fetchRole();
-  }, [id]);
+  }, [params.id]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setRole({ ...role, [e.target.name]: e.target.value });
+  const handleChange = (field: string, value: string) => {
+    setRole((prev) => ({ ...prev, [field]: value }));
   };
 
   const togglePermission = (permId: string) => {
@@ -95,31 +122,44 @@ const EditRole = () => {
     );
   };
 
+  const toggleAllSidebar = (checked: boolean) => {
+    if (checked) {
+      setSidebarAccess(
+        menuItems.map((i) => i.path).filter(Boolean) as string[]
+      );
+    } else {
+      setSidebarAccess([]);
+    }
+  };
+
   const updateRole = async () => {
     const newErrors: Record<string, string> = {};
-
-    if (!role.name.trim()) newErrors.name = "Name is required";
+    if (!role.name.trim()) newErrors.name = "Role name is required";
     if (!role.displayName.trim())
-      newErrors.displayName = "Display Name is required";
+      newErrors.displayName = "Display name is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error("Please fix the errors");
+      toast.error("Please fix the errors below");
       return;
     }
+
+    setErrors({});
 
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:5000/api/roles/${id}`,
-        { ...role, sidebarAccess },
+        `http://localhost:5000/api/rbac/roles/${params.id}`,
+        {
+          ...role,
+          sidebarAccess,
+        },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
       toast.success("Role updated successfully!");
-      navigate("/roles");
+      router.push("/roles");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to update role");
     } finally {
@@ -127,171 +167,242 @@ const EditRole = () => {
     }
   };
 
+  const resetForm = () => {
+    setRole({
+      name: "",
+      displayName: "",
+      description: "",
+      permissions: [],
+    });
+    setSidebarAccess([]);
+    setErrors({});
+  };
+
+  // Group permissions by category
+  const groupedPermissions = permissions.reduce(
+    (acc, perm) => {
+      if (!acc[perm.category]) acc[perm.category] = [];
+      acc[perm.category].push(perm);
+      return acc;
+    },
+    {} as Record<string, IPermission[]>
+  );
+
   return (
-    <div>
-      <ContentHeader title="Update Role" />
+    <>
+      <ContentHeader title="Edit Role" />
+
       <section className="content">
-        <div className="container-fluid">
-          <div className="card p-4">
-            <h5 className="mb-3">Role Details</h5>
-
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label>Role Name (system name)</label>
-                <input
-                  name="name"
-                  value={role.name}
-                  onChange={handleChange}
-                  placeholder="e.g. superadmin, hr, manager"
-                  className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                />
-              </div>
-
-              <div className="col-md-6 mb-3">
-                <label>Display Name</label>
-                <input
-                  name="displayName"
-                  value={role.displayName}
-                  onChange={handleChange}
-                  placeholder="e.g. Super Admin, HR Manager"
-                  className={`form-control ${errors.displayName ? "is-invalid" : ""}`}
-                />
-              </div>
-
-              <div className="col-md-12 mb-3">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  value={role.description}
-                  onChange={handleChange}
-                  placeholder="Enter description"
-                  className="form-control"
-                  rows={3}
-                />
-              </div>
+        <div className="container-fluid px-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-6xl mx-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">Update Role</h2>
+              <p className="text-gray-600 mt-1">
+                Modify role details, permissions, and sidebar access.
+              </p>
             </div>
 
-            <h5 className="mt-4">Select Permissions</h5>
-            <div className="row">
-              {permissions.map((p) => (
-                <div className="col-md-4 mb-3" key={p._id}>
-                  <label
-                    htmlFor={`perm-${p._id}`}
-                    className="d-flex align-items-center"
-                    style={{ cursor: "pointer" }}
-                  >
-                    <input
-                      id={`perm-${p._id}`}
-                      type="checkbox"
-                      checked={role.permissions.includes(p._id)}
-                      onChange={() => togglePermission(p._id)}
-                      style={{ marginRight: "10px" }}
-                    />
-                    {p.displayName}
-                  </label>
+            <div className="p-8">
+              {/* Error Summary */}
+              {Object.keys(errors).length > 0 && (
+                <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-medium text-red-800">
+                      Please fix the following:
+                    </h3>
+                    <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+                      {Object.values(errors).map((msg, i) => (
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
 
-            <h5 className="mt-5">Sidebar Access</h5>
-            <p className="text-muted">
-              Select which sidebar menu items this role can see
-            </p>
+              {/* Role Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Role Name (System)</Label>
+                  <Input
+                    id="name"
+                    value={role.name}
+                    onChange={(e: any) => handleChange("name", e.target.value)}
+                    placeholder="e.g. manager, hr_officer"
+                    className={errors.name ? "border-red-500" : ""}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-red-600">{errors.name}</p>
+                  )}
+                </div>
 
-            <div className="table-responsive">
-              <table className="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Menu Name</th>
-                    <th className="text-center" style={{ width: "120px" }}>
-                      Access
-                      <label
-                        htmlFor="select-all-sidebar"
-                        style={{ cursor: "pointer", marginLeft: "8px" }}
-                      >
-                        <input
-                          id="select-all-sidebar"
-                          type="checkbox"
-                          checked={
-                            menuItems.length > 0 &&
-                            menuItems.every(
-                              (i) => i.path && sidebarAccess.includes(i.path)
-                            )
-                          }
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSidebarAccess(
-                                menuItems
-                                  .map((i) => i.path)
-                                  .filter((p): p is string => !!p)
-                              );
-                            } else {
-                              setSidebarAccess([]);
-                            }
-                          }}
-                        />
-                      </label>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {menuItems.map((item) => (
-                    <tr key={item.path}>
-                      <td>
-                        <label
-                          htmlFor={`sidebar-${item.path}`}
-                          style={{
-                            cursor: "pointer",
-                            display: "block",
-                            padding: "8px 0",
-                          }}
-                        >
-                          {item.name}
-                        </label>
-                      </td>
-                      <td className="text-center">
-                        <input
-                          id={`sidebar-${item.path}`}
-                          type="checkbox"
-                          checked={sidebarAccess.includes(item.path)}
-                          onChange={() => toggleSidebarAccess(item.path)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">Display Name</Label>
+                  <Input
+                    id="displayName"
+                    value={role.displayName}
+                    onChange={(e: any) =>
+                      handleChange("displayName", e.target.value)
+                    }
+                    placeholder="e.g. HR Manager"
+                    className={errors.displayName ? "border-red-500" : ""}
+                  />
+                  {errors.displayName && (
+                    <p className="text-sm text-red-600">{errors.displayName}</p>
+                  )}
+                </div>
 
-            <div className="d-flex mt-4" style={{ gap: "12px" }}>
-              <button
-                className="btn btn-primary"
-                disabled={loading}
-                onClick={updateRole}
-              >
-                {loading ? "Saving..." : "Update Role"}
-              </button>
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={role.description}
+                    onChange={(e: any) =>
+                      handleChange("description", e.target.value)
+                    }
+                    placeholder="Describe what this role can do..."
+                    rows={3}
+                  />
+                </div>
+              </div>
 
-              <button
-                className="btn btn-secondary"
-                onClick={() => {
-                  setRole({
-                    name: "",
-                    displayName: "",
-                    description: "",
-                    permissions: [],
-                  });
-                  setSidebarAccess([]);
-                  setErrors({});
-                }}
-              >
-                Reset
-              </button>
+              {/* Tabs: Permissions & Sidebar */}
+              <Tabs defaultValue="permissions" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="permissions">Permissions</TabsTrigger>
+                  <TabsTrigger value="sidebar">Sidebar Access</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="permissions" className="space-y-6">
+                  {Object.entries(groupedPermissions).map(
+                    ([category, perms]) => (
+                      <div key={category}>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 capitalize">
+                          {category.replace(/_/g, " ")} Permissions
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {perms.map((p) => (
+                            <div
+                              key={p._id}
+                              className="flex items-start space-x-3"
+                            >
+                              <Checkbox
+                                id={p._id}
+                                checked={role.permissions.includes(p._id)}
+                                onCheckedChange={() => togglePermission(p._id)}
+                              />
+                              <Label
+                                htmlFor={p._id}
+                                className="text-sm font-medium cursor-pointer leading-tight"
+                              >
+                                {p.displayName}
+                                {p.description && (
+                                  <p className="text-xs text-gray-500 font-normal mt-1">
+                                    {p.description}
+                                  </p>
+                                )}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </TabsContent>
+
+                <TabsContent value="sidebar">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Menu Access
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="select-all-sidebar"
+                        checked={
+                          menuItems.length > 0 &&
+                          menuItems.every(
+                            (i) => i.path && sidebarAccess.includes(i.path)
+                          )
+                        }
+                        onCheckedChange={toggleAllSidebar}
+                      />
+                      <Label htmlFor="select-all-sidebar">Select All</Label>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead>Menu Name</TableHead>
+                          <TableHead>Path</TableHead>
+                          <TableHead className="text-center">Access</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {menuItems.map((item: any) => (
+                          <TableRow
+                            key={item.path}
+                            className="hover:bg-gray-50"
+                          >
+                            <TableCell className="font-medium">
+                              {item.name}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              {item.path || "-"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={
+                                  item.path
+                                    ? sidebarAccess.includes(item.path)
+                                    : false
+                                }
+                                onCheckedChange={() =>
+                                  item.path && toggleSidebarAccess(item.path)
+                                }
+                                disabled={!item.path}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
+                <Button
+                  size="lg"
+                  onClick={updateRole}
+                  disabled={loading}
+                  className="bg-[#00563B] hover:bg-[#368F8B]"
+                >
+                  {loading ? "Updating..." : "Update Role"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={resetForm}
+                  disabled={loading}
+                >
+                  Reset Form
+                </Button>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={() => router.push("/roles")}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 
