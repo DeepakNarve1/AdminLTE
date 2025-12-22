@@ -34,11 +34,6 @@
     ".next/types/**/*.ts"
   ],
   "extends": "./paths.json",
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
   "exclude": [
     "node_modules"
   ]

@@ -13,6 +13,7 @@ import { setCurrentUser } from "@app/store/reducers/auth";
 // backend handles registration via axios; firebase helpers removed
 import { useAppDispatch } from "@app/store/store";
 import axios from "axios";
+import { API_BASE_URL } from "@app/utils/api";
 
 const Register = () => {
   const [isAuthLoading, setAuthLoading] = useState(false);
@@ -26,13 +27,10 @@ const Register = () => {
   const register = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
-      const result = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          email,
-          password,
-        }
-      );
+      const result = await axios.post(`${API_BASE_URL}/auth/register`, {
+        email,
+        password,
+      });
       // server responds with { success: true, data: { ... } }
       const data = result.data?.data || result.data;
 
