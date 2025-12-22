@@ -83,7 +83,7 @@ export const SidebarSearch = () => {
       </div>
 
       {isDropdownOpen && (
-        <div className="absolute left-3 right-3 mt-1 bg-[#2c4a59] rounded shadow-lg z-[1000] border border-gray-600 max-h-60 overflow-y-auto">
+        <div className="absolute left-3 right-3 mt-1 bg-[#2c4a59] rounded shadow-lg z-1000 border border-gray-600 max-h-60 overflow-y-auto">
           {foundMenuItems.length === 0 ? (
             <div className="px-4 py-2 text-gray-400 text-sm italic">
               No Element found
