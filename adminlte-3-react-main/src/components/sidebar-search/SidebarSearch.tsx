@@ -78,7 +78,7 @@ export const SidebarSearch = () => {
           placeholder="Search menu..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          className="w-full bg-[#3f474e] text-white border-0 rounded py-2 pl-9 pr-3 text-sm focus:ring-1 focus:ring-gray-500 placeholder-gray-400"
+          className="w-full bg-white border-gray-300 text-gray-900 border-1 rounded-lg py-3 pl-10 pr-4 text-sm shadow-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00563B]/50 focus:shadow-lg transition-all duration-200"
         />
       </div>
 
