@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useAuthorization } from "@app/hooks/useAuthorization";
+import { usePermissions } from "@app/hooks/usePermissions";
 import {
   Table,
   TableBody,
@@ -42,10 +42,13 @@ interface IRoleRow {
 }
 
 const RoleList = () => {
-  const { checkPermission } = useAuthorization();
+  const { hasPermission } = usePermissions();
+  const canManage = hasPermission("manage_roles");
   const router = useRouter();
 
   const [roles, setRoles] = useState<IRoleRow[]>([]);
+
+  /* Removed duplicate handleDelete */
   const [filteredRoles, setFilteredRoles] = useState<IRoleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -160,7 +163,7 @@ const RoleList = () => {
                     </SelectContent>
                   </Select>
 
-                  {checkPermission("create_roles") && (
+                  {hasPermission("manage_roles") && (
                     <Button
                       size="lg"
                       onClick={() => router.push("/roles/create")}
@@ -254,7 +257,7 @@ const RoleList = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {checkPermission("view_roles") && (
+                              {hasPermission("manage_roles") && (
                                 <DropdownMenuItem
                                   onClick={() =>
                                     router.push(`/roles/${role._id}`)
@@ -263,7 +266,7 @@ const RoleList = () => {
                                   <Eye className="mr-2 h-4 w-4" /> View
                                 </DropdownMenuItem>
                               )}
-                              {checkPermission("edit_roles") &&
+                              {hasPermission("manage_roles") &&
                                 !role.isSystem && (
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -273,7 +276,7 @@ const RoleList = () => {
                                     <Edit className="mr-2 h-4 w-4" /> Edit
                                   </DropdownMenuItem>
                                 )}
-                              {checkPermission("delete_roles") &&
+                              {hasPermission("manage_roles") &&
                                 !role.isSystem && (
                                   <DropdownMenuItem
                                     className="text-red-600"

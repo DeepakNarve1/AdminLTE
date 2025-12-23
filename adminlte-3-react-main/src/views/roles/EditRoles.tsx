@@ -88,12 +88,28 @@ const EditRole = () => {
   };
 
   const togglePermission = (permId: string) => {
-    setRole((prev) => ({
-      ...prev,
-      permissions: prev.permissions.includes(permId)
-        ? prev.permissions.filter((p) => p !== permId)
-        : [...prev.permissions, permId],
-    }));
+    const targetPerm = permissions.find((p) => p._id === permId);
+    if (!targetPerm) return;
+
+    // Find all permissions in the same category (e.g., all 'projects' permissions)
+    const categoryPermIds = permissions
+      .filter((p) => p.category === targetPerm.category)
+      .map((p) => p._id);
+
+    setRole((prev) => {
+      const isPresent = prev.permissions.includes(permId);
+
+      // If currently checked (present), remove ALL permissions for this category
+      // If currently unchecked (not present), add ALL permissions for this category
+      const newPermissions = isPresent
+        ? prev.permissions.filter((id) => !categoryPermIds.includes(id))
+        : [...new Set([...prev.permissions, ...categoryPermIds])];
+
+      return {
+        ...prev,
+        permissions: newPermissions,
+      };
+    });
   };
 
   const updateRole = async () => {
