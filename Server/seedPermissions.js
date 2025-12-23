@@ -19,6 +19,24 @@ const permissions = [
     description: "Can view users list",
     category: "users",
   },
+  {
+    name: "create_users",
+    displayName: "Create Users",
+    description: "Can create users",
+    category: "users",
+  },
+  {
+    name: "edit_users",
+    displayName: "Edit Users",
+    description: "Can edit users",
+    category: "users",
+  },
+  {
+    name: "delete_users",
+    displayName: "Delete Users",
+    description: "Can delete users",
+    category: "users",
+  },
 
   // Roles
   {
@@ -71,6 +89,12 @@ const permissions = [
     name: "edit_mp_public_problems",
     displayName: "Edit MP Public Problems",
     description: "Can edit MP public problems",
+    category: "mp_public_problems",
+  },
+  {
+    name: "delete_mp_public_problems",
+    displayName: "Delete MP Public Problems",
+    description: "Can delete MP public problems",
     category: "mp_public_problems",
   },
 
