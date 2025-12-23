@@ -84,51 +84,96 @@ const EditRole = () => {
     setRole((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleView = (category: string) => {
-    const viewPerm = permissions.find(
-      (p) => p.category === category && p.name.includes("view")
-    );
-    if (!viewPerm) return;
+  const togglePermission = (
+    category: string,
+    type: "view" | "create" | "edit" | "delete"
+  ) => {
+    let toToggle: IPermission[] = [];
 
-    setRole((prev) => {
-      const isPresent = prev.permissions.includes(viewPerm._id);
-      return {
-        ...prev,
-        permissions: isPresent
-          ? prev.permissions.filter((id) => id !== viewPerm._id)
-          : [...prev.permissions, viewPerm._id],
-      };
-    });
-  };
-
-  const toggleCreateMaster = (category: string) => {
-    // Find all "write" permissions: create, edit, delete, manage
-    const writePerms = permissions
-      .filter(
+    if (type === "view") {
+      toToggle = permissions.filter(
         (p) =>
           p.category === category &&
-          (p.name.includes("create") ||
-            p.name.includes("edit") ||
-            p.name.includes("delete") ||
-            p.name.includes("manage"))
-      )
-      .map((p) => p._id);
+          (p.name.includes("view") || p.name.includes("list"))
+      );
+    } else {
+      // Try exact match first
+      toToggle = permissions.filter(
+        (p) => p.category === category && p.name.includes(type)
+      );
 
-    if (writePerms.length === 0) return;
+      // If no exact match (e.g. roles has only manage_roles), try manage
+      if (toToggle.length === 0) {
+        toToggle = permissions.filter(
+          (p) => p.category === category && p.name.includes("manage")
+        );
+      }
+    }
+
+    if (toToggle.length === 0) return;
+
+    const ids = toToggle.map((p) => p._id);
 
     setRole((prev) => {
-      // Check if ALL are present
-      const allPresent = writePerms.every((id) =>
-        prev.permissions.includes(id)
-      );
+      const allPresent = ids.every((id) => prev.permissions.includes(id));
 
       return {
         ...prev,
         permissions: allPresent
-          ? prev.permissions.filter((id) => !writePerms.includes(id)) // Remove all
-          : [...new Set([...prev.permissions, ...writePerms])], // Add all
+          ? prev.permissions.filter((id) => !ids.includes(id))
+          : [...new Set([...prev.permissions, ...ids])],
       };
     });
+  };
+
+  const isChecked = (
+    category: string,
+    type: "view" | "create" | "edit" | "delete"
+  ) => {
+    let permsToCheck = [];
+    if (type === "view") {
+      permsToCheck = permissions.filter(
+        (p) =>
+          p.category === category &&
+          (p.name.includes("view") || p.name.includes("list"))
+      );
+    } else {
+      permsToCheck = permissions.filter(
+        (p) => p.category === category && p.name.includes(type)
+      );
+      if (permsToCheck.length === 0) {
+        permsToCheck = permissions.filter(
+          (p) => p.category === category && p.name.includes("manage")
+        );
+      }
+    }
+
+    if (permsToCheck.length === 0) return false;
+    return permsToCheck.every((p) => role.permissions.includes(p._id));
+  };
+
+  const isDisabled = (
+    category: string,
+    type: "view" | "create" | "edit" | "delete"
+  ) => {
+    let permsToCheck = [];
+    if (type === "view") {
+      permsToCheck = permissions.filter(
+        (p) =>
+          p.category === category &&
+          (p.name.includes("view") || p.name.includes("list"))
+      );
+    } else {
+      permsToCheck = permissions.filter(
+        (p) => p.category === category && p.name.includes(type)
+      );
+      if (permsToCheck.length === 0) {
+        permsToCheck = permissions.filter(
+          (p) => p.category === category && p.name.includes("manage")
+        );
+      }
+    }
+    return permsToCheck.length === 0;
   };
 
   const updateRole = async () => {
@@ -167,10 +212,6 @@ const EditRole = () => {
   };
 
   const resetForm = () => {
-    // Resetting form in Edit might mean reverting to original data?
-    // Usually 'Reset' resets to initial state. But here let's just clear errors or maybe reload data?
-    // For now, let's keep it simple: clear inputs (though in Edit normally you revert)
-    // The previous implementation cleared everything.
     setRole({
       name: "",
       displayName: "",
@@ -180,7 +221,6 @@ const EditRole = () => {
     setErrors({});
   };
 
-  // Group permissions logic same as create
   const categories = Array.from(new Set(permissions.map((p) => p.category)));
 
   return (
@@ -266,65 +306,64 @@ const EditRole = () => {
                     <TableHeader>
                       <TableRow className="bg-gray-50">
                         <TableHead className="font-semibold">Module</TableHead>
-                        <TableHead className="font-semibold text-center w-32">
-                          View (Sidebar)
+                        <TableHead className="font-semibold text-center w-24">
+                          View
                         </TableHead>
-                        <TableHead className="font-semibold text-center w-32">
-                          Create/Manage
+                        <TableHead className="font-semibold text-center w-24">
+                          Create
+                        </TableHead>
+                        <TableHead className="font-semibold text-center w-24">
+                          Edit
+                        </TableHead>
+                        <TableHead className="font-semibold text-center w-24">
+                          Delete
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {categories.map((category) => {
-                        // Get all perms for this category from the FULL list
-                        const categoryPerms = permissions.filter(
-                          (p) => p.category === category
-                        );
-
-                        const viewPerm = categoryPerms.find(
-                          (p) =>
-                            p.name.includes("view") || p.name.includes("list")
-                        );
-                        const hasView =
-                          viewPerm && role.permissions.includes(viewPerm._id);
-
-                        const writePerms = categoryPerms.filter(
-                          (p) =>
-                            p.name.includes("create") ||
-                            p.name.includes("edit") ||
-                            p.name.includes("delete") ||
-                            p.name.includes("manage")
-                        );
-                        const hasCreate =
-                          writePerms.length > 0 &&
-                          writePerms.every((p) =>
-                            role.permissions.includes(p._id)
-                          );
-
-                        return (
-                          <TableRow key={category}>
-                            <TableCell className="font-medium capitalize">
-                              {category.replace(/_/g, " ")}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Checkbox
-                                disabled={!viewPerm}
-                                checked={!!hasView}
-                                onCheckedChange={() => toggleView(category)}
-                              />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Checkbox
-                                disabled={writePerms.length === 0}
-                                checked={!!hasCreate}
-                                onCheckedChange={() =>
-                                  toggleCreateMaster(category)
-                                }
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {categories.map((category) => (
+                        <TableRow key={category}>
+                          <TableCell className="font-medium capitalize">
+                            {category.replace(/_/g, " ")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={isChecked(category, "view")}
+                              disabled={isDisabled(category, "view")}
+                              onCheckedChange={() =>
+                                togglePermission(category, "view")
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={isChecked(category, "create")}
+                              disabled={isDisabled(category, "create")}
+                              onCheckedChange={() =>
+                                togglePermission(category, "create")
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={isChecked(category, "edit")}
+                              disabled={isDisabled(category, "edit")}
+                              onCheckedChange={() =>
+                                togglePermission(category, "edit")
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={isChecked(category, "delete")}
+                              disabled={isDisabled(category, "delete")}
+                              onCheckedChange={() =>
+                                togglePermission(category, "delete")
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
