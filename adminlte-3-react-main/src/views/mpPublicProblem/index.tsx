@@ -15,7 +15,6 @@ import {
 } from "@app/components/ui/table";
 import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
-import { Badge } from "@app/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,9 +40,11 @@ import {
   Eye,
   Edit,
   Columns,
+  Trash2,
 } from "lucide-react";
 import { ContentHeader } from "@app/components";
 import { TimerDisplay } from "@app/components/TimerDisplay";
+import { usePermissions } from "@app/hooks/usePermissions";
 
 interface IPublicProblem {
   _id: string;
@@ -185,6 +186,23 @@ const MpPublicProblem = () => {
       fetchData();
     } catch (err) {
       toast.error("Failed to seed database");
+    }
+  };
+
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission("delete_mp_public_problems");
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/public-problems/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      toast.success("Record deleted successfully");
+      fetchData(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete record");
     }
   };
 
@@ -585,12 +603,6 @@ const MpPublicProblem = () => {
                         ) : (
                           <div className="flex flex-col items-center gap-4">
                             <p>No data available</p>
-                            <Button
-                              onClick={handleSeed}
-                              className="bg-yellow-500 hover:bg-yellow-600"
-                            >
-                              Seed Database (Demo Data)
-                            </Button>
                           </div>
                         )}
                       </TableCell>
@@ -673,6 +685,14 @@ const MpPublicProblem = () => {
                               >
                                 <Edit className="mr-2 h-4 w-4" /> Edit
                               </DropdownMenuItem>
+                              {canDelete && (
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => handleDelete(row._id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

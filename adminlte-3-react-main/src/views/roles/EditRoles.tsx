@@ -141,9 +141,14 @@ const EditRole = () => {
     setErrors({});
   };
 
-  // Group permissions by category - only show VIEW permissions
+  // Group permissions by category - show VIEW and MANAGE permissions
   const groupedPermissions = permissions
-    .filter((p) => p.name.includes("view") || p.name.includes("list"))
+    .filter(
+      (p) =>
+        p.name.includes("view") ||
+        p.name.includes("list") ||
+        p.name.includes("manage")
+    )
     .reduce(
       (acc, perm) => {
         if (!acc[perm.category]) acc[perm.category] = [];
