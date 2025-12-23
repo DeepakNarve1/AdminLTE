@@ -1,213 +1,180 @@
 "use client";
-import axios from "axios";
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
-import { useFormik } from "formik";
-import { useTranslation } from "react-i18next";
-import { setCurrentUser } from "@store/reducers/auth";
-import { setWindowClass } from "@app/utils/helpers";
-import Checkbox from "@app/components/Checkbox";
-import * as Yup from "yup";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { toast } from "react-toastify";
+import Link from "next/link";
+
+import { Card } from "@app/components/ui/card";
+import { Input } from "@app/components/ui/input";
+import { Button } from "@app/components/ui/button";
+import { Label } from "@app/components/ui/label";
+
+import { Mail, Lock, Loader2 } from "lucide-react";
+
+// Redux imports
 import { useAppDispatch } from "@app/store/store";
-import { API_BASE_URL } from "@app/utils/api";
+import { setCurrentUser } from "@store/reducers/auth";
 
 const Login = () => {
-  const [isAuthLoading, setAuthLoading] = useState(false);
-  const [isGoogleAuthLoading, setGoogleAuthLoading] = useState(false);
-  const [isFacebookAuthLoading, setFacebookAuthLoading] = useState(false);
-  const dispatch = useAppDispatch();
-
   const router = useRouter();
-  const [t] = useTranslation();
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
 
-  const login = async (email: string, password: string) => {
-    try {
-      setAuthLoading(true);
-
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password,
-      });
-
-      const { data } = res.data;
-
-      const { VITE_NODE_ENV } = process.env;
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      dispatch(setCurrentUser(data.user));
-
-      toast.success("Login is succeed!");
-      router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Invalid credentials");
-    } finally {
-      setAuthLoading(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error on typing
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const { handleChange, values, handleSubmit, touched, errors } = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
-    validationSchema: Yup.object({
-      email: Yup.string().email("Invalid email address").required("Required"),
-      password: Yup.string()
-        .min(5, "Must be 5 characters or more")
-        .max(30, "Must be 30 characters or less")
-        .required("Required"),
-    }),
-    onSubmit: (values) => {
-      login(values.email, values.password);
-    },
-  });
-  useEffect(() => {
-    setWindowClass("hold-transition login-page");
-  }, []);
+  const validate = () => {
+    const newErrors = { email: "", password: "" };
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Invalid email";
+
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 5)
+      newErrors.password = "Password must be at least 5 characters";
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => e === "");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const { token, user } = res.data.data;
+
+      // Save to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Dispatch to Redux store (IMPORTANT for protected routes)
+      dispatch(setCurrentUser(user));
+
+      toast.success("Login successful!");
+
+      // Small delay to ensure Redux state is updated
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="login-box w-[360px] mx-auto mt-[10vh]">
-      <div className="bg-white rounded shadow-sm border border-gray-200 border-t-[3px] border-t-blue-600">
-        <div className="text-center p-4 border-b border-gray-100">
-          <Link href="/" className="text-3xl font-light text-gray-800">
-            <b>Admin</b>
-            <span>LTE</span>
-          </Link>
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <div className="text-center py-8 px-6 border-b border-gray-200">
+          <h1 className="text-3xl font-bold text-gray-800">
+            <span className="text-[#00563B]">Admin</span>LTE
+          </h1>
+          <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
-        <div className="p-5">
-          <p className="text-center mb-4 text-gray-600">
-            {t("login.label.signIn")}
-          </p>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <div className="relative flex w-full flex-wrap items-stretch">
-                <input
+
+        <div className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="Email"
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
-                  value={values.email}
-                  className={`relative m-0 block w-[1%] min-w-0 flex-auto rounded-l border border-r-0 border-solid px-3 py-1.5 text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:z-3 focus:border-blue-300 focus:text-neutral-700 focus:shadow-[inset_0_0_0_1px_rgb(59,113,202)] focus:outline-none ${
-                    touched.email && errors.email
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
+                  className={`pl-10 ${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
-                <span className="flex items-center whitespace-nowrap rounded-r border border-l-0 border-solid border-neutral-300 px-3 py-1 text-center text-base font-normal leading-[1.6] text-neutral-700">
-                  <i className="fas fa-envelope text-gray-500" />
-                </span>
-                {touched.email && errors.email && (
-                  <div className="w-full text-xs text-red-500 mt-1">
-                    {errors.email}
-                  </div>
-                )}
               </div>
+              {errors.email && (
+                <p className="text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
-            <div className="mb-3">
-              <div className="relative flex w-full flex-wrap items-stretch">
-                <input
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="Password"
+                  placeholder="Enter your password"
+                  value={formData.password}
                   onChange={handleChange}
-                  value={values.password}
-                  className={`relative m-0 block w-[1%] min-w-0 flex-auto rounded-l border border-r-0 border-solid px-3 py-1.5 text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:z-3 focus:border-blue-300 focus:text-neutral-700 focus:shadow-[inset_0_0_0_1px_rgb(59,113,202)] focus:outline-none ${
-                    touched.password && errors.password
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
+                  className={`pl-10 ${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
-                <span className="flex items-center whitespace-nowrap rounded-r border border-l-0 border-solid border-neutral-300 px-3 py-1 text-center text-base font-normal leading-[1.6] text-neutral-700">
-                  <i className="fas fa-lock text-gray-500" />
-                </span>
-                {touched.password && errors.password && (
-                  <div className="w-full text-xs text-red-500 mt-1">
-                    {errors.password}
-                  </div>
-                )}
               </div>
+              {errors.password && (
+                <p className="text-sm text-red-600">{errors.password}</p>
+              )}
             </div>
 
-            <div className="flex flex-wrap -mx-2 mb-2">
-              <div className="w-8/12 px-2">
-                <div className="flex items-center h-full">
-                  <Checkbox
-                    checked={false}
-                    label={t("login.label.rememberMe") as string}
-                  />
-                </div>
-              </div>
-              <div className="w-4/12 px-2">
-                <button
-                  disabled={
-                    isFacebookAuthLoading ||
-                    isGoogleAuthLoading ||
-                    isAuthLoading
-                  }
-                  onClick={handleSubmit as any}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isAuthLoading && (
-                    <i className="fas fa-spinner fa-spin text-sm" />
-                  )}
-                  {t("login.button.signIn.label")}
-                </button>
-              </div>
-            </div>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#00563B] hover:bg-[#368F8B] text-white py-6 text-lg font-medium shadow-lg"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
           </form>
-          <div className="text-center mt-2 mb-3 space-y-2">
-            <button
-              className="bg-blue-700 hover:bg-blue-800 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              disabled={true || isAuthLoading || isGoogleAuthLoading}
-            >
-              {isFacebookAuthLoading ? (
-                <i className="fas fa-spinner fa-spin text-sm" />
-              ) : (
-                <i className="fab fa-facebook mr-2" />
-              )}
-              {t("login.button.signIn.social", {
-                what: "Facebook",
-              })}
-            </button>
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white w-full px-4 py-2 rounded shadow-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              disabled={
-                isAuthLoading || isFacebookAuthLoading || isGoogleAuthLoading
-              }
-            >
-              {isGoogleAuthLoading ? (
-                <i className="fas fa-spinner fa-spin text-sm" />
-              ) : (
-                <i className="fab fa-google mr-2" />
-              )}
-              {t("login.button.signIn.social", { what: "Google" })}
-            </button>
-          </div>
-          <p className="mb-1">
+
+          {/* Links */}
+          <div className="mt-6 text-center space-y-2">
             <Link
               href="/forgot-password"
-              className="text-blue-600 hover:text-blue-500"
+              className="text-sm text-[#00563B] hover:underline"
             >
-              {t("login.label.forgotPass")}
+              Forgot your password?
             </Link>
-          </p>
-          <p className="mb-0">
-            <Link
-              href="/register"
-              className="text-center text-blue-600 hover:text-blue-500"
-            >
-              {t("login.label.registerNew")}
-            </Link>
-          </p>
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link
+                href="/register"
+                className="text-[#00563B] font-medium hover:underline"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

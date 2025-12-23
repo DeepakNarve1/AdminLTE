@@ -128,11 +128,11 @@ const MenuSidebar = () => {
           className="opacity-90 shadow-sm shrink-0"
         />
         <span
-          className={`ml-3 text-lg font-semibold tracking-wide whitespace-nowrap transition-all duration-300 ${
+          className={`ml-3 text-lg font-semibold tracking-wide whitespace-nowrap transition-all duration-300 text-emerald-950 ${
             isMini ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
           } group-hover:opacity-100 group-hover:w-auto`}
         >
-          RBAC System
+          ADMINLTE
         </span>
       </Link>
 
@@ -175,14 +175,14 @@ const MenuSidebar = () => {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search
         <div
           className={`px-3 py-4 transition-all duration-300 ${
             isMini ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
           } group-hover:opacity-100 group-hover:h-auto group-hover:overflow-visible`}
         >
           <SidebarSearch />
-        </div>
+        </div> */}
 
         {/* Navigation */}
         <nav className="mt-2 px-3 overflow-y-hidden">
