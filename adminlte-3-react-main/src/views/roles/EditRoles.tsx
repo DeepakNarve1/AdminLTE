@@ -10,12 +10,6 @@ import { AlertCircle } from "lucide-react";
 import { ContentHeader } from "@app/components";
 import { Label } from "@app/components/ui/label";
 import { Input } from "@app/components/ui/input";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@app/components/ui/tabs";
 import { Textarea } from "@app/components/ui/textarea";
 import { Checkbox } from "@radix-ui/react-checkbox";
 import {
@@ -36,9 +30,20 @@ interface IPermission {
   category: string;
 }
 
+interface CategoryPermissions {
+  category: string;
+  displayName: string;
+  menuPath: string | null;
+  view: IPermission | null;
+  create: IPermission | null;
+  edit: IPermission | null;
+  delete: IPermission | null;
+}
+
 const EditRole = () => {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const roleId = params?.id;
 
   const [role, setRole] = useState({
     name: "",
@@ -53,55 +58,44 @@ const EditRole = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch permissions
   useEffect(() => {
-    const fetchPermissions = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/rbac/permissions",
-          {
+        const [permsRes, roleRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/rbac/permissions", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
-        );
-        setPermissions(res.data.data || []);
-      } catch (err) {
-        toast.error("Failed to load permissions");
-      }
-    };
-    fetchPermissions();
-  }, []);
-
-  // Fetch current role
-  useEffect(() => {
-    const fetchRole = async () => {
-      if (!params.id) return;
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/rbac/roles/${params.id}`,
-          {
+          }),
+          axios.get(`http://localhost:5000/api/rbac/roles/${roleId}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
-        );
+          }),
+        ]);
 
-        const roleData = res.data.data;
+        setPermissions(permsRes.data.data || []);
+
+        const roleData = roleRes.data.data;
         setRole({
           name: roleData.name || "",
           displayName: roleData.displayName || "",
           description: roleData.description || "",
-          permissions: roleData.permissions?.map((p: any) => p._id || p) || [],
+          permissions:
+            roleData.permissions?.map((p: any) =>
+              typeof p === "string" ? p : p._id
+            ) || [],
         });
         setSidebarAccess(roleData.sidebarAccess || []);
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to load role");
+      } catch (err) {
+        toast.error("Failed to load role data");
       }
     };
 
-    fetchRole();
-  }, [params.id]);
+    if (roleId) {
+      fetchData();
+    }
+  }, [roleId]);
 
   const handleChange = (field: string, value: string) => {
     setRole((prev) => ({ ...prev, [field]: value }));
@@ -122,13 +116,33 @@ const EditRole = () => {
     );
   };
 
-  const toggleAllSidebar = (checked: boolean) => {
-    if (checked) {
-      setSidebarAccess(
-        menuItems.map((i) => i.path).filter(Boolean) as string[]
-      );
+  const toggleAllForCategory = (cat: CategoryPermissions) => {
+    const allPerms = [cat.view, cat.create, cat.edit, cat.delete]
+      .filter(Boolean)
+      .map((p) => p!._id);
+
+    const allSelected =
+      allPerms.every((id) => role.permissions.includes(id)) &&
+      (cat.menuPath ? sidebarAccess.includes(cat.menuPath) : true);
+
+    if (allSelected) {
+      // Deselect all
+      setRole((prev) => ({
+        ...prev,
+        permissions: prev.permissions.filter((p) => !allPerms.includes(p)),
+      }));
+      if (cat.menuPath) {
+        setSidebarAccess((prev) => prev.filter((p) => p !== cat.menuPath));
+      }
     } else {
-      setSidebarAccess([]);
+      // Select all
+      setRole((prev) => ({
+        ...prev,
+        permissions: [...new Set([...prev.permissions, ...allPerms])],
+      }));
+      if (cat.menuPath) {
+        setSidebarAccess((prev) => [...new Set([...prev, cat.menuPath!])]);
+      }
     }
   };
 
@@ -149,7 +163,7 @@ const EditRole = () => {
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:5000/api/rbac/roles/${params.id}`,
+        `http://localhost:5000/api/rbac/roles/${roleId}`,
         {
           ...role,
           sidebarAccess,
@@ -178,15 +192,43 @@ const EditRole = () => {
     setErrors({});
   };
 
-  // Group permissions by category
-  const groupedPermissions = permissions.reduce(
-    (acc, perm) => {
-      if (!acc[perm.category]) acc[perm.category] = [];
-      acc[perm.category].push(perm);
-      return acc;
-    },
-    {} as Record<string, IPermission[]>
-  );
+  // Build category-based permissions
+  const categoryPermissions: CategoryPermissions[] = [];
+  const categoriesMap = new Map<string, CategoryPermissions>();
+
+  permissions.forEach((perm) => {
+    if (!categoriesMap.has(perm.category)) {
+      const menuItem = menuItems.find(
+        (item) => item.resource === perm.category
+      );
+      categoriesMap.set(perm.category, {
+        category: perm.category,
+        displayName: perm.category
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        menuPath: menuItem?.path || null,
+        view: null,
+        create: null,
+        edit: null,
+        delete: null,
+      });
+    }
+
+    const cat = categoriesMap.get(perm.category)!;
+    const permName = perm.name.toLowerCase();
+
+    if (permName.includes("view") || permName.includes("list")) {
+      cat.view = perm;
+    } else if (permName.includes("create")) {
+      cat.create = perm;
+    } else if (permName.includes("edit") || permName.includes("update")) {
+      cat.edit = perm;
+    } else if (permName.includes("delete")) {
+      cat.delete = perm;
+    }
+  });
+
+  categoryPermissions.push(...categoriesMap.values());
 
   return (
     <>
@@ -198,7 +240,7 @@ const EditRole = () => {
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Update Role</h2>
               <p className="text-gray-600 mt-1">
-                Modify role details, permissions, and sidebar access.
+                Modify role details and manage permissions with sidebar access.
               </p>
             </div>
 
@@ -266,111 +308,132 @@ const EditRole = () => {
                 </div>
               </div>
 
-              {/* Tabs: Permissions & Sidebar */}
-              <Tabs defaultValue="permissions" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="permissions">Permissions</TabsTrigger>
-                  <TabsTrigger value="sidebar">Sidebar Access</TabsTrigger>
-                </TabsList>
+              {/* Unified Permissions Table */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Permissions & Access Control
+                </h3>
 
-                <TabsContent value="permissions" className="space-y-6">
-                  {Object.entries(groupedPermissions).map(
-                    ([category, perms]) => (
-                      <div key={category}>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4 capitalize">
-                          {category.replace(/_/g, " ")} Permissions
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {perms.map((p) => (
-                            <div
-                              key={p._id}
-                              className="flex items-start space-x-3"
-                            >
-                              <Checkbox
-                                id={p._id}
-                                checked={role.permissions.includes(p._id)}
-                                onCheckedChange={() => togglePermission(p._id)}
-                              />
-                              <Label
-                                htmlFor={p._id}
-                                className="text-sm font-medium cursor-pointer leading-tight"
-                              >
-                                {p.displayName}
-                                {p.description && (
-                                  <p className="text-xs text-gray-500 font-normal mt-1">
-                                    {p.description}
-                                  </p>
-                                )}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </TabsContent>
+                <div className="overflow-x-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#00563B]">
+                        <TableHead className="text-white font-semibold">
+                          Resource
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          Sidebar
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          Create
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          Edit
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          Delete
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          Total
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categoryPermissions.map((cat) => {
+                        const allPerms = [
+                          cat.view,
+                          cat.create,
+                          cat.edit,
+                          cat.delete,
+                        ]
+                          .filter(Boolean)
+                          .map((p) => p!._id);
+                        const allSelected =
+                          allPerms.length > 0 &&
+                          allPerms.every((id) =>
+                            role.permissions.includes(id)
+                          ) &&
+                          (cat.menuPath
+                            ? sidebarAccess.includes(cat.menuPath)
+                            : true);
 
-                <TabsContent value="sidebar">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Menu Access
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="select-all-sidebar"
-                        checked={
-                          menuItems.length > 0 &&
-                          menuItems.every(
-                            (i) => i.path && sidebarAccess.includes(i.path)
-                          )
-                        }
-                        onCheckedChange={toggleAllSidebar}
-                      />
-                      <Label htmlFor="select-all-sidebar">Select All</Label>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead>Menu Name</TableHead>
-                          <TableHead>Path</TableHead>
-                          <TableHead className="text-center">Access</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {menuItems.map((item: any) => (
+                        return (
                           <TableRow
-                            key={item.path}
+                            key={cat.category}
                             className="hover:bg-gray-50"
                           >
                             <TableCell className="font-medium">
-                              {item.name}
+                              {cat.displayName}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">
-                              {item.path || "-"}
+                            <TableCell className="text-center">
+                              {cat.menuPath ? (
+                                <Checkbox
+                                  checked={sidebarAccess.includes(cat.menuPath)}
+                                  onCheckedChange={() =>
+                                    toggleSidebarAccess(cat.menuPath!)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {cat.create ? (
+                                <Checkbox
+                                  checked={role.permissions.includes(
+                                    cat.create._id
+                                  )}
+                                  onCheckedChange={() =>
+                                    togglePermission(cat.create!._id)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {cat.edit ? (
+                                <Checkbox
+                                  checked={role.permissions.includes(
+                                    cat.edit._id
+                                  )}
+                                  onCheckedChange={() =>
+                                    togglePermission(cat.edit!._id)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {cat.delete ? (
+                                <Checkbox
+                                  checked={role.permissions.includes(
+                                    cat.delete._id
+                                  )}
+                                  onCheckedChange={() =>
+                                    togglePermission(cat.delete!._id)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-center">
                               <Checkbox
-                                checked={
-                                  item.path
-                                    ? sidebarAccess.includes(item.path)
-                                    : false
-                                }
+                                checked={allSelected}
                                 onCheckedChange={() =>
-                                  item.path && toggleSidebarAccess(item.path)
+                                  toggleAllForCategory(cat)
                                 }
-                                disabled={!item.path}
                               />
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
@@ -388,7 +451,7 @@ const EditRole = () => {
                   onClick={resetForm}
                   disabled={loading}
                 >
-                  Reset Form
+                  Reset Changes
                 </Button>
                 <Button
                   size="lg"

@@ -120,7 +120,7 @@ const MenuSidebar = () => {
         }`}
       >
         <Image
-          src="img/logo.png"
+          src="/img/logo.png"
           alt="RBAC Logo"
           width={32}
           height={32}
