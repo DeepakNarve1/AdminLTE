@@ -109,6 +109,8 @@ const ProjectSummary = () => {
 
   const { hasPermission } = usePermissions();
   const canDelete = hasPermission("delete_projects");
+  const canCreate = hasPermission("create_projects");
+  const canEdit = hasPermission("edit_projects");
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this project?"))
@@ -264,13 +266,15 @@ const ProjectSummary = () => {
                     <Upload className="w-5 h-5 mr-2" /> Import
                   </Button>
 
-                  <Button
-                    size="lg"
-                    onClick={() => router.push("/project-summary/create")}
-                    className="bg-[#00563B] hover:bg-[#368F8B]"
-                  >
-                    <Plus className="w-5 h-5 mr-2" /> Add Project
-                  </Button>
+                  {canCreate && (
+                    <Button
+                      size="lg"
+                      onClick={() => router.push("/project-summary/create")}
+                      className="bg-[#00563B] hover:bg-[#368F8B]"
+                    >
+                      <Plus className="w-5 h-5 mr-2" /> Add Project
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -598,15 +602,17 @@ const ProjectSummary = () => {
                               >
                                 <Eye className="mr-2 h-4 w-4" /> View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  router.push(
-                                    `/project-summary/${project._id}/edit`
-                                  )
-                                }
-                              >
-                                <Edit className="mr-2 h-4 w-4" /> Edit Project
-                              </DropdownMenuItem>
+                              {canEdit && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(
+                                      `/project-summary/${project._id}/edit`
+                                    )
+                                  }
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Edit Project
+                                </DropdownMenuItem>
+                              )}
                               {canDelete && (
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive"

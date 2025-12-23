@@ -4,13 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-import { AlertCircle } from "lucide-react";
-import { ContentHeader } from "@app/components";
-import { Label } from "@app/components/ui/label";
+import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
-import { Textarea } from "@app/components/ui/textarea";
-import { Checkbox } from "@app/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -19,7 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@app/components/ui/table";
-import { Button } from "@app/components/ui/button";
+import { ContentHeader } from "@app/components";
+import { Checkbox } from "@app/components/ui/checkbox";
+import { AlertCircle } from "lucide-react";
 
 interface IPermission {
   _id: string;
@@ -87,27 +84,49 @@ const EditRole = () => {
     setRole((prev) => ({ ...prev, [field]: value }));
   };
 
-  const togglePermission = (permId: string) => {
-    const targetPerm = permissions.find((p) => p._id === permId);
-    if (!targetPerm) return;
-
-    // Find all permissions in the same category (e.g., all 'projects' permissions)
-    const categoryPermIds = permissions
-      .filter((p) => p.category === targetPerm.category)
-      .map((p) => p._id);
+  const toggleView = (category: string) => {
+    const viewPerm = permissions.find(
+      (p) => p.category === category && p.name.includes("view")
+    );
+    if (!viewPerm) return;
 
     setRole((prev) => {
-      const isPresent = prev.permissions.includes(permId);
+      const isPresent = prev.permissions.includes(viewPerm._id);
+      return {
+        ...prev,
+        permissions: isPresent
+          ? prev.permissions.filter((id) => id !== viewPerm._id)
+          : [...prev.permissions, viewPerm._id],
+      };
+    });
+  };
 
-      // If currently checked (present), remove ALL permissions for this category
-      // If currently unchecked (not present), add ALL permissions for this category
-      const newPermissions = isPresent
-        ? prev.permissions.filter((id) => !categoryPermIds.includes(id))
-        : [...new Set([...prev.permissions, ...categoryPermIds])];
+  const toggleCreateMaster = (category: string) => {
+    // Find all "write" permissions: create, edit, delete, manage
+    const writePerms = permissions
+      .filter(
+        (p) =>
+          p.category === category &&
+          (p.name.includes("create") ||
+            p.name.includes("edit") ||
+            p.name.includes("delete") ||
+            p.name.includes("manage"))
+      )
+      .map((p) => p._id);
+
+    if (writePerms.length === 0) return;
+
+    setRole((prev) => {
+      // Check if ALL are present
+      const allPresent = writePerms.every((id) =>
+        prev.permissions.includes(id)
+      );
 
       return {
         ...prev,
-        permissions: newPermissions,
+        permissions: allPresent
+          ? prev.permissions.filter((id) => !writePerms.includes(id)) // Remove all
+          : [...new Set([...prev.permissions, ...writePerms])], // Add all
       };
     });
   };
@@ -148,6 +167,10 @@ const EditRole = () => {
   };
 
   const resetForm = () => {
+    // Resetting form in Edit might mean reverting to original data?
+    // Usually 'Reset' resets to initial state. But here let's just clear errors or maybe reload data?
+    // For now, let's keep it simple: clear inputs (though in Edit normally you revert)
+    // The previous implementation cleared everything.
     setRole({
       name: "",
       displayName: "",
@@ -157,34 +180,19 @@ const EditRole = () => {
     setErrors({});
   };
 
-  // Group permissions by category - show VIEW and MANAGE permissions
-  const groupedPermissions = permissions
-    .filter(
-      (p) =>
-        p.name.includes("view") ||
-        p.name.includes("list") ||
-        p.name.includes("manage")
-    )
-    .reduce(
-      (acc, perm) => {
-        if (!acc[perm.category]) acc[perm.category] = [];
-        acc[perm.category].push(perm);
-        return acc;
-      },
-      {} as Record<string, IPermission[]>
-    );
+  // Group permissions logic same as create
+  const categories = Array.from(new Set(permissions.map((p) => p.category)));
 
   return (
     <>
       <ContentHeader title="Edit Role" />
-
       <section className="content">
-        <div className="container-fluid px-4">
+        <div className="container-fluid">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-4xl mx-auto">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Update Role</h2>
               <p className="text-gray-600 mt-1">
-                Modify role details and manage view permissions.
+                Modify role details and assign permissions.
               </p>
             </div>
 
@@ -206,110 +214,125 @@ const EditRole = () => {
                 </div>
               )}
 
-              {/* Role Details */}
+              {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Role Name (System)</Label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Role Name (System)
+                  </label>
                   <Input
-                    id="name"
                     value={role.name}
-                    onChange={(e: any) => handleChange("name", e.target.value)}
-                    placeholder="e.g. admin, manager, viewer, project_manager"
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    placeholder="e.g. manager"
                     className={errors.name ? "border-red-500" : ""}
                   />
-                  {errors.name && (
-                    <p className="text-sm text-red-600">{errors.name}</p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">Display Name</Label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Display Name
+                  </label>
                   <Input
-                    id="displayName"
                     value={role.displayName}
-                    onChange={(e: any) =>
+                    onChange={(e) =>
                       handleChange("displayName", e.target.value)
                     }
-                    placeholder="e.g. HR Manager"
+                    placeholder="e.g. Manager"
                     className={errors.displayName ? "border-red-500" : ""}
                   />
-                  {errors.displayName && (
-                    <p className="text-sm text-red-600">{errors.displayName}</p>
-                  )}
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
+                  <label className="text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <Input
                     value={role.description}
-                    onChange={(e: any) =>
+                    onChange={(e) =>
                       handleChange("description", e.target.value)
                     }
-                    placeholder="Describe what this role can do..."
-                    rows={3}
+                    placeholder="Role description"
                   />
                 </div>
               </div>
 
-              {/* View Permissions Table */}
+              {/* Permissions Table */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  View Permissions (Controls Sidebar & Page Access)
+                  Permissions
                 </h3>
-
-                <div className="overflow-x-auto border rounded-lg">
+                <div className="border rounded-md overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#00563B]">
-                        <TableHead className="text-white font-semibold">
-                          Module
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">Module</TableHead>
+                        <TableHead className="font-semibold text-center w-32">
+                          View (Sidebar)
                         </TableHead>
-                        <TableHead className="text-white font-semibold text-center">
-                          View Access
+                        <TableHead className="font-semibold text-center w-32">
+                          Create/Manage
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {Object.entries(groupedPermissions).map(
-                        ([category, perms]) => (
-                          <TableRow key={category} className="hover:bg-gray-50">
-                            <TableCell className="font-medium">
-                              {category
-                                .replace(/_/g, " ")
-                                .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      {categories.map((category) => {
+                        // Get all perms for this category from the FULL list
+                        const categoryPerms = permissions.filter(
+                          (p) => p.category === category
+                        );
+
+                        const viewPerm = categoryPerms.find(
+                          (p) =>
+                            p.name.includes("view") || p.name.includes("list")
+                        );
+                        const hasView =
+                          viewPerm && role.permissions.includes(viewPerm._id);
+
+                        const writePerms = categoryPerms.filter(
+                          (p) =>
+                            p.name.includes("create") ||
+                            p.name.includes("edit") ||
+                            p.name.includes("delete") ||
+                            p.name.includes("manage")
+                        );
+                        const hasCreate =
+                          writePerms.length > 0 &&
+                          writePerms.every((p) =>
+                            role.permissions.includes(p._id)
+                          );
+
+                        return (
+                          <TableRow key={category}>
+                            <TableCell className="font-medium capitalize">
+                              {category.replace(/_/g, " ")}
                             </TableCell>
                             <TableCell className="text-center">
-                              {perms.map((p) => (
-                                <div
-                                  key={p._id}
-                                  className="inline-flex items-center"
-                                >
-                                  <Checkbox
-                                    checked={role.permissions.includes(p._id)}
-                                    onCheckedChange={() =>
-                                      togglePermission(p._id)
-                                    }
-                                  />
-                                </div>
-                              ))}
+                              <Checkbox
+                                disabled={!viewPerm}
+                                checked={!!hasView}
+                                onCheckedChange={() => toggleView(category)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                disabled={writePerms.length === 0}
+                                checked={!!hasCreate}
+                                onCheckedChange={() =>
+                                  toggleCreateMaster(category)
+                                }
+                              />
                             </TableCell>
                           </TableRow>
-                        )
-                      )}
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  ℹ️ View permission grants access to see the module in sidebar
-                  and view its content
-                </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
+              {/* Actions */}
+              <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                 <Button
-                  size="lg"
                   onClick={updateRole}
                   disabled={loading}
                   className="bg-[#00563B] hover:bg-[#368F8B]"
@@ -317,18 +340,13 @@ const EditRole = () => {
                   {loading ? "Updating..." : "Update Role"}
                 </Button>
                 <Button
-                  size="lg"
                   variant="outline"
                   onClick={resetForm}
                   disabled={loading}
                 >
-                  Reset Changes
+                  Reset
                 </Button>
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  onClick={() => router.push("/roles")}
-                >
+                <Button variant="ghost" onClick={() => router.push("/roles")}>
                   Cancel
                 </Button>
               </div>
