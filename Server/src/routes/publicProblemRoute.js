@@ -1,19 +1,44 @@
 const express = require("express");
 const {
   getPublicProblems,
-  createPublicProblem,
-  seedPublicProblems,
   getPublicProblemById,
+  createPublicProblem,
   updatePublicProblem,
+  seedPublicProblems,
 } = require("../controller/publicProblemController");
 const protect = require("../middleware/authMiddleware");
+const { checkPermission } = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
 
-router.get("/", protect, getPublicProblems);
-router.post("/", protect, createPublicProblem);
-router.post("/seed", protect, seedPublicProblems); // Helper to populate DB
-router.get("/:id", protect, getPublicProblemById);
-router.put("/:id", protect, updatePublicProblem);
+router
+  .route("/")
+  .get(protect, checkPermission("view_mp_public_problems"), getPublicProblems)
+  .post(
+    protect,
+    checkPermission("create_mp_public_problems"),
+    createPublicProblem
+  );
+
+router
+  .route("/seed")
+  .post(
+    protect,
+    checkPermission("create_mp_public_problems"),
+    seedPublicProblems
+  );
+
+router
+  .route("/:id")
+  .get(
+    protect,
+    checkPermission("view_mp_public_problems"),
+    getPublicProblemById
+  )
+  .put(
+    protect,
+    checkPermission("edit_mp_public_problems"),
+    updatePublicProblem
+  );
 
 module.exports = router;

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { flattenMenu } from "@app/utils/sidebarMenu";
 import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
 import { Label } from "@app/components/ui/label";
@@ -18,12 +17,6 @@ import {
 import { AlertCircle } from "lucide-react";
 import { ContentHeader } from "@app/components";
 import { Checkbox } from "@app/components/ui/checkbox";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@app/components/ui/tabs";
 import { Textarea } from "@app/components/ui/textarea";
 
 interface IPermission {
@@ -44,8 +37,6 @@ const CreateRole = () => {
     permissions: [] as string[],
   });
 
-  const [sidebarAccess, setSidebarAccess] = useState<string[]>([]);
-  const menuItems = flattenMenu();
   const [permissions, setPermissions] = useState<IPermission[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,22 +73,6 @@ const CreateRole = () => {
     }));
   };
 
-  const toggleSidebarAccess = (path: string) => {
-    setSidebarAccess((prev) =>
-      prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]
-    );
-  };
-
-  const toggleAllSidebar = (checked: boolean) => {
-    if (checked) {
-      setSidebarAccess(
-        menuItems.map((i) => i.path).filter(Boolean) as string[]
-      );
-    } else {
-      setSidebarAccess([]);
-    }
-  };
-
   const createRole = async () => {
     const newErrors: Record<string, string> = {};
     if (!role.name.trim()) newErrors.name = "Role name is required";
@@ -118,7 +93,7 @@ const CreateRole = () => {
         "http://localhost:5000/api/rbac/roles",
         {
           ...role,
-          sidebarAccess,
+          sidebarAccess: [], // Not used anymore
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -140,19 +115,20 @@ const CreateRole = () => {
       description: "",
       permissions: [],
     });
-    setSidebarAccess([]);
     setErrors({});
   };
 
-  // Group permissions by category
-  const groupedPermissions = permissions.reduce(
-    (acc, perm) => {
-      if (!acc[perm.category]) acc[perm.category] = [];
-      acc[perm.category].push(perm);
-      return acc;
-    },
-    {} as Record<string, IPermission[]>
-  );
+  // Group permissions by category - only show VIEW permissions
+  const groupedPermissions = permissions
+    .filter((p) => p.name.includes("view") || p.name.includes("list"))
+    .reduce(
+      (acc, perm) => {
+        if (!acc[perm.category]) acc[perm.category] = [];
+        acc[perm.category].push(perm);
+        return acc;
+      },
+      {} as Record<string, IPermission[]>
+    );
 
   return (
     <>
@@ -160,13 +136,13 @@ const CreateRole = () => {
 
       <section className="content">
         <div className="container-fluid px-4">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-6xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-4xl mx-auto">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">
                 Create New Role
               </h2>
               <p className="text-gray-600 mt-1">
-                Define role details, permissions, and sidebar access.
+                Define role details and assign view permissions.
               </p>
             </div>
 
@@ -234,109 +210,59 @@ const CreateRole = () => {
                 </div>
               </div>
 
-              {/* Tabs: Permissions & Sidebar */}
-              <Tabs defaultValue="permissions" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="permissions">Permissions</TabsTrigger>
-                  <TabsTrigger value="sidebar">Sidebar Access</TabsTrigger>
-                </TabsList>
+              {/* View Permissions Table */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  View Permissions (Controls Sidebar & Page Access)
+                </h3>
 
-                <TabsContent value="permissions" className="space-y-6">
-                  {Object.entries(groupedPermissions).map(
-                    ([category, perms]) => (
-                      <div key={category}>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4 capitalize">
-                          {category.replace(/_/g, " ")} Permissions
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {perms.map((p) => (
-                            <div
-                              key={p._id}
-                              className="flex items-center space-x-3"
-                            >
-                              <Checkbox
-                                id={p._id}
-                                checked={role.permissions.includes(p._id)}
-                                onCheckedChange={() => togglePermission(p._id)}
-                              />
-                              <Label
-                                htmlFor={p._id}
-                                className="text-sm font-medium cursor-pointer"
-                              >
-                                {p.displayName}
-                                <p className="text-xs text-gray-500 font-normal">
-                                  {p.description}
-                                </p>
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </TabsContent>
-
-                <TabsContent value="sidebar">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Menu Access
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="select-all-sidebar"
-                        checked={
-                          menuItems.length > 0 &&
-                          menuItems.every(
-                            (i) => i.path && sidebarAccess.includes(i.path)
-                          )
-                        }
-                        onCheckedChange={toggleAllSidebar}
-                      />
-                      <Label htmlFor="select-all-sidebar">Select All</Label>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead>Menu Name</TableHead>
-                          <TableHead>Path</TableHead>
-                          <TableHead className="text-center">Access</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {menuItems.map((item: any) => (
-                          <TableRow
-                            key={item.path}
-                            className="hover:bg-gray-50"
-                          >
+                <div className="overflow-x-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#00563B]">
+                        <TableHead className="text-white font-semibold">
+                          Module
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
+                          View Access
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Object.entries(groupedPermissions).map(
+                        ([category, perms]) => (
+                          <TableRow key={category} className="hover:bg-gray-50">
                             <TableCell className="font-medium">
-                              {item.name}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-600">
-                              {item.path || "-"}
+                              {category
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase())}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Checkbox
-                                checked={
-                                  item.path
-                                    ? sidebarAccess.includes(item.path)
-                                    : false
-                                }
-                                onCheckedChange={() =>
-                                  item.path && toggleSidebarAccess(item.path)
-                                }
-                                disabled={!item.path}
-                              />
+                              {perms.map((p) => (
+                                <div
+                                  key={p._id}
+                                  className="inline-flex items-center"
+                                >
+                                  <Checkbox
+                                    checked={role.permissions.includes(p._id)}
+                                    onCheckedChange={() =>
+                                      togglePermission(p._id)
+                                    }
+                                  />
+                                </div>
+                              ))}
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  ℹ️ View permission grants access to see the module in sidebar
+                  and view its content
+                </p>
+              </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-4 mt-10 pt-6 border-t border-gray-200">
