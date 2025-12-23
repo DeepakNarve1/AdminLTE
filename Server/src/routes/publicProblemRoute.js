@@ -4,6 +4,7 @@ const {
   getPublicProblemById,
   createPublicProblem,
   updatePublicProblem,
+  deletePublicProblem,
   seedPublicProblems,
 } = require("../controller/publicProblemController");
 const protect = require("../middleware/authMiddleware");
@@ -35,10 +36,11 @@ router
     checkPermission("view_mp_public_problems"),
     getPublicProblemById
   )
-  .put(
+  .put(protect, checkPermission("edit_mp_public_problems"), updatePublicProblem)
+  .delete(
     protect,
-    checkPermission("edit_mp_public_problems"),
-    updatePublicProblem
+    checkPermission("delete_mp_public_problems"),
+    deletePublicProblem
   );
 
 module.exports = router;

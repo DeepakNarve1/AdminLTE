@@ -143,10 +143,26 @@ const updatePublicProblem = async (req, res) => {
   }
 };
 
+// @desc    Delete public problem
+// @route   DELETE /api/public-problems/:id
+const deletePublicProblem = async (req, res) => {
+  try {
+    const problem = await PublicProblem.findById(req.params.id);
+    if (!problem) {
+      return res.status(404).json({ message: "Problem not found" });
+    }
+    await problem.deleteOne();
+    res.json({ success: true, message: "Problem removed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getPublicProblems,
   createPublicProblem,
   seedPublicProblems,
   getPublicProblemById,
   updatePublicProblem,
+  deletePublicProblem,
 };

@@ -45,6 +45,7 @@ import {
   FileText,
 } from "lucide-react";
 import { ContentHeader } from "@app/components";
+import { usePermissions } from "@app/hooks/usePermissions";
 
 interface IProject {
   _id: string;
@@ -101,8 +102,37 @@ const ProjectSummary = () => {
     status: true,
     officerName: true,
     contactNumber: true,
+    view: true,
+    action: true,
     remarks: true,
   });
+
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission("delete_projects");
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/projects/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      toast.success("Project deleted successfully");
+      fetchData(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete project");
+    }
+  };
+
+  const clearFilters = () => {
+    setFilterBlock("all");
+    setFilterDepartment("all");
+    setFilterStatus("all");
+    setSearchTerm("");
+    setCurrentPage(1);
+    setEntriesPerPage(10);
+  };
 
   const [selectedRemark, setSelectedRemark] = useState<string | null>(null);
 
@@ -577,10 +607,15 @@ const ProjectSummary = () => {
                               >
                                 <Edit className="mr-2 h-4 w-4" /> Edit Project
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                Project
-                              </DropdownMenuItem>
+                              {canDelete && (
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => handleDelete(project._id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  Project
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
