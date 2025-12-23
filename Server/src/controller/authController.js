@@ -15,7 +15,7 @@ exports.registerUser = asyncHandler(async (req, res) => {
   let { name, email, password, role, mobile, userType, block } = req.body;
 
   // Handle if role is passed as an object (e.g. from react-select)
-  if (role && typeof role === 'object' && (role._id || role.value)) {
+  if (role && typeof role === "object" && (role._id || role.value)) {
     role = role._id || role.value;
   }
 
@@ -49,10 +49,13 @@ exports.registerUser = asyncHandler(async (req, res) => {
 
   // Perform manual safe populate
   if (newUser.role && mongoose.Types.ObjectId.isValid(newUser.role)) {
-     const roleDoc = await Role.findById(newUser.role).populate("permissions", "name displayName");
-     if (roleDoc) {
-       newUser.role = roleDoc;
-     }
+    const roleDoc = await Role.findById(newUser.role).populate(
+      "permissions",
+      "name displayName"
+    );
+    if (roleDoc) {
+      newUser.role = roleDoc;
+    }
   }
 
   res.status(201).json({
@@ -108,6 +111,24 @@ exports.getUserById = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// Get current user (me) - Allow any logged in user to see their own data
+exports.getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id)
+    .populate({
+      path: "role",
+      select: "name displayName permissions sidebarAccess",
+      populate: { path: "permissions", select: "name displayName category" },
+    })
+    .select("-password");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.json({ success: true, data: user });
+});
+
 // Update User
 exports.updateUser = asyncHandler(async (req, res) => {
   const roleName = req.user?.role?.name || req.user?.role;
@@ -144,7 +165,16 @@ exports.updateUser = asyncHandler(async (req, res) => {
 // Delete User
 exports.deleteUser = asyncHandler(async (req, res) => {
   const roleName = req.user?.role?.name || req.user?.role;
-  if (!req.user || !["admin", "superadmin", "super admin", "System Administrator", "system administrator"].includes(roleName)) {
+  if (
+    !req.user ||
+    ![
+      "admin",
+      "superadmin",
+      "super admin",
+      "System Administrator",
+      "system administrator",
+    ].includes(roleName)
+  ) {
     res.status(403);
     throw new Error("Not authorized to delete users");
   }
@@ -157,8 +187,8 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 
   // Check if target user is superadmin (handle both populate/ObjectId and string)
   if (user.role === "superadmin") {
-      res.status(403);
-      throw new Error("Cannot delete superadmin account");
+    res.status(403);
+    throw new Error("Cannot delete superadmin account");
   }
 
   if (user.role && mongoose.Types.ObjectId.isValid(user.role)) {
@@ -182,10 +212,13 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
   // Manually populate role if it is an ObjectId
   if (user && user.role && mongoose.Types.ObjectId.isValid(user.role)) {
-     const roleDoc = await Role.findById(user.role).populate("permissions", "name displayName");
-     if (roleDoc) {
-       user.role = roleDoc;
-     }
+    const roleDoc = await Role.findById(user.role).populate(
+      "permissions",
+      "name displayName"
+    );
+    if (roleDoc) {
+      user.role = roleDoc;
+    }
   }
 
   if (!user) {

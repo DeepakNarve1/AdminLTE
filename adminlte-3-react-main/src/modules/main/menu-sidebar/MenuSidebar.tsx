@@ -41,7 +41,17 @@ const MenuSidebar = () => {
       return true;
     }
 
-    // If item has a resource, check view permission for that resource
+    // 1. Check strict permissions if defined (e.g. manage_roles)
+    if (item.allowedPermissions && item.allowedPermissions.length > 0) {
+      const hasAccess = item.allowedPermissions.some((p) => hasPermission(p));
+      console.log(
+        `[MenuSidebar] Checking allowedPermissions for ${item.name}:`,
+        hasAccess
+      );
+      return hasAccess;
+    }
+
+    // 2. If item has a resource, check view permission for that resource
     if (item.resource) {
       const viewPermission = `view_${item.resource}`;
       const canView = hasPermission(viewPermission);

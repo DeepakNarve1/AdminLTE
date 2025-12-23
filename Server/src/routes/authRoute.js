@@ -4,6 +4,7 @@ const {
   loginUser,
   getUsers,
   getUserById,
+  getCurrentUser,
   updateUser,
   deleteUser,
 } = require("../controller/authController");
@@ -15,6 +16,7 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 // users listing & management with permission checks
+router.get("/me", protect, getCurrentUser);
 router.get("/users", protect, checkPermission("view_users"), getUsers);
 router.get("/users/:id", protect, checkPermission("view_users"), getUserById);
 router.put("/users/:id", protect, checkPermission("edit_users"), updateUser);

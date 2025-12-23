@@ -32,12 +32,10 @@ export default function ProtectedLayout({
         const parsedUser = JSON.parse(storedUser);
 
         // Fetch fresh user data with populated role and permissions
-        const response = await axios.get(
-          `http://localhost:5000/api/auth/users/${parsedUser._id || parsedUser.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Use /me endpoint to avoid permission issues (users can always view themselves)
+        const response = await axios.get(`http://localhost:5000/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const userData = response.data.data;
 
