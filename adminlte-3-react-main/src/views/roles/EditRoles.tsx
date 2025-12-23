@@ -11,7 +11,6 @@ import { ContentHeader } from "@app/components";
 import { Label } from "@app/components/ui/label";
 import { Input } from "@app/components/ui/input";
 import { Textarea } from "@app/components/ui/textarea";
-import { Checkbox } from "@radix-ui/react-checkbox";
 import {
   Table,
   TableBody,
@@ -21,6 +20,7 @@ import {
   TableRow,
 } from "@app/components/ui/table";
 import { Button } from "@app/components/ui/button";
+import { Checkbox } from "@app/components/ui/checkbox";
 
 interface IPermission {
   _id: string;
@@ -226,9 +226,31 @@ const EditRole = () => {
     } else if (permName.includes("delete")) {
       cat.delete = perm;
     }
+    console.log(perm.category, perm.name, {
+      view: perm.name.toLowerCase().includes("view"),
+      create: perm.name.toLowerCase().includes("create"),
+      edit: perm.name.toLowerCase().includes("edit"),
+      delete: perm.name.toLowerCase().includes("delete"),
+    });
   });
 
   categoryPermissions.push(...categoriesMap.values());
+
+  const renderPermissionCheckbox = (
+    perm: IPermission | null,
+    checked: boolean,
+    onToggle: () => void
+  ) => {
+    return (
+      <Checkbox
+        checked={checked}
+        disabled={!perm}
+        onCheckedChange={() => {
+          if (perm) onToggle();
+        }}
+      />
+    );
+  };
 
   return (
     <>
@@ -270,7 +292,7 @@ const EditRole = () => {
                     id="name"
                     value={role.name}
                     onChange={(e: any) => handleChange("name", e.target.value)}
-                    placeholder="e.g. manager, hr_officer"
+                    placeholder="e.g. admin, manager, viewer, project_manager"
                     className={errors.name ? "border-red-500" : ""}
                   />
                   {errors.name && (
@@ -325,6 +347,9 @@ const EditRole = () => {
                           Sidebar
                         </TableHead>
                         <TableHead className="text-white font-semibold text-center">
+                          View
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-center">
                           Create
                         </TableHead>
                         <TableHead className="text-white font-semibold text-center">
@@ -366,59 +391,60 @@ const EditRole = () => {
                               {cat.displayName}
                             </TableCell>
                             <TableCell className="text-center">
-                              {cat.menuPath ? (
-                                <Checkbox
-                                  checked={sidebarAccess.includes(cat.menuPath)}
-                                  onCheckedChange={() =>
-                                    toggleSidebarAccess(cat.menuPath!)
-                                  }
-                                />
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
+                              <Checkbox
+                                checked={
+                                  cat.menuPath
+                                    ? sidebarAccess.includes(cat.menuPath)
+                                    : false
+                                }
+                                disabled={!cat.menuPath}
+                                onCheckedChange={() =>
+                                  cat.menuPath &&
+                                  toggleSidebarAccess(cat.menuPath)
+                                }
+                              />
                             </TableCell>
+
                             <TableCell className="text-center">
-                              {cat.create ? (
-                                <Checkbox
-                                  checked={role.permissions.includes(
-                                    cat.create._id
-                                  )}
-                                  onCheckedChange={() =>
-                                    togglePermission(cat.create!._id)
-                                  }
-                                />
-                              ) : (
-                                <span className="text-gray-400">-</span>
+                              {renderPermissionCheckbox(
+                                cat.view,
+                                cat.view
+                                  ? role.permissions.includes(cat.view._id)
+                                  : false,
+                                () => togglePermission(cat.view!._id)
                               )}
                             </TableCell>
+
                             <TableCell className="text-center">
-                              {cat.edit ? (
-                                <Checkbox
-                                  checked={role.permissions.includes(
-                                    cat.edit._id
-                                  )}
-                                  onCheckedChange={() =>
-                                    togglePermission(cat.edit!._id)
-                                  }
-                                />
-                              ) : (
-                                <span className="text-gray-400">-</span>
+                              {renderPermissionCheckbox(
+                                cat.create,
+                                cat.create
+                                  ? role.permissions.includes(cat.create._id)
+                                  : false,
+                                () => togglePermission(cat.create!._id)
                               )}
                             </TableCell>
+
                             <TableCell className="text-center">
-                              {cat.delete ? (
-                                <Checkbox
-                                  checked={role.permissions.includes(
-                                    cat.delete._id
-                                  )}
-                                  onCheckedChange={() =>
-                                    togglePermission(cat.delete!._id)
-                                  }
-                                />
-                              ) : (
-                                <span className="text-gray-400">-</span>
+                              {renderPermissionCheckbox(
+                                cat.edit,
+                                cat.edit
+                                  ? role.permissions.includes(cat.edit._id)
+                                  : false,
+                                () => togglePermission(cat.edit!._id)
                               )}
                             </TableCell>
+
+                            <TableCell className="text-center">
+                              {renderPermissionCheckbox(
+                                cat.delete,
+                                cat.delete
+                                  ? role.permissions.includes(cat.delete._id)
+                                  : false,
+                                () => togglePermission(cat.delete!._id)
+                              )}
+                            </TableCell>
+
                             <TableCell className="text-center">
                               <Checkbox
                                 checked={allSelected}

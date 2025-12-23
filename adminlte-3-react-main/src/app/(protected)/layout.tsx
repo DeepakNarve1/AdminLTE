@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@app/store/store";
 import { setCurrentUser } from "@store/reducers/auth";
 import Main from "@modules/main/Main";
+import axios from "axios";
 
 export default function ProtectedLayout({
   children,
@@ -14,31 +15,59 @@ export default function ProtectedLayout({
   const user = useAppSelector((state) => state.auth.currentUser);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  // Check localStorage on mount to restore session
+  // Fetch user with populated role and permissions
   useEffect(() => {
-    if (!user) {
-      const storedUser = localStorage.getItem("user");
-      const token = localStorage.getItem("token");
+    const fetchUserWithPermissions = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
 
-      if (storedUser && token) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          dispatch(setCurrentUser(parsedUser));
-        } catch (error) {
-          console.error("Failed to parse stored user:", error);
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
+        if (!token || !storedUser) {
           router.push("/login");
+          return;
         }
-      } else {
+
+        const parsedUser = JSON.parse(storedUser);
+
+        // Fetch fresh user data with populated role and permissions
+        const response = await axios.get(
+          `http://localhost:5000/api/auth/users/${parsedUser._id || parsedUser.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const userData = response.data.data;
+
+        // Update Redux store with fresh data
+        dispatch(setCurrentUser(userData));
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
         router.push("/login");
       }
+    };
+
+    if (!user) {
+      fetchUserWithPermissions();
+    } else {
+      setLoading(false);
     }
   }, [user, dispatch, router]);
 
-  if (!user) {
-    return null; // or a loading spinner
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00563B] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return <Main>{children}</Main>;
