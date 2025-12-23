@@ -228,12 +228,12 @@ const Dashboard = () => {
                     }
                   >
                     <FileText className="mr-3 h-5 w-5" />
-                    Public Problems
+                    MP Public Problems
                   </Button>
                   <Button
                     size="lg"
                     className="bg-[#00563B] hover:bg-[#368F8B] justify-start"
-                    onClick={() => (window.location.href = "/projects")}
+                    onClick={() => (window.location.href = "/project-summary")}
                   >
                     <BarChart3 className="mr-3 h-5 w-5" />
                     Project Summary

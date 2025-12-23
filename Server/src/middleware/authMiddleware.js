@@ -16,13 +16,28 @@ const protect = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
 
-      // Manually populate role if it is an ObjectId
-      if (req.user && req.user.role && mongoose.Types.ObjectId.isValid(req.user.role)) {
-        const roleDoc = await Role.findById(req.user.role);
+      // Manually populate role with permissions if it is an ObjectId
+      if (
+        req.user &&
+        req.user.role &&
+        mongoose.Types.ObjectId.isValid(req.user.role)
+      ) {
+        const roleDoc = await Role.findById(req.user.role).populate(
+          "permissions",
+          "name displayName"
+        );
         if (roleDoc) {
           req.user.role = roleDoc;
         }
       }
+
+      console.log("[authMiddleware] User:", req.user.email);
+      console.log("[authMiddleware] Role:", req.user.role);
+      console.log(
+        "[authMiddleware] Permissions:",
+        req.user.role?.permissions?.map((p) => p.name)
+      );
+
       next();
     } catch (error) {
       res.status(401);

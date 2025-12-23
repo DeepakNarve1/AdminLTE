@@ -11,22 +11,43 @@ const {
   upsertSidebarAccess,
 } = require("../controller/rbacController");
 const protect = require("../middleware/authMiddleware");
+const { checkPermission } = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
 
-// Permission routes
-router.get("/permissions", protect, getAllPermissions);
-router.post("/permissions", protect, createPermission);
+// Permission routes - only superadmin/admin can manage
+router.get(
+  "/permissions",
+  protect,
+  checkPermission("manage_roles"),
+  getAllPermissions
+);
+router.post(
+  "/permissions",
+  protect,
+  checkPermission("manage_roles"),
+  createPermission
+);
 
-// Role routes
-router.get("/roles", protect, getAllRoles);
-router.get("/roles/:id", protect, getRoleById);
-router.post("/roles", protect, createRole);
-router.put("/roles/:id", protect, updateRole);
-router.delete("/roles/:id", protect, deleteRole);
+// Role routes - only superadmin/admin can manage
+router.get("/roles", protect, checkPermission("manage_roles"), getAllRoles);
+router.get("/roles/:id", protect, checkPermission("manage_roles"), getRoleById);
+router.post("/roles", protect, checkPermission("manage_roles"), createRole);
+router.put("/roles/:id", protect, checkPermission("manage_roles"), updateRole);
+router.delete(
+  "/roles/:id",
+  protect,
+  checkPermission("manage_roles"),
+  deleteRole
+);
 
-// Sidebar RBAC routes (🔥 MISSING)
+// Sidebar RBAC routes
 router.get("/sidebar-permissions", protect, getSidebarAccess);
-router.put("/sidebar-permissions", protect, upsertSidebarAccess);
+router.put(
+  "/sidebar-permissions",
+  protect,
+  checkPermission("manage_roles"),
+  upsertSidebarAccess
+);
 
 module.exports = router;

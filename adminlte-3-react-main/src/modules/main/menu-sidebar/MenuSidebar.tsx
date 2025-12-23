@@ -5,7 +5,7 @@ import Image from "@app/components/Image";
 import { SidebarSearch } from "@app/components/sidebar-search/SidebarSearch";
 import { useAppSelector } from "@app/store/store";
 import { MENU, IMenuItem } from "@app/utils/menu";
-import { useAuthorization } from "@app/hooks/useAuthorization";
+import { usePermissions } from "@app/hooks/usePermissions";
 
 const MenuSidebar = () => {
   const currentUser = useAppSelector((state) => state.auth.currentUser);
@@ -17,46 +17,49 @@ const MenuSidebar = () => {
   );
   const screenSize = useAppSelector((state) => state.ui.screenSize);
 
-  const { userRoles, roleBasedAllowedPaths } = useAuthorization();
+  // Use our permission hook
+  const { hasPermission, user } = usePermissions();
 
-  const userPermissions = useMemo(() => {
-    const permissionsFromUser = Array.isArray(currentUser?.permissions)
-      ? currentUser?.permissions
-      : [];
-    const permissionsFromMetadata = Array.isArray(
-      currentUser?.metadata?.permissions
-    )
-      ? currentUser?.metadata?.permissions
-      : [];
+  console.log("[MenuSidebar] User:", user);
+  console.log("[MenuSidebar] Current user from Redux:", currentUser);
 
-    return Array.from(
-      new Set(
-        [...permissionsFromUser, ...permissionsFromMetadata].filter(Boolean)
-      )
-    );
-  }, [currentUser]);
+  // Check if user is superadmin
+  const isSuperadmin = useMemo(() => {
+    if (!user || !user.role) return false;
+    if (typeof user.role === "string") {
+      return user.role === "superadmin";
+    }
+    return user.role.name === "superadmin";
+  }, [user]);
+
+  console.log("[MenuSidebar] Is superadmin?", isSuperadmin);
 
   const canAccess = (item: IMenuItem) => {
-    if (userRoles.includes("superadmin")) return true;
+    // Superadmin can see everything
+    if (isSuperadmin) {
+      console.log("[MenuSidebar] Superadmin - allowing:", item.name);
+      return true;
+    }
 
-    const roleAllowed =
-      !item.allowedRoles ||
-      item.allowedRoles.length === 0 ||
-      item.allowedRoles.some((role) => userRoles.includes(role));
-
-    const permissionAllowed =
-      !item.allowedPermissions ||
-      item.allowedPermissions.length === 0 ||
-      item.allowedPermissions.some((permission) =>
-        userPermissions.includes(permission)
+    // If item has a resource, check view permission for that resource
+    if (item.resource) {
+      const viewPermission = `view_${item.resource}`;
+      const canView = hasPermission(viewPermission);
+      console.log(
+        `[MenuSidebar] Checking ${viewPermission} for ${item.name}:`,
+        canView
       );
+      return canView;
+    }
 
-    const overrideAllowed = item.path && roleBasedAllowedPaths.has(item.path);
-
-    return overrideAllowed || (roleAllowed && permissionAllowed);
+    // Allow items without resource (like headers)
+    console.log("[MenuSidebar] No resource check for:", item.name);
+    return true;
   };
 
   const filteredMenu = useMemo(() => {
+    console.log("[MenuSidebar] Filtering menu, user:", user);
+
     const filterItems = (items: IMenuItem[]): IMenuItem[] =>
       items
         .map((item) => {
@@ -77,7 +80,7 @@ const MenuSidebar = () => {
         .filter(Boolean) as IMenuItem[];
 
     return filterItems(MENU);
-  }, [userPermissions, userRoles]);
+  }, [user, isSuperadmin]); // Re-filter when user changes
 
   const sidebarClasses = useMemo(() => {
     let classes = `fixed top-0 left-0 h-screen overflow-y-hidden z-[1038] transition-all duration-300 shadow-2xl group border-r `;
