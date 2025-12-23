@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { IUserRow } from "@app/types/user";
-import { useAuthorization } from "@app/hooks/useAuthorization";
+import { usePermissions } from "@app/hooks/usePermissions";
 
 import {
   Table,
@@ -51,11 +51,15 @@ import {
 import { ContentHeader } from "@app/components";
 
 const Users = () => {
-  const { checkPermission } = useAuthorization();
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission("delete_users");
+  const canCreate = hasPermission("create_users");
+
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [users, setUsers] = useState<IUserRow[]>([]);
+
   const [filteredUsers, setFilteredUsers] = useState<IUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -303,7 +307,7 @@ const Users = () => {
                     <Upload className="w-5 h-5 mr-2" /> Import
                   </Button>
 
-                  {checkPermission("create_users") && (
+                  {hasPermission("create_users") && (
                     <Button
                       size="lg"
                       onClick={() => router.push("/users/create")}
@@ -433,7 +437,7 @@ const Users = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {checkPermission("view_users") && (
+                                {hasPermission("view_users") && (
                                   <DropdownMenuItem
                                     onClick={() =>
                                       router.push(`/users/${user._id}/view`)
@@ -442,7 +446,7 @@ const Users = () => {
                                     <Eye className="mr-2 h-4 w-4" /> View
                                   </DropdownMenuItem>
                                 )}
-                                {checkPermission("edit_users") && (
+                                {hasPermission("edit_users") && (
                                   <DropdownMenuItem
                                     onClick={() =>
                                       router.push(`/users/${user._id}/edit`)
@@ -451,7 +455,7 @@ const Users = () => {
                                     <Edit className="mr-2 h-4 w-4" /> Edit
                                   </DropdownMenuItem>
                                 )}
-                                {checkPermission("delete_users") && (
+                                {hasPermission("delete_users") && (
                                   <DropdownMenuItem
                                     className="text-red-600"
                                     onClick={() => handleDelete(user._id)}
