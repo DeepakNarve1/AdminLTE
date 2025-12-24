@@ -43,6 +43,12 @@ app.use("/api/projects", projectRoutes);
 const districtRoutes = require("./routes/districtRoute");
 app.use("/api/districts", districtRoutes);
 
+const divisionRoutes = require("./routes/divisionRoute");
+app.use("/api/divisions", divisionRoutes);
+
+const stateRoutes = require("./routes/stateRoute");
+app.use("/api/states", stateRoutes);
+
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
