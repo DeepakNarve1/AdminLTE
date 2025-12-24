@@ -29,7 +29,7 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
   };
 
   const getContainerClasses = useCallback(() => {
-    let classes = `w-full min-h-[57px] flex items-center justify-between px-4 bg-white border-b border-gray-200 z-[1034] transition-[margin-left] duration-300 ease-in-out ${navbarVariant}`;
+    let classes = `main-header fixed top-0 h-[57px] flex items-center justify-between px-4 bg-white border-b border-gray-200 z-[1034] transition-all duration-300 ease-in-out ${navbarVariant}`;
     if (headerBorder) {
       classes = `${classes} border-b-0`;
     }
@@ -102,19 +102,7 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
         </div>
 
         <ul className="flex list-none gap-2 m-0 p-0 items-center ml-auto">
-          <MessagesDropdown />
-          <NotificationsDropdown />
-          <LanguagesDropdown />
           <UserDropdown />
-          <li>
-            <button
-              type="button"
-              className="p-2 text-gray-500 hover:text-gray-700"
-              onClick={handleToggleControlSidebar}
-            >
-              <i className="fas fa-th-large" />
-            </button>
-          </li>
         </ul>
       </div>
     </nav>

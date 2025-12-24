@@ -2,11 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ContentHeader } from "@components";
-import {
-  DEFAULT_SIDEBAR_ACCESS_BY_ROLE,
-  MENU,
-} from "@app/modules/main/menu-sidebar/MenuSidebar";
 import { useAppSelector } from "@app/store/store";
+import { DEFAULT_SIDEBAR_ACCESS_BY_ROLE, MENU } from "@app/utils/menu";
 
 type SidebarAccessMap = Record<string, string[]>;
 
