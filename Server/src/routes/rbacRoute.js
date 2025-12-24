@@ -18,49 +18,29 @@ const {
 
 const router = express.Router();
 
-// Permission routes - only superadmin/admin can manage
+// Permission routes
 router.get(
   "/permissions",
   protect,
-  checkAnyPermission(["manage_roles", "view_roles"]),
+  checkAnyPermission(["view_roles", "create_roles", "edit_roles"]),
   getAllPermissions
 );
 router.post(
   "/permissions",
   protect,
-  checkPermission("manage_roles"),
+  checkPermission("create_roles"), // Typically admin level, or separate manage_permissions if desired
   createPermission
 );
 
-// Role routes - only superadmin/admin can manage
-router.get(
-  "/roles",
-  protect,
-  checkAnyPermission(["manage_roles", "view_roles"]),
-  getAllRoles
-);
-router.get(
-  "/roles/:id",
-  protect,
-  checkAnyPermission(["manage_roles", "view_roles"]),
-  getRoleById
-);
-router.post(
-  "/roles",
-  protect,
-  checkAnyPermission(["manage_roles", "create_roles"]),
-  createRole
-);
-router.put(
-  "/roles/:id",
-  protect,
-  checkAnyPermission(["manage_roles", "edit_roles"]),
-  updateRole
-);
+// Role routes
+router.get("/roles", protect, checkPermission("view_roles"), getAllRoles);
+router.get("/roles/:id", protect, checkPermission("view_roles"), getRoleById);
+router.post("/roles", protect, checkPermission("create_roles"), createRole);
+router.put("/roles/:id", protect, checkPermission("edit_roles"), updateRole);
 router.delete(
   "/roles/:id",
   protect,
-  checkAnyPermission(["manage_roles", "delete_roles"]),
+  checkPermission("delete_roles"),
   deleteRole
 );
 

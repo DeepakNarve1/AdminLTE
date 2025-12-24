@@ -40,9 +40,27 @@ const permissions = [
 
   // Roles
   {
-    name: "manage_roles",
-    displayName: "Manage Roles",
-    description: "Can manage roles and permissions",
+    name: "view_roles",
+    displayName: "View Roles",
+    description: "Can view roles list",
+    category: "roles",
+  },
+  {
+    name: "create_roles",
+    displayName: "Create Roles",
+    description: "Can create roles",
+    category: "roles",
+  },
+  {
+    name: "edit_roles",
+    displayName: "Edit Roles",
+    description: "Can edit roles",
+    category: "roles",
+  },
+  {
+    name: "delete_roles",
+    displayName: "Delete Roles",
+    description: "Can delete roles",
     category: "roles",
   },
 
