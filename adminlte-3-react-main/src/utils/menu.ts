@@ -43,7 +43,7 @@ export const MENU: IMenuItem[] = [
     icon: "fas fa-user-shield nav-icon",
     path: "/roles",
     allowedRoles: ["superadmin"],
-    allowedPermissions: ["manage_roles"],
+    allowedPermissions: ["manage_roles", "view_roles"],
   },
   {
     name: "Project Summary",

@@ -9,12 +9,18 @@ const checkPermission = (permissionName) => {
     }
 
     // Superadmin has all permissions
-    if (req.user.role === "superadmin" || (req.user.role && req.user.role.name === "superadmin")) {
+    if (
+      req.user.role === "superadmin" ||
+      (req.user.role && req.user.role.name === "superadmin")
+    ) {
       return next();
     }
 
     // Permissions should already be populated in req.user.role
-    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    const permissions = req.user.role.permissions || [];
+    const userPermNames = Array.isArray(permissions)
+      ? permissions.map((p) => p.name)
+      : [];
     if (!userPermNames.includes(permissionName)) {
       res.status(403);
       throw new Error(`You do not have permission: ${permissionName}`);
@@ -36,7 +42,10 @@ const checkAnyPermission = (permissionNames) => {
       return next();
     }
 
-    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    const permissions = req.user.role.permissions || [];
+    const userPermNames = Array.isArray(permissions)
+      ? permissions.map((p) => p.name)
+      : [];
     const hasAny = permissionNames.some((perm) => userPermNames.includes(perm));
 
     if (!hasAny) {
@@ -60,7 +69,10 @@ const checkAllPermissions = (permissionNames) => {
       return next();
     }
 
-    const userPermNames = req.user.role.permissions.map((p) => p.name);
+    const permissions = req.user.role.permissions || [];
+    const userPermNames = Array.isArray(permissions)
+      ? permissions.map((p) => p.name)
+      : [];
     const hasAll = permissionNames.every((perm) =>
       userPermNames.includes(perm)
     );

@@ -16,18 +16,26 @@ const protect = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
 
-      // Manually populate role with permissions if it is an ObjectId
-      if (
-        req.user &&
-        req.user.role &&
-        mongoose.Types.ObjectId.isValid(req.user.role)
-      ) {
-        const roleDoc = await Role.findById(req.user.role).populate(
-          "permissions",
-          "name displayName"
-        );
-        if (roleDoc) {
-          req.user.role = roleDoc;
+      // Manually populate role
+      if (req.user && req.user.role) {
+        if (mongoose.Types.ObjectId.isValid(req.user.role)) {
+          // It's an ObjectId
+          const roleDoc = await Role.findById(req.user.role).populate(
+            "permissions",
+            "name displayName"
+          );
+          if (roleDoc) {
+            req.user.role = roleDoc;
+          }
+        } else if (typeof req.user.role === "string") {
+          // It's a string name (legacy support)
+          const roleDoc = await Role.findOne({ name: req.user.role }).populate(
+            "permissions",
+            "name displayName"
+          );
+          if (roleDoc) {
+            req.user.role = roleDoc;
+          }
         }
       }
 
