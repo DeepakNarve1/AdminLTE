@@ -92,6 +92,23 @@ export const MENU: IMenuItem[] = [
     icon: "fas fa-map nav-icon",
     path: "/districts",
     allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_districts", "manage_districts"],
     resource: "districts",
+  },
+  {
+    name: "Division",
+    icon: "fas fa-map nav-icon",
+    path: "/divisions",
+    allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_divisions", "manage_divisions"],
+    resource: "divisions",
+  },
+  {
+    name: "State",
+    icon: "fas fa-map nav-icon",
+    path: "/states",
+    allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_states", "manage_states"],
+    resource: "states",
   },
 ];
