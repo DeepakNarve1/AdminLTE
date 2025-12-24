@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { MenuItem } from "@components";
 import Image from "@app/components/Image";
-import { SidebarSearch } from "@app/components/sidebar-search/SidebarSearch";
 import { useAppSelector } from "@app/store/store";
 import { MENU, IMenuItem } from "@app/utils/menu";
 import { usePermissions } from "@app/hooks/usePermissions";

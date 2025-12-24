@@ -132,10 +132,28 @@ const permissions = [
 
   // District
   {
-    name: "view_district",
-    displayName: "View District",
-    description: "Can view districts",
-    category: "district",
+    name: "view_districts",
+    displayName: "View Districts",
+    description: "Can view districts list",
+    category: "districts",
+  },
+  {
+    name: "create_districts",
+    displayName: "Create Districts",
+    description: "Can create districts",
+    category: "districts",
+  },
+  {
+    name: "edit_districts",
+    displayName: "Edit Districts",
+    description: "Can edit districts",
+    category: "districts",
+  },
+  {
+    name: "delete_districts",
+    displayName: "Delete Districts",
+    description: "Can delete districts",
+    category: "districts",
   },
 ];
 

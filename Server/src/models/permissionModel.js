@@ -27,7 +27,7 @@ const permissionSchema = new mongoose.Schema(
         "events",
         "voter",
         "samiti",
-        "district",
+        "districts",
         "reports",
         "settings",
         "other",
