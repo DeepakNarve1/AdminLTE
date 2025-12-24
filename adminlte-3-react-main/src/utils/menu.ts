@@ -90,8 +90,8 @@ export const MENU: IMenuItem[] = [
   {
     name: "District",
     icon: "fas fa-map nav-icon",
-    path: "/district",
+    path: "/districts",
     allowedRoles: ["superadmin"],
-    resource: "district",
+    resource: "districts",
   },
 ];
