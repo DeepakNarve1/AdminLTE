@@ -2,13 +2,7 @@
 import { useCallback } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import {
-  toggleControlSidebar,
-  toggleSidebarMenu,
-} from "@app/store/reducers/ui";
-import MessagesDropdown from "@app/modules/main/header/messages-dropdown/MessagesDropdown";
-import NotificationsDropdown from "@app/modules/main/header/notifications-dropdown/NotificationsDropdown";
-import LanguagesDropdown from "@app/modules/main/header/languages-dropdown/LanguagesDropdown";
+import { toggleSidebarMenu } from "@app/store/reducers/ui";
 import UserDropdown from "@app/modules/main/header/user-dropdown/UserDropdown";
 import Image from "@app/components/Image";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
@@ -22,10 +16,6 @@ const Header = ({ containered, ...rest }: { containered?: boolean } & any) => {
 
   const handleToggleMenuSidebar = () => {
     dispatch(toggleSidebarMenu());
-  };
-
-  const handleToggleControlSidebar = () => {
-    dispatch(toggleControlSidebar());
   };
 
   const getContainerClasses = useCallback(() => {

@@ -6,7 +6,6 @@ import {
   removeWindowClass,
   scrollbarVisible,
 } from "@app/utils/helpers";
-import ControlSidebar from "@app/modules/main/control-sidebar/ControlSidebar";
 import Header from "@app/modules/main/header/Header";
 import Footer from "@app/modules/main/footer/Footer";
 import { useAppDispatch, useAppSelector } from "@app/store/store";
@@ -21,9 +20,6 @@ const Main = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
   const menuSidebarCollapsed = useAppSelector(
     (state) => state.ui.menuSidebarCollapsed
-  );
-  const controlSidebarCollapsed = useAppSelector(
-    (state) => state.ui.controlSidebarCollapsed
   );
   const layoutBoxed = useAppSelector((state) => state.ui.layoutBoxed);
   const topNavigation = useAppSelector((state) => state.ui.topNavigation);
@@ -67,14 +63,6 @@ const Main = ({ children }: { children: ReactNode }) => {
       addWindowClass("sidebar-collapse");
     }
   }, [screenSize, menuSidebarCollapsed]);
-
-  useEffect(() => {
-    if (controlSidebarCollapsed) {
-      removeWindowClass("control-sidebar-slide-open");
-    } else {
-      addWindowClass("control-sidebar-slide-open");
-    }
-  }, [screenSize, controlSidebarCollapsed]);
 
   const handleUIChanges = () => {
     setIsScrollbarVisible(scrollbarVisible(window.document.body));

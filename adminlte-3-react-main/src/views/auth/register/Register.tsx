@@ -7,7 +7,7 @@ import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { setWindowClass } from "@app/utils/helpers";
-import Checkbox from "@app/components/Checkbox";
+import { Checkbox } from "@app/components/ui/checkbox";
 
 import { setCurrentUser } from "@app/store/reducers/auth";
 // backend handles registration via axios; firebase helpers removed
