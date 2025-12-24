@@ -232,7 +232,7 @@ const Dashboard = () => {
                   <Button
                     size="lg"
                     className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
-                    onClick={() => router.push("/mp-public-problems")}
+                    onClick={() => router.push("/mp-public-problem")}
                   >
                     <FileText className="mr-3 h-5 w-5" />
                     MP Public Problems
