@@ -173,6 +173,58 @@ const permissions = [
     description: "Can delete districts",
     category: "districts",
   },
+
+  // Division
+  {
+    name: "view_divisions",
+    displayName: "View Divisions",
+    description: "Can view divisions list",
+    category: "divisions",
+  },
+  {
+    name: "create_divisions",
+    displayName: "Create Divisions",
+    description: "Can create divisions",
+    category: "divisions",
+  },
+  {
+    name: "edit_divisions",
+    displayName: "Edit Divisions",
+    description: "Can edit divisions",
+    category: "divisions",
+  },
+  {
+    name: "delete_divisions",
+    displayName: "Delete Divisions",
+    description: "Can delete divisions",
+    category: "divisions",
+  },
+
+  // State
+  {
+    name: "view_states",
+    displayName: "View States",
+    description: "Can view states list",
+    category: "states",
+  },
+  {
+    name: "create_states",
+    displayName: "Create States",
+    description: "Can create states",
+    category: "states",
+  },
+  {
+    name: "edit_states",
+    displayName: "Edit States",
+    description: "Can edit states",
+    category: "states",
+  },
+  {
+    name: "delete_states",
+    displayName: "Delete States",
+    description: "Can delete states",
+    category: "states",
+  },
 ];
 
 async function seedPermissions() {
