@@ -115,7 +115,10 @@ const Main = ({ children }: { children: ReactNode }) => {
 
     return (
       <>
-        <Header containered={layoutBoxed} style={{ marginLeft }} />
+        <Header
+          containered={layoutBoxed}
+          style={{ left: marginLeft, width: `calc(100% - ${marginLeft})` }}
+        />
 
         {!topNavigation && <MenuSidebar />}
 
@@ -132,7 +135,6 @@ const Main = ({ children }: { children: ReactNode }) => {
         </div>
 
         <Footer containered={layoutBoxed} style={{ marginLeft }} />
-        <ControlSidebar />
         <div
           id="sidebar-overlay"
           role="presentation"
