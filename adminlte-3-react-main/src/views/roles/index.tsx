@@ -163,7 +163,8 @@ const RoleList = () => {
                     </SelectContent>
                   </Select>
 
-                  {hasPermission("manage_roles") && (
+                  {(hasPermission("manage_roles") ||
+                    hasPermission("create_roles")) && (
                     <Button
                       size="lg"
                       onClick={() => router.push("/roles/create")}
@@ -257,7 +258,8 @@ const RoleList = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {hasPermission("manage_roles") && (
+                              {(hasPermission("manage_roles") ||
+                                hasPermission("view_roles")) && (
                                 <DropdownMenuItem
                                   onClick={() =>
                                     router.push(`/roles/${role._id}`)
@@ -266,7 +268,8 @@ const RoleList = () => {
                                   <Eye className="mr-2 h-4 w-4" /> View
                                 </DropdownMenuItem>
                               )}
-                              {hasPermission("manage_roles") &&
+                              {(hasPermission("manage_roles") ||
+                                hasPermission("edit_roles")) &&
                                 !role.isSystem && (
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -276,7 +279,8 @@ const RoleList = () => {
                                     <Edit className="mr-2 h-4 w-4" /> Edit
                                   </DropdownMenuItem>
                                 )}
-                              {hasPermission("manage_roles") &&
+                              {(hasPermission("manage_roles") ||
+                                hasPermission("delete_roles")) &&
                                 !role.isSystem && (
                                   <DropdownMenuItem
                                     className="text-red-600"

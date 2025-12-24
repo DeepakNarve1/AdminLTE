@@ -113,13 +113,22 @@ exports.getUserById = asyncHandler(async (req, res) => {
 
 // Get current user (me) - Allow any logged in user to see their own data
 exports.getCurrentUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .populate({
-      path: "role",
-      select: "name displayName permissions sidebarAccess",
-      populate: { path: "permissions", select: "name displayName category" },
-    })
-    .select("-password");
+  // Manual populate for role to support both ObjectId and String
+  let user = await User.findById(req.user._id).select("-password").lean();
+
+  if (user && user.role) {
+    if (mongoose.Types.ObjectId.isValid(user.role)) {
+      user.role = await Role.findById(user.role).populate(
+        "permissions",
+        "name displayName category"
+      );
+    } else if (typeof user.role === "string") {
+      user.role = await Role.findOne({ name: user.role }).populate(
+        "permissions",
+        "name displayName category"
+      );
+    }
+  }
 
   if (!user) {
     res.status(404);
@@ -210,14 +219,24 @@ exports.loginUser = asyncHandler(async (req, res) => {
   // Fetch user document without populate first to allow string roles
   const user = await User.findOne({ email });
 
-  // Manually populate role if it is an ObjectId
-  if (user && user.role && mongoose.Types.ObjectId.isValid(user.role)) {
-    const roleDoc = await Role.findById(user.role).populate(
-      "permissions",
-      "name displayName"
-    );
-    if (roleDoc) {
-      user.role = roleDoc;
+  // Manually populate role
+  if (user && user.role) {
+    if (mongoose.Types.ObjectId.isValid(user.role)) {
+      const roleDoc = await Role.findById(user.role).populate(
+        "permissions",
+        "name displayName"
+      );
+      if (roleDoc) {
+        user.role = roleDoc;
+      }
+    } else if (typeof user.role === "string") {
+      const roleDoc = await Role.findOne({ name: user.role }).populate(
+        "permissions",
+        "name displayName"
+      );
+      if (roleDoc) {
+        user.role = roleDoc;
+      }
     }
   }
 

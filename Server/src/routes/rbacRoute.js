@@ -11,7 +11,10 @@ const {
   upsertSidebarAccess,
 } = require("../controller/rbacController");
 const protect = require("../middleware/authMiddleware");
-const { checkPermission } = require("../middleware/permissionMiddleware");
+const {
+  checkPermission,
+  checkAnyPermission,
+} = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
 
@@ -30,8 +33,18 @@ router.post(
 );
 
 // Role routes - only superadmin/admin can manage
-router.get("/roles", protect, checkPermission("manage_roles"), getAllRoles);
-router.get("/roles/:id", protect, checkPermission("manage_roles"), getRoleById);
+router.get(
+  "/roles",
+  protect,
+  checkAnyPermission(["manage_roles", "view_roles"]),
+  getAllRoles
+);
+router.get(
+  "/roles/:id",
+  protect,
+  checkAnyPermission(["manage_roles", "view_roles"]),
+  getRoleById
+);
 router.post("/roles", protect, checkPermission("manage_roles"), createRole);
 router.put("/roles/:id", protect, checkPermission("manage_roles"), updateRole);
 router.delete(
