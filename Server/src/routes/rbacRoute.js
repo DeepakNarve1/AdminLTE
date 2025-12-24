@@ -22,7 +22,7 @@ const router = express.Router();
 router.get(
   "/permissions",
   protect,
-  checkPermission("manage_roles"),
+  checkAnyPermission(["manage_roles", "view_roles"]),
   getAllPermissions
 );
 router.post(
@@ -45,12 +45,22 @@ router.get(
   checkAnyPermission(["manage_roles", "view_roles"]),
   getRoleById
 );
-router.post("/roles", protect, checkPermission("manage_roles"), createRole);
-router.put("/roles/:id", protect, checkPermission("manage_roles"), updateRole);
+router.post(
+  "/roles",
+  protect,
+  checkAnyPermission(["manage_roles", "create_roles"]),
+  createRole
+);
+router.put(
+  "/roles/:id",
+  protect,
+  checkAnyPermission(["manage_roles", "edit_roles"]),
+  updateRole
+);
 router.delete(
   "/roles/:id",
   protect,
-  checkPermission("manage_roles"),
+  checkAnyPermission(["manage_roles", "delete_roles"]),
   deleteRole
 );
 

@@ -17,7 +17,17 @@ import {
 import { AlertCircle } from "lucide-react";
 import { Label } from "@app/components/ui/label";
 
+import { RouteGuard } from "@app/components/RouteGuard";
+
 const CreateUser = () => {
+  return (
+    <RouteGuard requiredPermissions={["manage_roles", "create_users"]}>
+      <CreateUserContent />
+    </RouteGuard>
+  );
+};
+
+const CreateUserContent = () => {
   const router = useRouter();
 
   const [form, setForm] = useState<UserForm>({
