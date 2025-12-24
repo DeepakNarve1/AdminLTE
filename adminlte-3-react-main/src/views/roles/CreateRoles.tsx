@@ -25,7 +25,17 @@ interface IPermission {
   category: string;
 }
 
+import { RouteGuard } from "@app/components/RouteGuard";
+
 const CreateRole = () => {
+  return (
+    <RouteGuard requiredPermissions={["manage_roles", "create_roles"]}>
+      <CreateRoleContent />
+    </RouteGuard>
+  );
+};
+
+const CreateRoleContent = () => {
   const router = useRouter();
 
   const [role, setRole] = useState({

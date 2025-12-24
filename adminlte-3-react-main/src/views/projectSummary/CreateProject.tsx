@@ -17,8 +17,17 @@ import {
 import { Button } from "@app/components/ui/button";
 import { Label } from "@app/components/ui/label";
 import { ContentHeader } from "@app/components";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 const CreateProject = () => {
+  return (
+    <RouteGuard requiredPermissions={["manage_roles", "create_projects"]}>
+      <CreateProjectContent />
+    </RouteGuard>
+  );
+};
+
+const CreateProjectContent = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 

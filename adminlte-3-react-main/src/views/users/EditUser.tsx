@@ -7,7 +7,17 @@ import { toast } from "react-toastify";
 import { IRoleOption, UserForm } from "@app/types/user";
 import { API_BASE_URL } from "@app/utils/api";
 
+import { RouteGuard } from "@app/components/RouteGuard";
+
 const EditUser = () => {
+  return (
+    <RouteGuard requiredPermissions={["manage_roles", "edit_users"]}>
+      <EditUserContent />
+    </RouteGuard>
+  );
+};
+
+const EditUserContent = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;

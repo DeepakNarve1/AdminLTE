@@ -38,7 +38,11 @@ const checkAnyPermission = (permissionNames) => {
       throw new Error("User or role not found");
     }
 
-    if (req.user.role.name === "superadmin") {
+    // Unified Superadmin check
+    if (
+      req.user.role === "superadmin" ||
+      (req.user.role && req.user.role.name === "superadmin")
+    ) {
       return next();
     }
 
@@ -46,11 +50,19 @@ const checkAnyPermission = (permissionNames) => {
     const userPermNames = Array.isArray(permissions)
       ? permissions.map((p) => p.name)
       : [];
+
+    // Debug log
+    /* console.log(`[RBAC] Checking Any: Required=[${permissionNames}], UserHas=[${userPermNames}]`); */
+
     const hasAny = permissionNames.some((perm) => userPermNames.includes(perm));
 
     if (!hasAny) {
       res.status(403);
-      throw new Error("You do not have any of the required permissions");
+      throw new Error(
+        `You do not have any of the required permissions: ${permissionNames.join(
+          ", "
+        )}`
+      );
     }
 
     next();
@@ -65,7 +77,11 @@ const checkAllPermissions = (permissionNames) => {
       throw new Error("User or role not found");
     }
 
-    if (req.user.role.name === "superadmin") {
+    // Unified Superadmin check
+    if (
+      req.user.role === "superadmin" ||
+      (req.user.role && req.user.role.name === "superadmin")
+    ) {
       return next();
     }
 

@@ -16,8 +16,19 @@ import {
 import { Button } from "@app/components/ui/button";
 import { Label } from "@app/components/ui/label";
 import { ContentHeader } from "@app/components";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 const MPPublicProblem = () => {
+  return (
+    <RouteGuard
+      requiredPermissions={["manage_roles", "create_mp_public_problems"]}
+    >
+      <MPPublicProblemContent />
+    </RouteGuard>
+  );
+};
+
+const MPPublicProblemContent = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
