@@ -1,43 +1,37 @@
-import { memo } from "react";
+"use client";
+import React, { memo } from "react";
+import { DateTime } from "luxon";
 
 interface TimerDisplayProps {
   submissionDate: string;
-  now: number; // Pass timestamp to trigger updates
+  now: number;
 }
 
-const calculateTimer = (dateStr: string, currentTime: number) => {
-  const sub = new Date(dateStr);
-  const diff = currentTime - sub.getTime();
+export const TimerDisplay = memo(
+  ({ submissionDate, now }: TimerDisplayProps) => {
+    if (!submissionDate) return <span>-</span>;
 
-  if (diff < 0) return "0d, 0h, 0m, 0s";
+    const start = DateTime.fromISO(submissionDate);
+    const end = DateTime.fromMillis(now);
+    const diff = end.diff(start, ["days", "hours", "minutes"]);
 
-  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((diff % (1000 * 60)) / 1000);
+    const days = Math.floor(diff.days);
+    const hours = Math.floor(diff.hours);
+    const minutes = Math.floor(diff.minutes);
 
-  return `${d}d, ${h}h, ${m}m, ${s}s`;
-};
+    let colorClass = "text-green-600";
+    if (days >= 7) colorClass = "text-red-600 font-bold";
+    else if (days >= 3) colorClass = "text-yellow-600 font-semibold";
 
-/**
- * Memoized timer display component
- * Only re-renders when submissionDate or now changes
- */
-export const TimerDisplay = memo<TimerDisplayProps>(
-  ({ submissionDate, now }) => {
     return (
-      <span className="font-bold text-red-600">
-        {calculateTimer(submissionDate, now)}
-      </span>
+      <div className={`flex items-center gap-1 text-sm ${colorClass}`}>
+        <span className="tabular-nums">
+          {days > 0 ? `${days}d ` : ""}
+          {hours > 0 ? `${hours}h ` : ""}
+          {minutes}m
+        </span>
+      </div>
     );
-  },
-  (prevProps, nextProps) => {
-    // Custom comparison: only re-render if time difference is significant (5+ seconds)
-    const timeDiff = Math.abs(nextProps.now - prevProps.now);
-    const dateChanged = prevProps.submissionDate !== nextProps.submissionDate;
-
-    // Re-render if date changed OR if 5+ seconds have passed
-    return !dateChanged && timeDiff < 5000;
   }
 );
 

@@ -1,5 +1,4 @@
-import ContentHeader from './content-header/ContentHeader';
-import SmallBox from './small-box/SmallBox';
-import MenuItem from './menu-item/MenuItem';
+import ContentHeader from "./content-header/ContentHeader";
+import MenuItem from "./menu-item/MenuItem";
 
-export { ContentHeader, SmallBox, MenuItem };
+export { ContentHeader, MenuItem };

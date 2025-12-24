@@ -23,14 +23,17 @@ import {
   BarChart3,
 } from "lucide-react";
 import { ContentHeader } from "@app/components";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalRoles: 0,
     totalPublicProblems: 0,
     pendingProblems: 0,
-    resolvedProblems: 0,
+    totalProjects: 0,
+    completedProjects: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -39,27 +42,34 @@ const Dashboard = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      const [usersRes, rolesRes, problemsRes] = await Promise.all([
+      const [usersRes, rolesRes, problemsRes, projectsRes] = await Promise.all([
         axios.get("http://localhost:5000/api/auth/users", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get("http://localhost:5000/api/rbac/roles", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/public-problems", {
+        axios.get("http://localhost:5000/api/public-problems?limit=-1", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://localhost:5000/api/projects?limit=-1", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       const users = usersRes.data?.data?.length || 0;
       const roles = rolesRes.data?.data?.length || 0;
+
       const problems = problemsRes.data?.data || [];
       const totalProblems = problems.length;
       const pending = problems.filter(
         (p: any) => p.status === "Pending"
       ).length;
-      const resolved = problems.filter(
-        (p: any) => p.status === "Resolved"
+
+      const projects = projectsRes.data?.data || [];
+      const totalProjects = projects.length;
+      const completed = projects.filter(
+        (p: any) => p.status === "Completed"
       ).length;
 
       setStats({
@@ -67,7 +77,8 @@ const Dashboard = () => {
         totalRoles: roles,
         totalPublicProblems: totalProblems,
         pendingProblems: pending,
-        resolvedProblems: resolved,
+        totalProjects: totalProjects,
+        completedProjects: completed,
       });
     } catch (err) {
       toast.error("Failed to load dashboard stats");
@@ -101,7 +112,7 @@ const Dashboard = () => {
       title: "Public Problems",
       value: stats.totalPublicProblems,
       icon: FileText,
-      color: "bg-[#00563B]",
+      color: "bg-[#026e4c]",
       hover: "hover:bg-[#368F8B]",
       description: "Total submitted issues",
     },
@@ -113,24 +124,22 @@ const Dashboard = () => {
       hover: "hover:bg-yellow-600",
       description: "Awaiting resolution",
     },
+
     {
-      title: "Resolved Issues",
-      value: stats.resolvedProblems,
-      icon: UserCheck,
-      color: "bg-green-500",
-      hover: "hover:bg-green-600",
-      description: "Successfully closed",
+      title: "Total Projects",
+      value: stats.totalProjects,
+      icon: BarChart3,
+      color: "bg-indigo-500",
+      hover: "hover:bg-indigo-600",
+      description: "Infrastructure projects",
     },
     {
-      title: "Resolution Rate",
-      value:
-        stats.totalPublicProblems > 0
-          ? `${Math.round((stats.resolvedProblems / stats.totalPublicProblems) * 100)}%`
-          : "0%",
-      icon: TrendingUp,
-      color: "bg-emerald-500",
-      hover: "hover:bg-emerald-600",
-      description: "Resolved vs Total",
+      title: "Completed Projects",
+      value: stats.completedProjects,
+      icon: UserCheck,
+      color: "bg-teal-500",
+      hover: "hover:bg-teal-600",
+      description: "Finished works",
     },
   ];
 
@@ -167,26 +176,26 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                   {statCards.map((stat) => (
                     <Card
                       key={stat.title}
                       className="hover:shadow-xl transition-shadow duration-300 border-0"
                     >
-                      <CardHeader className="pb-3">
+                      <CardHeader className="pb-3 border-b-0">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm font-medium text-gray-600">
                             {stat.title}
                           </CardTitle>
                           <div
-                            className={`p-3 rounded-full ${stat.color} text-white`}
+                            className={`p-2.5 rounded-lg ${stat.color} text-white shadow-lg`}
                           >
-                            <stat.icon className="w-6 h-6" />
+                            <stat.icon className="w-5 h-5" />
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-gray-800">
+                      <CardContent className="pt-2">
+                        <div className="text-2xl font-bold text-gray-800">
                           {stat.value}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
@@ -206,34 +215,32 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button
                     size="lg"
-                    className="bg-[#00563B] hover:bg-[#368F8B] justify-start"
-                    onClick={() => (window.location.href = "/users")}
+                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
+                    onClick={() => router.push("/users")}
                   >
                     <Users className="mr-3 h-5 w-5" />
                     Manage Users
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-[#00563B] hover:bg-[#368F8B] justify-start"
-                    onClick={() => (window.location.href = "/roles")}
+                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
+                    onClick={() => router.push("/roles")}
                   >
                     <Shield className="mr-3 h-5 w-5" />
                     Manage Roles
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-[#00563B] hover:bg-[#368F8B] justify-start"
-                    onClick={() =>
-                      (window.location.href = "/mp-public-problems")
-                    }
+                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
+                    onClick={() => router.push("/mp-public-problems")}
                   >
                     <FileText className="mr-3 h-5 w-5" />
                     MP Public Problems
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-[#00563B] hover:bg-[#368F8B] justify-start"
-                    onClick={() => (window.location.href = "/project-summary")}
+                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
+                    onClick={() => router.push("/project-summary")}
                   >
                     <BarChart3 className="mr-3 h-5 w-5" />
                     Project Summary

@@ -166,11 +166,10 @@ const ViewUser = () => {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold border ${getRoleBadgeColor(user.role)}`}
                     >
-                      {(typeof user.role === "object"
-                        ? // @ts-ignore
-                          user.role.displayName ||
-                          user.role.name ||
-                          user.role.role
+                      {(user.role && typeof user.role === "object"
+                        ? (user.role as any).displayName ||
+                          (user.role as any).name ||
+                          (user.role as any).role
                         : user.role) || "N/A"}
                     </span>
                   </div>

@@ -1,23 +1,41 @@
 "use client";
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import Image from "@app/components/Image";
-import { useAppSelector, useAppDispatch } from "@app/store/store";
+import { toast } from "react-toastify";
+import { useAppDispatch, useAppSelector } from "@app/store/store";
 import { setCurrentUser } from "@app/store/reducers/auth";
-import { DateTime } from "luxon";
+import { IRole } from "@app/types/user";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@app/components/ui/avatar";
+import { Button } from "@app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@app/components/ui/dropdown-menu";
 
 const UserDropdown = () => {
   const router = useRouter();
-  const [t] = useTranslation();
-  const currentUser = useAppSelector((state) => state.auth.currentUser);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.auth.currentUser);
+  const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
+  const logOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    dispatch(setCurrentUser(null));
+    toast.success("Logged out successfully");
+    setOpen(false);
+    router.push("/login");
+  };
+
+  const navigateToProfile = () => {
+    setOpen(false);
+    router.push("/profile");
   };
 
   useEffect(() => {
@@ -26,123 +44,84 @@ const UserDropdown = () => {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setDropdownOpen(false);
+        setOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const logOut = async (event: any) => {
-    event.preventDefault();
-    try {
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-    } catch (e) {
-      // ignore
-    }
-    dispatch(setCurrentUser(null));
-    setDropdownOpen(false);
-    router.push("/");
-  };
-
-  const navigateToProfile = (event: any) => {
-    event.preventDefault();
-    setDropdownOpen(false);
-    router.push("/profile");
-  };
+  if (!currentUser) return null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={toggleDropdown}
-        className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-      >
-        <Image
-          src={currentUser?.photoURL}
-          fallbackSrc="/img/default-profile.png"
-          alt="User"
-          width={30}
-          height={30}
-          rounded
-          className="shadow-sm border border-gray-200"
-        />
-      </button>
+    <div ref={dropdownRef}>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="h-11 w-11 rounded-full p-0 ring-offset-background transition-all hover:ring-4 hover:ring-[#00563B]/10 focus-visible:ring-4 focus-visible:ring-[#00563B]/20"
+          >
+            <Avatar className="h-11 w-11 border-2 border-transparent">
+              <AvatarImage
+                src={currentUser.photoURL || ""}
+                alt={currentUser.email}
+              />
+              <AvatarFallback className="bg-linear-to-br from-gray-100 to-gray-200 text-gray-700 font-medium text-lg">
+                {currentUser.email?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
 
-      {dropdownOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden text-sm">
-          {/* Header */}
-          <div className="bg-blue-600 p-4 text-center text-white">
-            <Image
-              src={currentUser?.photoURL}
-              fallbackSrc="/img/default-profile.png"
-              alt="User"
-              width={80}
-              height={80}
-              rounded
-              className="mx-auto mb-3 border-4 border-white/20 shadow-md"
-            />
-            <p className="font-semibold text-lg truncate px-2 text-white/90">
-              {currentUser?.email}
-            </p>
-            <p className="text-xs text-blue-200 mt-1">
-              Member since{" "}
-              {currentUser?.metadata?.creationTime
-                ? DateTime.fromRFC2822(
-                    currentUser?.metadata?.creationTime
-                  ).toFormat("dd LLL yyyy")
-                : "N/A"}
+        <DropdownMenuContent
+          align="end"
+          className="w-80 rounded-2xl shadow-2xl border border-gray-200 p-0 overflow-hidden"
+        >
+          {/* User Header */}
+          <div className="bg-linear-to-br from-gray-50 to-gray-100 p-6 text-center">
+            <Avatar className="mx-auto h-20 w-20 ring-4 ring-white shadow-lg">
+              <AvatarImage src={currentUser.photoURL || ""} />
+              <AvatarFallback className="bg-linear-to-br from-[#00563B] to-[#368F8B] text-white text-2xl font-bold">
+                {currentUser.email?.[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <h3 className="mt-4 font-semibold text-gray-900 text-lg">
+              {currentUser.name || "User"}
+            </h3>
+            <p className="text-sm text-gray-600">{currentUser.email}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {typeof currentUser.role === "string"
+                ? currentUser.role
+                : (currentUser.role as IRole)?.displayName ||
+                  (currentUser.role as IRole)?.name ||
+                  "Member"}
             </p>
           </div>
 
-          {/* Body */}
-          <div className="flex border-b border-gray-100 py-3 bg-gray-50/50">
-            <div className="flex-1 text-center border-r border-gray-200 px-2 last:border-0 hover:bg-gray-50">
-              <Link
-                href="/"
-                className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
-              >
-                Followers
-              </Link>
-            </div>
-            <div className="flex-1 text-center border-r border-gray-200 px-2 last:border-0 hover:bg-gray-50">
-              <Link
-                href="/"
-                className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
-              >
-                Sales
-              </Link>
-            </div>
-            <div className="flex-1 text-center px-2 hover:bg-gray-50">
-              <Link
-                href="/"
-                className="block py-1 text-gray-600 hover:text-blue-600 font-medium"
-              >
-                Friends
-              </Link>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-between p-3 bg-gray-50">
-            <button
+          {/* Menu Items */}
+          <div className="py-2">
+            <DropdownMenuItem
               onClick={navigateToProfile}
-              className="px-4 py-2 bg-white border border-gray-300 rounded text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors shadow-sm font-medium"
+              className="px-6 py-3 text-gray-700 hover:bg-gray-100 hover:text-[#00563B] cursor-pointer font-medium"
             >
-              Profile
-            </button>
-            <button
+              View Profile
+            </DropdownMenuItem>
+
+            <DropdownMenuItem className="px-6 py-3 text-gray-700 hover:bg-gray-100 cursor-pointer">
+              Settings
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="my-2" />
+
+            <DropdownMenuItem
               onClick={logOut}
-              className="px-4 py-2 bg-white border border-gray-300 rounded text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm font-medium"
+              className="px-6 py-3 text-red-600 hover:bg-red-50 cursor-pointer font-medium"
             >
-              Sign out
-            </button>
+              Sign Out
+            </DropdownMenuItem>
           </div>
-        </div>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
