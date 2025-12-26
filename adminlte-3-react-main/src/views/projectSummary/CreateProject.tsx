@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -30,6 +30,77 @@ const CreateProject = () => {
 const CreateProjectContent = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  const [statesList, setStatesList] = useState([]);
+  const [divisionsList, setDivisionsList] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
+
+  useEffect(() => {
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    if (selectedState) {
+      fetchDivisions(selectedState);
+    } else {
+      setDivisionsList([]);
+      setDistrictsList([]);
+      setSelectedDivision("");
+    }
+  }, [selectedState]);
+
+  useEffect(() => {
+    if (selectedDivision) {
+      fetchDistricts(selectedDivision);
+    } else {
+      setDistrictsList([]);
+    }
+  }, [selectedDivision]);
+
+  const fetchStates = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get("http://localhost:5000/api/states", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStatesList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch states", error);
+    }
+  };
+
+  const fetchDivisions = async (stateId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `http://localhost:5000/api/divisions?state=${stateId}&limit=-1`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDivisionsList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch divisions", error);
+    }
+  };
+
+  const fetchDistricts = async (divisionId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `http://localhost:5000/api/districts?division=${divisionId}&limit=-1`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDistrictsList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch districts", error);
+    }
+  };
 
   const [formData, setFormData] = useState({
     district: "",
@@ -99,18 +170,76 @@ const CreateProjectContent = () => {
 
             <form onSubmit={handleSubmit} className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* State */}
+                <div className="space-y-2">
+                  <Label>
+                    State <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={selectedState}
+                    onValueChange={(v) => setSelectedState(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statesList.map((st: any) => (
+                        <SelectItem key={st._id} value={st._id}>
+                          {st.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Division */}
+                <div className="space-y-2">
+                  <Label>
+                    Division <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={selectedDivision}
+                    onValueChange={(v) => setSelectedDivision(v)}
+                    disabled={!selectedState}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select division" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {divisionsList.map((div: any) => (
+                        <SelectItem key={div._id} value={div._id}>
+                          {div.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* District */}
                 <div className="space-y-2">
                   <Label>
                     District <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    name="district"
+                  <Select
                     value={formData.district}
-                    onChange={handleChange}
-                    placeholder="Enter district"
-                    required
-                  />
+                    onValueChange={(v) =>
+                      handleChange({
+                        target: { name: "district", value: v },
+                      } as any)
+                    }
+                    disabled={!selectedDivision}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select district" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districtsList.map((dist: any) => (
+                        <SelectItem key={dist._id} value={dist.name}>
+                          {dist.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Block */}

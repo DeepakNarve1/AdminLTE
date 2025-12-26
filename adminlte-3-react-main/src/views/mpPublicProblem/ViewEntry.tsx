@@ -21,6 +21,7 @@ import { Skeleton } from "@app/components/ui/skeleton";
 interface IPublicProblem {
   _id: string;
   regNo: string;
+  srNo?: string;
   submissionDate: string;
   year: string;
   month: string;
@@ -54,6 +55,10 @@ const ViewMPPublicProblem = () => {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [entry, setEntry] = useState<IPublicProblem | null>(null);
+  const [hierarchy, setHierarchy] = useState<{
+    division: string;
+    state: string;
+  }>({ division: "", state: "" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -61,15 +66,63 @@ const ViewMPPublicProblem = () => {
       if (!params.id) return;
       try {
         setLoading(true);
+        const token = localStorage.getItem("token");
         const res = await axios.get(
           `http://localhost:5000/api/public-problems/${params.id}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
-        setEntry(res.data.data);
+        const entryData = res.data.data;
+        setEntry(entryData);
+
+        // Fetch hierarchy based on district name
+        if (entryData.district) {
+          try {
+            const districtRes = await axios.get(
+              `http://localhost:5000/api/districts?search=${entryData.district}&limit=1`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            const foundDistrict = districtRes.data?.data?.[0];
+            if (foundDistrict && foundDistrict.division) {
+              const divObj = foundDistrict.division;
+              if (divObj._id) {
+                setHierarchy((prev) => ({ ...prev, division: divObj.name }));
+                if (divObj.state && divObj.state.name) {
+                  setHierarchy((prev) => ({
+                    ...prev,
+                    state: divObj.state.name,
+                  }));
+                } else {
+                  // State is missing from division object, fetch full division
+                  try {
+                    const divRes = await axios.get(
+                      `http://localhost:5000/api/divisions/${divObj._id}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      }
+                    );
+                    const fullDiv = divRes.data?.data;
+                    if (fullDiv?.state?.name) {
+                      setHierarchy((prev) => ({
+                        ...prev,
+                        state: fullDiv.state.name,
+                      }));
+                    }
+                  } catch (e) {
+                    console.error("Failed to fetch division details", e);
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Failed to fetch hierarchy details", err);
+          }
+        }
       } catch (err: any) {
         toast.error(err.response?.data?.message || "Failed to load entry");
         router.push("/mp-public-problem");
@@ -222,6 +275,18 @@ const ViewMPPublicProblem = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
+                      <p className="text-sm text-gray-500">State</p>
+                      <p className="font-medium text-gray-900">
+                        {hierarchy.state || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Division</p>
+                      <p className="font-medium text-gray-900">
+                        {hierarchy.division || "N/A"}
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-500">District</p>
                       <p className="font-medium text-gray-900">
                         {entry.district}
@@ -262,6 +327,12 @@ const ViewMPPublicProblem = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm text-gray-500">Sr No.</p>
+                      <p className="font-medium text-gray-900">
+                        {entry.srNo || "N/A"}
+                      </p>
+                    </div>
                     <div>
                       <p className="text-sm text-gray-500">
                         Recommended Letter No

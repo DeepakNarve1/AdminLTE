@@ -34,6 +34,11 @@ const EditEntryContent = () => {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [statesList, setStatesList] = useState([]);
+  const [divisionsList, setDivisionsList] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
 
   const [formData, setFormData] = useState({
     srNo: "",
@@ -49,6 +54,70 @@ const EditEntryContent = () => {
     boothNo: "",
     status: "Pending",
   });
+
+  useEffect(() => {
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    if (selectedState) {
+      fetchDivisions(selectedState);
+    } else {
+      setDivisionsList([]);
+      setDistrictsList([]);
+      setSelectedDivision("");
+    }
+  }, [selectedState]);
+
+  useEffect(() => {
+    if (selectedDivision) {
+      fetchDistricts(selectedDivision);
+    } else {
+      setDistrictsList([]);
+    }
+  }, [selectedDivision]);
+
+  const fetchStates = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get("http://localhost:5000/api/states", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStatesList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch states", error);
+    }
+  };
+
+  const fetchDivisions = async (stateId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `http://localhost:5000/api/divisions?state=${stateId}&limit=-1`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDivisionsList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch divisions", error);
+    }
+  };
+
+  const fetchDistricts = async (divisionId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `http://localhost:5000/api/districts?division=${divisionId}&limit=-1`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDistrictsList(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch districts", error);
+    }
+  };
 
   useEffect(() => {
     const fetchEntry = async () => {
@@ -78,6 +147,43 @@ const EditEntryContent = () => {
             boothNo: data.boothNo || "",
             status: data.status || "Pending",
           });
+
+          // Fetch division for this district
+          if (data.district) {
+            const districtRes = await axios.get(
+              `http://localhost:5000/api/districts?search=${data.district}&limit=1`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            const foundDistrict = districtRes.data?.data[0];
+
+            if (foundDistrict && foundDistrict.division) {
+              const divObj = foundDistrict.division;
+              const divId = divObj._id || divObj;
+
+              // Pre-select state if available
+              if (divObj._id && divObj.state) {
+                const stateId = divObj.state._id || divObj.state;
+                setSelectedState(stateId);
+                setSelectedDivision(divId);
+              } else if (divObj._id) {
+                // Fetch full division if state is missing
+                const divRes = await axios.get(
+                  `http://localhost:5000/api/divisions/${divId}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                );
+                const fullDiv = divRes.data?.data;
+                if (fullDiv && fullDiv.state) {
+                  const stateId = fullDiv.state._id || fullDiv.state;
+                  setSelectedState(stateId);
+                  setSelectedDivision(divId);
+                }
+              }
+            }
+          }
         }
       } catch (error: any) {
         toast.error("Failed to fetch entry details");
@@ -264,15 +370,74 @@ const EditEntryContent = () => {
                   />
                 </div>
 
+                {/* State */}
+                <div className="space-y-2">
+                  <Label>
+                    State <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={selectedState}
+                    onValueChange={(v) => setSelectedState(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statesList.map((st: any) => (
+                        <SelectItem key={st._id} value={st._id}>
+                          {st.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Division */}
+                <div className="space-y-2">
+                  <Label>
+                    Division <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={selectedDivision}
+                    onValueChange={(v) => setSelectedDivision(v)}
+                    disabled={!selectedState}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select division" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {divisionsList.map((div: any) => (
+                        <SelectItem key={div._id} value={div._id}>
+                          {div.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* District */}
                 <div className="space-y-2">
                   <Label>District</Label>
-                  <Input
-                    name="district"
+                  <Select
                     value={formData.district}
-                    onChange={handleChange}
-                    placeholder="Enter district"
-                  />
+                    onValueChange={(v) =>
+                      handleChange({
+                        target: { name: "district", value: v },
+                      } as any)
+                    }
+                    disabled={!selectedDivision}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select district" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districtsList.map((dist: any) => (
+                        <SelectItem key={dist._id} value={dist.name}>
+                          {dist.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Assembly */}

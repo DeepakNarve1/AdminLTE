@@ -4,12 +4,16 @@ const District = require("../models/districtModel");
 // @route   GET /api/districts
 const getDistricts = async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search, page = 1, limit = 10, division } = req.query;
 
     const query = {};
 
     if (search) {
       query.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
+
+    if (division) {
+      query.division = division;
     }
 
     const pageNum = Number(page);
@@ -20,11 +24,28 @@ const getDistricts = async (req, res) => {
     let totalCount = await District.countDocuments({});
 
     if (limitNum === -1) {
-      districts = await District.find(query).sort({ name: 1 });
+      districts = await District.find(query)
+        .populate({
+          path: "division",
+          select: "name",
+          populate: {
+            path: "state",
+            select: "name",
+          },
+        })
+        .sort({ name: 1 });
       filteredCount = districts.length;
     } else {
       const skip = (pageNum - 1) * limitNum;
       districts = await District.find(query)
+        .populate({
+          path: "division",
+          select: "name",
+          populate: {
+            path: "state",
+            select: "name",
+          },
+        })
         .sort({ name: 1 })
         .skip(skip)
         .limit(limitNum);
@@ -46,7 +67,14 @@ const getDistricts = async (req, res) => {
 // @route   GET /api/districts/:id
 const getDistrictById = async (req, res) => {
   try {
-    const district = await District.findById(req.params.id);
+    const district = await District.findById(req.params.id).populate({
+      path: "division",
+      select: "name",
+      populate: {
+        path: "state",
+        select: "name",
+      },
+    });
     if (!district) {
       return res.status(404).json({ message: "District not found" });
     }

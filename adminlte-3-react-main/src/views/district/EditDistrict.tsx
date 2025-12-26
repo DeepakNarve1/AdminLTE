@@ -15,6 +15,7 @@ const EditDistrict = () => {
 
   const [initialValues, setInitialValues] = useState<{
     name: string;
+    division: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,6 +34,7 @@ const EditDistrict = () => {
         if (data) {
           setInitialValues({
             name: data.name,
+            division: data.division || "",
           });
         }
       } catch (err: any) {
@@ -46,7 +48,7 @@ const EditDistrict = () => {
     if (id) fetchDistrict();
   }, [id, router]);
 
-  const handleSubmit = async (values: { name: string }) => {
+  const handleSubmit = async (values: { name: string; division: string }) => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token");

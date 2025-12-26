@@ -8,11 +8,12 @@ const checkPermission = (permissionName) => {
       throw new Error("User or role not found");
     }
 
-    // Superadmin has all permissions
-    if (
+    // Superadmin has all permissions - check both string and object
+    const isSuperAdmin =
       req.user.role === "superadmin" ||
-      (req.user.role && req.user.role.name === "superadmin")
-    ) {
+      (req.user.role && req.user.role.name === "superadmin");
+
+    if (isSuperAdmin) {
       return next();
     }
 
@@ -21,6 +22,7 @@ const checkPermission = (permissionName) => {
     const userPermNames = Array.isArray(permissions)
       ? permissions.map((p) => p.name)
       : [];
+
     if (!userPermNames.includes(permissionName)) {
       res.status(403);
       throw new Error(`You do not have permission: ${permissionName}`);

@@ -44,13 +44,18 @@ const getStates = async (req, res) => {
 
 // @desc    Get single state
 // @route   GET /api/states/:id
+// @desc    Get single state
+// @route   GET /api/states/:id
 const getStateById = async (req, res) => {
   try {
     const state = await State.findById(req.params.id);
     if (!state) {
       return res.status(404).json({ message: "State not found" });
     }
-    res.json({ success: true, data: state });
+    const Division = require("../models/divisionModel");
+    const divisions = await Division.find({ state: state._id });
+
+    res.json({ success: true, data: { ...state.toObject(), divisions } });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -60,7 +65,22 @@ const getStateById = async (req, res) => {
 // @route   POST /api/states
 const createState = async (req, res) => {
   try {
-    const state = await State.create(req.body);
+    const { name, divisions } = req.body;
+    const state = await State.create({ name });
+
+    if (divisions && Array.isArray(divisions) && divisions.length > 0) {
+      const Division = require("../models/divisionModel");
+      const divisionsToInsert = divisions
+        .filter((d) => d && d.trim() !== "")
+        .map((d) => ({
+          name: d,
+          state: state._id,
+        }));
+      if (divisionsToInsert.length > 0) {
+        await Division.insertMany(divisionsToInsert);
+      }
+    }
+
     res.status(201).json({ success: true, data: state });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -80,6 +100,25 @@ const updateState = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
+    const { divisions } = req.body;
+    if (divisions && Array.isArray(divisions) && divisions.length > 0) {
+      const Division = require("../models/divisionModel");
+      const divisionsToInsert = divisions
+        .filter((d) => d && d.trim() !== "")
+        .map((d) => ({
+          name: d,
+          state: updatedState._id,
+        }));
+
+      // Ideally check if exists to avoid duplicates, but simple addition requested
+      // We'll rely on client sending only *new* ones or we accept duplicates if names aren't unique constraint
+      // Assuming divisions are just names.
+      if (divisionsToInsert.length > 0) {
+        await Division.insertMany(divisionsToInsert);
+      }
+    }
+
     res.json({ success: true, data: updatedState });
   } catch (error) {
     res.status(500).json({ message: error.message });

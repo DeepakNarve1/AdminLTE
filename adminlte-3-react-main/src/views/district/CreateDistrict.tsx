@@ -11,7 +11,7 @@ const CreateDistrict = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (values: { name: string }) => {
+  const handleSubmit = async (values: { name: string; division: string }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
