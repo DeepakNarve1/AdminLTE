@@ -14,73 +14,76 @@ const states = [
   { name: "Tamil Nadu" },
 ];
 
-const divisions = [
-  { name: "Bhopal" },
-  { name: "Indore" },
-  { name: "Gwalior" },
-  { name: "Jabalpur" },
-  { name: "Ujjain" },
-  { name: "Sagar" },
-  { name: "Chambal" },
-  { name: "Narmadapuram" },
-  { name: "Shahdol" },
-  { name: "Rewa" },
+const divisionsWithState = [
+  { name: "Bhopal", state: "Madhya Pradesh" },
+  { name: "Indore", state: "Madhya Pradesh" },
+  { name: "Gwalior", state: "Madhya Pradesh" },
+  { name: "Jabalpur", state: "Madhya Pradesh" },
+  { name: "Ujjain", state: "Madhya Pradesh" },
+  { name: "Sagar", state: "Madhya Pradesh" },
+  { name: "Chambal", state: "Madhya Pradesh" },
+  { name: "Narmadapuram", state: "Madhya Pradesh" },
+  { name: "Shahdol", state: "Madhya Pradesh" },
+  { name: "Rewa", state: "Madhya Pradesh" },
+  { name: "Lucknow", state: "Uttar Pradesh" },
 ];
 
-const districts = [
+const districtsWithDivision = [
   // Bhopal Division
-  { name: "Bhopal" },
-  { name: "Raisen" },
-  { name: "Rajgarh" },
-  { name: "Sehore" },
-  { name: "Vidisha" },
+  { name: "Bhopal", division: "Bhopal" },
+  { name: "Raisen", division: "Bhopal" },
+  { name: "Rajgarh", division: "Bhopal" },
+  { name: "Sehore", division: "Bhopal" },
+  { name: "Vidisha", division: "Bhopal" },
   // Indore Division
-  { name: "Indore" },
-  { name: "Dhar" },
-  { name: "Jhabua" },
-  { name: "Khargone" }, // West Nimar
-  { name: "Khandwa" }, // East Nimar
+  { name: "Indore", division: "Indore" },
+  { name: "Dhar", division: "Indore" },
+  { name: "Jhabua", division: "Indore" },
+  { name: "Khargone", division: "Indore" }, // West Nimar
+  { name: "Khandwa", division: "Indore" }, // East Nimar
   // Gwalior Division
-  { name: "Gwalior" },
-  { name: "Shivpuri" },
-  { name: "Guna" },
-  { name: "Ashoknagar" },
-  { name: "Datia" },
+  { name: "Gwalior", division: "Gwalior" },
+  { name: "Shivpuri", division: "Gwalior" },
+  { name: "Guna", division: "Gwalior" },
+  { name: "Ashoknagar", division: "Gwalior" },
+  { name: "Datia", division: "Gwalior" },
   // Jabalpur Division
-  { name: "Jabalpur" },
-  { name: "Katni" },
-  { name: "Narsinghpur" },
-  { name: "Seoni" },
-  { name: "Chhindwara" },
+  { name: "Jabalpur", division: "Jabalpur" },
+  { name: "Katni", division: "Jabalpur" },
+  { name: "Narsinghpur", division: "Jabalpur" },
+  { name: "Seoni", division: "Jabalpur" },
+  { name: "Chhindwara", division: "Jabalpur" },
   // Ujjain Division
-  { name: "Ujjain" },
-  { name: "Dewas" },
-  { name: "Ratlam" },
-  { name: "Shajapur" },
-  { name: "Agar Malwa" },
+  { name: "Ujjain", division: "Ujjain" },
+  { name: "Dewas", division: "Ujjain" },
+  { name: "Ratlam", division: "Ujjain" },
+  { name: "Shajapur", division: "Ujjain" },
+  { name: "Agar Malwa", division: "Ujjain" },
   // Sagar Division
-  { name: "Sagar" },
-  { name: "Damoh" },
-  { name: "Panna" },
-  { name: "Chhatarpur" },
-  { name: "Tikamgarh" },
+  { name: "Sagar", division: "Sagar" },
+  { name: "Damoh", division: "Sagar" },
+  { name: "Panna", division: "Sagar" },
+  { name: "Chhatarpur", division: "Sagar" },
+  { name: "Tikamgarh", division: "Sagar" },
   // Chambal Division
-  { name: "Morena" },
-  { name: "Sheopur" },
-  { name: "Bhind" },
+  { name: "Morena", division: "Chambal" },
+  { name: "Sheopur", division: "Chambal" },
+  { name: "Bhind", division: "Chambal" },
   // Narmadapuram Division
-  { name: "Narmadapuram" }, // Hoshangabad
-  { name: "Betul" },
-  { name: "Harda" },
+  { name: "Narmadapuram", division: "Narmadapuram" }, // Hoshangabad
+  { name: "Betul", division: "Narmadapuram" },
+  { name: "Harda", division: "Narmadapuram" },
   // Shahdol Division
-  { name: "Shahdol" },
-  { name: "Umaria" },
-  { name: "Anuppur" },
+  { name: "Shahdol", division: "Shahdol" },
+  { name: "Umaria", division: "Shahdol" },
+  { name: "Anuppur", division: "Shahdol" },
   // Rewa Division
-  { name: "Rewa" },
-  { name: "Satna" },
-  { name: "Sidhi" },
-  { name: "Singrauli" },
+  { name: "Rewa", division: "Rewa" },
+  { name: "Satna", division: "Rewa" },
+  { name: "Sidhi", division: "Rewa" },
+  { name: "Singrauli", division: "Rewa" },
+  // Lucknow Division
+  { name: "Lucknow", division: "Lucknow" },
 ];
 
 async function seedData() {
@@ -107,10 +110,46 @@ async function seedData() {
     const createdStates = await State.insertMany(states);
     console.log(`✅ Created ${createdStates.length} states`);
 
-    const createdDivisions = await Division.insertMany(divisions);
+    // Creates State Map
+    const stateMap = {};
+    createdStates.forEach((st) => {
+      stateMap[st.name] = st._id;
+    });
+
+    const divisionsToInsert = divisionsWithState.map((d) => {
+      const stateId = stateMap[d.state];
+      if (!stateId) {
+        console.warn(`⚠️ State not found for division: ${d.name} (${d.state})`);
+      }
+      return {
+        name: d.name,
+        state: stateId,
+      };
+    });
+
+    const createdDivisions = await Division.insertMany(divisionsToInsert);
     console.log(`✅ Created ${createdDivisions.length} divisions`);
 
-    const createdDistricts = await District.insertMany(districts);
+    // Create a map of division name to ID
+    const divisionMap = {};
+    createdDivisions.forEach((div) => {
+      divisionMap[div.name] = div._id;
+    });
+
+    const districtsToInsert = districtsWithDivision.map((d) => {
+      const divisionId = divisionMap[d.division];
+      if (!divisionId) {
+        console.warn(
+          `⚠️ Division not found for district: ${d.name} (${d.division})`
+        );
+      }
+      return {
+        name: d.name,
+        division: divisionId,
+      };
+    });
+
+    const createdDistricts = await District.insertMany(districtsToInsert);
     console.log(`✅ Created ${createdDistricts.length} districts`);
 
     process.exit(0);

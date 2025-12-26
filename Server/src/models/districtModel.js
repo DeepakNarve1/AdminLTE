@@ -8,6 +8,11 @@ const districtSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    division: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Division",
+      required: [true, "Division is required"],
+    },
   },
   { timestamps: true }
 );

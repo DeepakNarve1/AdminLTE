@@ -4,12 +4,16 @@ const Division = require("../models/divisionModel");
 // @route   GET /api/divisions
 const getDivisions = async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search, page = 1, limit = 10, state } = req.query;
 
     const query = {};
 
     if (search) {
       query.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
+
+    if (state) {
+      query.state = state;
     }
 
     const pageNum = Number(page);
@@ -20,11 +24,14 @@ const getDivisions = async (req, res) => {
     let totalCount = await Division.countDocuments({});
 
     if (limitNum === -1) {
-      divisions = await Division.find(query).sort({ name: 1 });
+      divisions = await Division.find(query)
+        .populate("state", "name")
+        .sort({ name: 1 });
       filteredCount = divisions.length;
     } else {
       const skip = (pageNum - 1) * limitNum;
       divisions = await Division.find(query)
+        .populate("state", "name")
         .sort({ name: 1 })
         .skip(skip)
         .limit(limitNum);
@@ -44,13 +51,21 @@ const getDivisions = async (req, res) => {
 
 // @desc    Get single division
 // @route   GET /api/divisions/:id
+// @desc    Get single division
+// @route   GET /api/divisions/:id
 const getDivisionById = async (req, res) => {
   try {
-    const division = await Division.findById(req.params.id);
+    const division = await Division.findById(req.params.id).populate(
+      "state",
+      "name"
+    );
     if (!division) {
       return res.status(404).json({ message: "Division not found" });
     }
-    res.json({ success: true, data: division });
+    const District = require("../models/districtModel");
+    const districts = await District.find({ division: division._id });
+
+    res.json({ success: true, data: { ...division.toObject(), districts } });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -60,7 +75,22 @@ const getDivisionById = async (req, res) => {
 // @route   POST /api/divisions
 const createDivision = async (req, res) => {
   try {
-    const division = await Division.create(req.body);
+    const { name, state, districts } = req.body;
+    const division = await Division.create({ name, state });
+
+    if (districts && Array.isArray(districts) && districts.length > 0) {
+      const District = require("../models/districtModel");
+      const districtsToInsert = districts
+        .filter((d) => d && d.trim() !== "")
+        .map((d) => ({
+          name: d,
+          division: division._id,
+        }));
+      if (districtsToInsert.length > 0) {
+        await District.insertMany(districtsToInsert);
+      }
+    }
+
     res.status(201).json({ success: true, data: division });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -80,6 +110,21 @@ const updateDivision = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
+    const { districts } = req.body;
+    if (districts && Array.isArray(districts) && districts.length > 0) {
+      const District = require("../models/districtModel");
+      const districtsToInsert = districts
+        .filter((d) => d && d.trim() !== "")
+        .map((d) => ({
+          name: d,
+          division: updatedDivision._id,
+        }));
+      if (districtsToInsert.length > 0) {
+        await District.insertMany(districtsToInsert);
+      }
+    }
+
     res.json({ success: true, data: updatedDivision });
   } catch (error) {
     res.status(500).json({ message: error.message });

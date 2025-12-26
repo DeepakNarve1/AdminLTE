@@ -8,6 +8,11 @@ const divisionSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    state: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "State",
+      required: [true, "State is required"],
+    },
   },
   { timestamps: true }
 );

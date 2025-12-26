@@ -118,6 +118,35 @@ const ViewDistrict = () => {
                     </p>
                   </div>
                 </div>
+                {/* Info Card 2 */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                  <div className="p-3 bg-green-100 rounded-lg text-green-600">
+                    <Hash className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                      Division
+                    </label>
+                    <p className="text-lg font-semibold text-gray-700 mt-1">
+                      {district?.division?.name || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info Card - State */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                  <div className="p-3 bg-indigo-100 rounded-lg text-indigo-600">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                      State
+                    </label>
+                    <p className="text-lg font-semibold text-gray-700 mt-1">
+                      {district?.division?.state?.name || "N/A"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-10 p-6 bg-yellow-50 rounded-xl border border-yellow-100 flex items-start gap-4">
