@@ -49,6 +49,9 @@ app.use("/api/divisions", divisionRoutes);
 const stateRoutes = require("./routes/stateRoute");
 app.use("/api/states", stateRoutes);
 
+const assemblyIssueRoutes = require("./routes/assemblyIssueRoute");
+app.use("/api/assembly-issues", assemblyIssueRoutes);
+
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
