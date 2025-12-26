@@ -13,6 +13,10 @@ const checkPermission = (permissionName) => {
       req.user.role === "superadmin" ||
       (req.user.role && req.user.role.name === "superadmin");
 
+    /* console.log(`[RBAC] Checking permission: ${permissionName}`);
+    console.log(`[RBAC] User Role: ${JSON.stringify(req.user.role)}`);
+    console.log(`[RBAC] Is SuperAdmin: ${isSuperAdmin}`); */
+
     if (isSuperAdmin) {
       return next();
     }
@@ -23,9 +27,20 @@ const checkPermission = (permissionName) => {
       ? permissions.map((p) => p.name)
       : [];
 
+    console.log(`[RBAC] User Permissions: ${userPermNames.join(", ")}`);
+    console.log(`[RBAC] Checking for: ${permissionName}`);
+
     if (!userPermNames.includes(permissionName)) {
       res.status(403);
-      throw new Error(`You do not have permission: ${permissionName}`);
+      const roleName =
+        req.user.role && req.user.role.name
+          ? req.user.role.name
+          : JSON.stringify(req.user.role);
+      throw new Error(
+        `Permission Denied. Required: ${permissionName}. Your Role: ${roleName}. Perms: ${userPermNames.join(
+          ","
+        )}`
+      );
     }
 
     next();

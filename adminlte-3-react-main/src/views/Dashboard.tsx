@@ -207,47 +207,6 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Quick Actions */}
-              <div className="mt-10">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Quick Actions
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Button
-                    size="lg"
-                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
-                    onClick={() => router.push("/users")}
-                  >
-                    <Users className="mr-3 h-5 w-5" />
-                    Manage Users
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
-                    onClick={() => router.push("/roles")}
-                  >
-                    <Shield className="mr-3 h-5 w-5" />
-                    Manage Roles
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
-                    onClick={() => router.push("/mp-public-problem")}
-                  >
-                    <FileText className="mr-3 h-5 w-5" />
-                    MP Public Problems
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-[#026e4c] hover:bg-[#368F8B] justify-start shadow-md hover:shadow-lg transition-all"
-                    onClick={() => router.push("/project-summary")}
-                  >
-                    <BarChart3 className="mr-3 h-5 w-5" />
-                    Project Summary
-                  </Button>
-                </div>
-              </div>
-
               {/* Recent Activity Placeholder */}
               <div className="mt-10">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
