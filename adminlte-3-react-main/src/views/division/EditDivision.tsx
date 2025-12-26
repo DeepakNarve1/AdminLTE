@@ -15,6 +15,7 @@ const EditDivision = () => {
 
   const [initialValues, setInitialValues] = useState<{
     name: string;
+    state: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,8 +32,10 @@ const EditDivision = () => {
         );
         const data = res.data?.data;
         if (data) {
+          const stateId = data.state?._id || data.state || "";
           setInitialValues({
             name: data.name,
+            state: stateId,
           });
         }
       } catch (err: any) {

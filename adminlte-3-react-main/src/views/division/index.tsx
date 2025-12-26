@@ -31,7 +31,7 @@ import {
 } from "@app/components/ui/select";
 import { Skeleton } from "@app/components/ui/skeleton";
 
-import { Search, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, MoreVertical, Edit, Trash2, Eye } from "lucide-react";
 import { ContentHeader } from "@app/components";
 
 interface IDivisionRow {
@@ -254,6 +254,15 @@ const Division = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {hasPermission("view_divisions") && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(`/divisions/${division._id}`)
+                                  }
+                                >
+                                  <Eye className="mr-2 h-4 w-4" /> View
+                                </DropdownMenuItem>
+                              )}
                               {hasPermission("edit_divisions") && (
                                 <DropdownMenuItem
                                   onClick={() =>
