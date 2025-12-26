@@ -38,16 +38,26 @@ import {
 
 interface IAssemblyIssue {
   _id: string;
-  title: string;
-  assembly: string;
-  status: string;
-  priority: string;
+  uniqueId: string;
+  year: string;
+  acMpNo: string;
+  block: string;
+  sector: string;
+  microSectorNo: string;
+  microSectorName: string;
+  boothName: string;
+  boothNo: string;
+  gramPanchayat: string;
+  village: string;
+  faliya: string;
+  totalMembers: number;
+  file?: string;
   createdAt: string;
 }
 
 const AssemblyIssueList = () => {
   return (
-    <RouteGuard requiredPermissions={["manage_roles", "view_assembly_issues"]}>
+    <RouteGuard requiredPermissions={["view_assembly_issues"]}>
       <AssemblyIssueListContent />
     </RouteGuard>
   );
@@ -100,40 +110,15 @@ const AssemblyIssueListContent = () => {
 
   const filteredIssues = issues.filter(
     (issue) =>
-      issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.assembly.toLowerCase().includes(searchTerm.toLowerCase())
+      issue.uniqueId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.block?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.village?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.boothName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "High":
-      case "Critical":
-        return "destructive";
-      case "Medium":
-        return "default"; // or "secondary"
-      case "Low":
-        return "outline";
-      default:
-        return "secondary";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Open":
-        return "bg-green-100 text-green-800";
-      case "In Progress":
-        return "bg-blue-100 text-blue-800";
-      case "Closed":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   return (
     <>
-      <ContentHeader title="Assembly Issues" />
+      <ContentHeader title="Assembly Issues / Ganesh Samiti Locations" />
       <section className="content">
         <div className="container-fluid px-4">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
@@ -143,7 +128,7 @@ const AssemblyIssueListContent = () => {
                 <div className="relative flex-1 max-w-lg">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
-                    placeholder="Search issues..."
+                    placeholder="Search by Unique ID, Block, Village..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-12 h-12 text-base"
@@ -151,13 +136,15 @@ const AssemblyIssueListContent = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Button
-                    size="lg"
-                    onClick={() => router.push("/assembly-issue/create")}
-                    className="bg-[#00563B] hover:bg-[#368F8B]"
-                  >
-                    <Plus className="w-5 h-5 mr-2" /> New Issue
-                  </Button>
+                  {hasPermission("create_assembly_issues") && (
+                    <Button
+                      size="lg"
+                      onClick={() => router.push("/assembly-issue/create")}
+                      className="bg-[#00563B] hover:bg-[#368F8B]"
+                    >
+                      <Plus className="w-5 h-5 mr-2" /> New Issue
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -167,12 +154,43 @@ const AssemblyIssueListContent = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold">Title</TableHead>
-                    <TableHead className="font-semibold">Assembly</TableHead>
-                    <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="font-semibold">Priority</TableHead>
-                    <TableHead className="font-semibold">Created On</TableHead>
-                    <TableHead className="text-right font-semibold">
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Unique ID
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Year
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Block
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Sector
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Micro Sector No
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Booth Name
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Booth No
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Gram Panchayat
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Village
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Faliya
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      Total Members
+                    </TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">
+                      File
+                    </TableHead>
+                    <TableHead className="text-right font-semibold whitespace-nowrap">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -180,14 +198,14 @@ const AssemblyIssueListContent = () => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10">
+                      <TableCell colSpan={13} className="text-center py-10">
                         Loading...
                       </TableCell>
                     </TableRow>
                   ) : filteredIssues.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={13}
                         className="text-center py-20 text-gray-500"
                       >
                         No issues found
@@ -196,30 +214,56 @@ const AssemblyIssueListContent = () => {
                   ) : (
                     filteredIssues.map((issue) => (
                       <TableRow key={issue._id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <div className="font-medium text-gray-900">
-                            {issue.title}
-                          </div>
+                        <TableCell className="font-medium text-gray-900 whitespace-nowrap">
+                          {issue.uniqueId}
                         </TableCell>
-                        <TableCell>{issue.assembly}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(issue.status)}`}
+                        <TableCell className="whitespace-nowrap">
+                          {issue.year}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.block}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.sector}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.microSectorNo}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.boothName}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.boothNo}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.gramPanchayat}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.village}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {issue.faliya}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-center">
+                          <Badge
+                            variant="outline"
+                            className="bg-blue-50 text-blue-700 border-blue-200"
                           >
-                            {issue.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getPriorityColor(issue.priority)}>
-                            {issue.priority}
+                            {issue.totalMembers}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          {issue.createdAt
-                            ? new Date(issue.createdAt).toLocaleDateString()
-                            : "-"}
+                        <TableCell className="whitespace-nowrap">
+                          {issue.file ? (
+                            <span className="text-blue-600 underline text-xs cursor-pointer">
+                              View File
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              No File
+                            </span>
+                          )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -240,21 +284,25 @@ const AssemblyIssueListContent = () => {
                               >
                                 <Eye className="mr-2 h-4 w-4" /> View
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  router.push(
-                                    `/assembly-issue/${issue._id}/edit`
-                                  )
-                                }
-                              >
-                                <Edit className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDelete(issue._id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
+                              {hasPermission("edit_assembly_issues") && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(
+                                      `/assembly-issue/${issue._id}/edit`
+                                    )
+                                  }
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              {hasPermission("delete_assembly_issues") && (
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDelete(issue._id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
