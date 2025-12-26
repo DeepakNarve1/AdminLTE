@@ -5,6 +5,7 @@ import Image from "@app/components/Image";
 import { useAppSelector } from "@app/store/store";
 import { MENU, IMenuItem } from "@app/utils/menu";
 import { usePermissions } from "@app/hooks/usePermissions";
+import { Avatar, AvatarFallback, AvatarImage } from "@app/components/ui/avatar";
 
 const MenuSidebar = () => {
   const currentUser = useAppSelector((state) => state.auth.currentUser);
@@ -158,16 +159,12 @@ const MenuSidebar = () => {
         >
           <div className="flex items-center">
             <div className="shrink-0 relative">
-              <Image
-                src={currentUser?.photoURL}
-                fallbackSrc="/img/default-profile.png"
-                alt="User"
-                width={40}
-                height={40}
-                rounded
-                className="shadow-md ring-2 ring-opacity-20 ring-white"
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+              <Avatar className="mx-auto h-12 w-12 ring-4 ring-white shadow-lg">
+                <AvatarImage src={currentUser?.photoURL || ""} />
+                <AvatarFallback className="bg-linear-to-br from-[#00563B] to-[#368F8B] text-white text-2xl font-bold">
+                  {currentUser?.email?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
             <div
               className={`ml-3 overflow-hidden transition-all duration-300 ${
