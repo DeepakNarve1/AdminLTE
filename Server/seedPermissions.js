@@ -116,11 +116,28 @@ const permissions = [
     category: "mp_public_problems",
   },
 
-  // Assembly Issue
   {
-    name: "view_assembly_issue",
-    displayName: "View Assembly Issue",
+    name: "view_assembly_issues",
+    displayName: "View Assembly Issues",
     description: "Can view assembly issues",
+    category: "assembly_issue",
+  },
+  {
+    name: "create_assembly_issues",
+    displayName: "Create Assembly Issues",
+    description: "Can create assembly issues",
+    category: "assembly_issue",
+  },
+  {
+    name: "edit_assembly_issues",
+    displayName: "Edit Assembly Issues",
+    description: "Can edit assembly issues",
+    category: "assembly_issue",
+  },
+  {
+    name: "delete_assembly_issues",
+    displayName: "Delete Assembly Issues",
+    description: "Can delete assembly issues",
     category: "assembly_issue",
   },
 
