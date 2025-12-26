@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Button } from "@app/components/ui/button";
@@ -23,6 +24,9 @@ const StateForm = ({
   onSubmit,
   loading = false,
 }: StateFormProps) => {
+  const [newDivisions, setNewDivisions] = useState<string[]>([]);
+  const [currentDivInput, setCurrentDivInput] = useState("");
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
@@ -30,9 +34,23 @@ const StateForm = ({
       name: Yup.string().required("State name is required"),
     }),
     onSubmit: (values) => {
-      onSubmit(values);
+      // Pass new divisions alongside other values
+      onSubmit({ ...values, divisions: newDivisions } as any);
     },
   });
+
+  const addDivision = () => {
+    if (currentDivInput.trim() !== "") {
+      setNewDivisions([...newDivisions, currentDivInput.trim()]);
+      setCurrentDivInput("");
+    }
+  };
+
+  const removeDivision = (index: number) => {
+    const updated = [...newDivisions];
+    updated.splice(index, 1);
+    setNewDivisions(updated);
+  };
 
   return (
     <Card className="border-0 shadow-none">
@@ -56,6 +74,49 @@ const StateForm = ({
               />
               {formik.touched.name && formik.errors.name && (
                 <p className="text-sm text-red-500">{formik.errors.name}</p>
+              )}
+            </div>
+
+            {/* Add Divisions Section */}
+            <div className="grid gap-2">
+              <Label>Add Divisions (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter division name"
+                  value={currentDivInput}
+                  onChange={(e) => setCurrentDivInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addDivision();
+                    }
+                  }}
+                />
+                <Button type="button" onClick={addDivision} variant="secondary">
+                  Add
+                </Button>
+              </div>
+
+              {newDivisions.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {newDivisions.map((div, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-200"
+                    >
+                      <span className="text-sm text-gray-700">{div}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        type="button"
+                        onClick={() => removeDivision(idx)}
+                        className="h-6 w-6 text-red-500 p-0 hover:bg-red-50"
+                      >
+                        &times;
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

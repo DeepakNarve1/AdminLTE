@@ -31,7 +31,7 @@ import {
 } from "@app/components/ui/select";
 import { Skeleton } from "@app/components/ui/skeleton";
 
-import { Search, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, MoreVertical, Edit, Trash2, Eye } from "lucide-react";
 import { ContentHeader } from "@app/components";
 
 interface IStateRow {
@@ -246,6 +246,15 @@ const State = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {hasPermission("view_states") && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(`/states/${state._id}`)
+                                  }
+                                >
+                                  <Eye className="mr-2 h-4 w-4" /> View
+                                </DropdownMenuItem>
+                              )}
                               {hasPermission("edit_states") && (
                                 <DropdownMenuItem
                                   onClick={() =>
