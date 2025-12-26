@@ -21,7 +21,7 @@ import { RouteGuard } from "@app/components/RouteGuard";
 
 const EditAssemblyIssue = () => {
   return (
-    <RouteGuard requiredPermissions={["manage_roles", "edit_assembly_issues"]}>
+    <RouteGuard requiredPermissions={["edit_assembly_issues"]}>
       <EditAssemblyIssueContent />
     </RouteGuard>
   );
@@ -36,11 +36,20 @@ const EditAssemblyIssueContent = () => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    assembly: "",
-    status: "Open",
-    priority: "Medium",
+    uniqueId: "",
+    year: "",
+    acMpNo: "",
+    block: "",
+    sector: "",
+    microSectorNo: "",
+    microSectorName: "",
+    boothName: "",
+    boothNo: "",
+    gramPanchayat: "",
+    village: "",
+    faliya: "",
+    totalMembers: 0,
+    file: "",
   });
 
   useEffect(() => {
@@ -55,11 +64,20 @@ const EditAssemblyIssueContent = () => {
         );
         if (data && data.data) {
           setFormData({
-            title: data.data.title || "",
-            description: data.data.description || "",
-            assembly: data.data.assembly || "",
-            status: data.data.status || "Open",
-            priority: data.data.priority || "Medium",
+            uniqueId: data.data.uniqueId || "",
+            year: data.data.year || "",
+            acMpNo: data.data.acMpNo || "",
+            block: data.data.block || "",
+            sector: data.data.sector || "",
+            microSectorNo: data.data.microSectorNo || "",
+            microSectorName: data.data.microSectorName || "",
+            boothName: data.data.boothName || "",
+            boothNo: data.data.boothNo || "",
+            gramPanchayat: data.data.gramPanchayat || "",
+            village: data.data.village || "",
+            faliya: data.data.faliya || "",
+            totalMembers: data.data.totalMembers || 0,
+            file: data.data.file || "",
           });
         }
       } catch (error) {
@@ -83,10 +101,6 @@ const EditAssemblyIssueContent = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -96,7 +110,7 @@ const EditAssemblyIssueContent = () => {
 
       await axios.put(
         `http://localhost:5000/api/assembly-issues/${id}`,
-        formData,
+        { ...formData, totalMembers: Number(formData.totalMembers) },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -121,7 +135,7 @@ const EditAssemblyIssueContent = () => {
 
       <section className="content">
         <div className="container-fluid px-4">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 max-w-6xl mx-auto">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">
                 Edit Assembly Issue
@@ -129,84 +143,178 @@ const EditAssemblyIssueContent = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="p-8">
-              <div className="grid grid-cols-1 gap-6">
-                {/* Title */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Unique ID */}
                 <div className="space-y-2">
                   <Label>
-                    Title <span className="text-red-500">*</span>
+                    Unique ID <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    name="title"
-                    value={formData.title}
+                    name="uniqueId"
+                    value={formData.uniqueId}
                     onChange={handleChange}
-                    placeholder="Enter issue title"
                     required
                   />
                 </div>
 
-                {/* Assembly */}
+                {/* Year */}
                 <div className="space-y-2">
                   <Label>
-                    Assembly <span className="text-red-500">*</span>
+                    Year <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    name="assembly"
-                    value={formData.assembly}
+                    name="year"
+                    value={formData.year}
                     onChange={handleChange}
-                    placeholder="Enter assembly name"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Status */}
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(v) => handleSelectChange("status", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Open">Open</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Resolved">Resolved</SelectItem>
-                        <SelectItem value="Closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Priority */}
-                  <div className="space-y-2">
-                    <Label>Priority</Label>
-                    <Select
-                      value={formData.priority}
-                      onValueChange={(v) => handleSelectChange("priority", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* AC/MP No */}
+                <div className="space-y-2">
+                  <Label>AC/MP No.</Label>
+                  <Input
+                    name="acMpNo"
+                    value={formData.acMpNo}
+                    onChange={handleChange}
+                  />
                 </div>
 
-                {/* Description */}
+                {/* Block */}
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    name="description"
-                    value={formData.description}
+                  <Label>
+                    Block <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="block"
+                    value={formData.block}
                     onChange={handleChange}
-                    placeholder="Describe the issue in detail..."
-                    className="min-h-[120px]"
+                    required
+                  />
+                </div>
+
+                {/* Sector */}
+                <div className="space-y-2">
+                  <Label>
+                    Sector <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="sector"
+                    value={formData.sector}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Micro Sector No */}
+                <div className="space-y-2">
+                  <Label>
+                    Micro Sector No <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="microSectorNo"
+                    value={formData.microSectorNo}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Micro Sector Name */}
+                <div className="space-y-2">
+                  <Label>
+                    Micro Sector Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="microSectorName"
+                    value={formData.microSectorName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Booth Name */}
+                <div className="space-y-2">
+                  <Label>
+                    Booth Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="boothName"
+                    value={formData.boothName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Booth No */}
+                <div className="space-y-2">
+                  <Label>
+                    Booth No <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="boothNo"
+                    value={formData.boothNo}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Gram Panchayat */}
+                <div className="space-y-2">
+                  <Label>
+                    Gram Panchayat <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="gramPanchayat"
+                    value={formData.gramPanchayat}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Village */}
+                <div className="space-y-2">
+                  <Label>
+                    Village <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="village"
+                    value={formData.village}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Faliya */}
+                <div className="space-y-2">
+                  <Label>
+                    Faliya <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="faliya"
+                    value={formData.faliya}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Total Members */}
+                <div className="space-y-2">
+                  <Label>Total Members</Label>
+                  <Input
+                    type="number"
+                    name="totalMembers"
+                    value={formData.totalMembers}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* File (Optional URL/Path) */}
+                <div className="space-y-2">
+                  <Label>File URL (Optional)</Label>
+                  <Input
+                    name="file"
+                    value={formData.file}
+                    onChange={handleChange}
                   />
                 </div>
               </div>

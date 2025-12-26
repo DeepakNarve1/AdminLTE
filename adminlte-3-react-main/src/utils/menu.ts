@@ -64,7 +64,7 @@ export const MENU: IMenuItem[] = [
     icon: "fas fa-university nav-icon",
     path: "/assembly-issue",
     allowedRoles: ["superadmin"],
-    resource: "assembly_issue",
+    resource: "assembly_issues",
   },
   {
     name: "Events",
