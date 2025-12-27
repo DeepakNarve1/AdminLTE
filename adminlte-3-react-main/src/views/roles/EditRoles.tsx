@@ -162,6 +162,36 @@ const EditRoleContent = () => {
     return permsToCheck.every((p) => role.permissions.includes(p._id));
   };
 
+  const isTotalChecked = (category: string) => {
+    const categoryPermissions = permissions.filter(
+      (p) => p.category === category
+    );
+    if (categoryPermissions.length === 0) return false;
+    return categoryPermissions.every((p) => role.permissions.includes(p._id));
+  };
+
+  const toggleTotal = (category: string) => {
+    const categoryPermissions = permissions.filter(
+      (p) => p.category === category
+    );
+    if (categoryPermissions.length === 0) return;
+
+    const ids = categoryPermissions.map((p) => p._id);
+
+    setRole((prev) => {
+      // If ALL are present -> remove all
+      // If NOT all present -> add missing
+      const allPresent = ids.every((id) => prev.permissions.includes(id));
+
+      return {
+        ...prev,
+        permissions: allPresent
+          ? prev.permissions.filter((id) => !ids.includes(id))
+          : [...new Set([...prev.permissions, ...ids])],
+      };
+    });
+  };
+
   const isDisabled = (
     category: string,
     type: "view" | "create" | "edit" | "delete"
@@ -317,6 +347,9 @@ const EditRoleContent = () => {
                       <TableRow className="bg-gray-50">
                         <TableHead className="font-semibold">Module</TableHead>
                         <TableHead className="font-semibold text-center w-24">
+                          Total
+                        </TableHead>
+                        <TableHead className="font-semibold text-center w-24">
                           View
                         </TableHead>
                         <TableHead className="font-semibold text-center w-24">
@@ -335,6 +368,12 @@ const EditRoleContent = () => {
                         <TableRow key={category}>
                           <TableCell className="font-medium capitalize">
                             {category.replace(/_/g, " ")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={isTotalChecked(category)}
+                              onCheckedChange={() => toggleTotal(category)}
+                            />
                           </TableCell>
                           <TableCell className="text-center">
                             <Checkbox

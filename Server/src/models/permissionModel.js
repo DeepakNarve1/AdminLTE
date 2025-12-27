@@ -30,6 +30,7 @@ const permissionSchema = new mongoose.Schema(
         "districts",
         "divisions",
         "states",
+        "members",
         "reports",
         "settings",
         "other",
