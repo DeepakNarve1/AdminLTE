@@ -147,7 +147,9 @@ const EventListContent = () => {
   };
 
   const connectGoogleCalendar = () => {
-    toast.info("Google Calendar integration coming soon!");
+    toast.info(
+      "Google Calendar integration is automatic. Events are synced when created/updated."
+    );
   };
 
   return (
