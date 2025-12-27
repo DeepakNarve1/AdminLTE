@@ -2,120 +2,72 @@ const mongoose = require("mongoose");
 const AssemblyIssue = require("./src/models/assemblyIssueModel");
 require("dotenv").config();
 
-const sampleIssues = [
-  {
-    uniqueId: "GS/177",
-    year: "2024",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "GANDHWANI",
-    microSectorNo: "GGR 10",
-    microSectorName: "KHOJAKUNWA",
-    boothName: "रेहड़दा",
-    boothNo: "229",
-    gramPanchayat: "रेहड़दा",
-    village: "कुंडी",
-    faliya: "डावरपुरा",
-    totalMembers: 9,
-    file: "",
-  },
-  {
-    uniqueId: "GS/176",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "GANDHWANI",
-    microSectorNo: "GGR 10",
-    microSectorName: "KHOJAKUNWA",
-    boothName: "रेहड़दा",
-    boothNo: "229",
-    gramPanchayat: "रेहड़दा",
-    village: "कुंडी",
-    faliya: "खाड़ापुरा",
-    totalMembers: 9,
-    file: "",
-  },
-  {
-    uniqueId: "GS/175",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "GANDHWANI",
-    microSectorNo: "GGR 16",
-    microSectorName: "CHIKLI",
-    boothName: "चिकली",
-    boothNo: "142",
-    gramPanchayat: "चिकली",
-    village: "चिकली",
-    faliya: "हनुमानपुरा",
-    totalMembers: 15,
-    file: "",
-  },
-  {
-    uniqueId: "GS/174",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "BILDA",
-    microSectorNo: "GBI 4",
-    microSectorName: "KHEDALI HANUMAN",
-    boothName: "कोदी",
-    boothNo: "40",
-    gramPanchayat: "पिथनपुर",
-    village: "कोदी",
-    faliya: "बयडीपुरा",
-    totalMembers: 13,
-    file: "",
-  },
-  {
-    uniqueId: "GS/173",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "GANDHWANI",
-    microSectorNo: "GGR 3",
-    microSectorName: "SOYLA",
-    boothName: "सोयला (साली)",
-    boothNo: "268",
-    gramPanchayat: "सोयला",
-    village: "सोयला",
-    faliya: "मोर्यापुरा",
-    totalMembers: 10,
-    file: "",
-  },
-  {
-    uniqueId: "GS/172",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Tirla",
-    sector: "Anjanai",
-    microSectorNo: "TA 1",
-    microSectorName: "Semlipura",
-    boothName: "बोरी",
-    boothNo: "105",
-    gramPanchayat: "बोरी",
-    village: "जोडवा",
-    faliya: "जोडवा",
-    totalMembers: 0,
-    file: "",
-  },
-  {
-    uniqueId: "GS/171",
-    year: "2025",
-    acMpNo: "N/A",
-    block: "Gandhwani",
-    sector: "PIPLI",
-    microSectorNo: "GP 1",
-    microSectorName: "PIPLI",
-    boothName: "पिपली 246",
-    boothNo: "246",
-    gramPanchayat: "पिपली",
-    village: "पिपली",
-    faliya: "पिपली",
-    totalMembers: 18,
-    file: "",
-  },
+const sampleIssues = [];
+
+const blocks = ["Gandhwani", "Tirla", "Bagh", "Kukshi", "Manawar", "Dhar"];
+const sectors = ["GANDHWANI", "BILDA", "Anjanai", "PIPLI", "ZEERABAD", "BAGH"];
+const microSectors = ["GGR", "GBI", "TA", "GP", "MZ", "BG"];
+const villages = [
+  "Kundi",
+  "Chikli",
+  "Kodi",
+  "Soyla",
+  "Bori",
+  "Pipli",
+  "Rehda",
+  "Jeerabad",
 ];
+const faliyas = [
+  "DavarPura",
+  "Khadapura",
+  "HanumanPura",
+  "Baydipura",
+  "Moryapura",
+  "PatelPura",
+];
+const gramPanchayats = [
+  "Rehda",
+  "Chikli",
+  "Pithanpur",
+  "Soyla",
+  "Bori",
+  "Pipli",
+];
+const boothNames = [
+  "Primary School",
+  "Middle School",
+  "High School",
+  "Community Hall",
+  "Panchayat Bhavan",
+];
+
+for (let i = 1; i <= 1110; i++) {
+  const block = blocks[Math.floor(Math.random() * blocks.length)];
+  const sector = sectors[Math.floor(Math.random() * sectors.length)];
+  const village = villages[Math.floor(Math.random() * villages.length)];
+  const faliya = faliyas[Math.floor(Math.random() * faliyas.length)];
+  const gp = gramPanchayats[Math.floor(Math.random() * gramPanchayats.length)];
+  const booth = boothNames[Math.floor(Math.random() * boothNames.length)];
+  const msCode = microSectors[Math.floor(Math.random() * microSectors.length)];
+  const msNo = `${msCode} ${Math.floor(Math.random() * 20) + 1}`;
+
+  sampleIssues.push({
+    uniqueId: `GS/${170 + i}`,
+    year: Math.random() > 0.3 ? "2025" : "2024",
+    acMpNo: "N/A",
+    block: block,
+    sector: sector,
+    microSectorNo: msNo,
+    microSectorName: `${sector} MS ${Math.floor(Math.random() * 10) + 1}`,
+    boothName: `${booth} ${village}`,
+    boothNo: (Math.floor(Math.random() * 300) + 1).toString(),
+    gramPanchayat: gp,
+    village: village,
+    faliya: faliya,
+    totalMembers: Math.floor(Math.random() * 50),
+    file: "",
+  });
+}
 
 async function seedAssemblyIssues() {
   try {

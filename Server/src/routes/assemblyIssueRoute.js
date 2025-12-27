@@ -5,6 +5,8 @@ const {
   createAssemblyIssue,
   updateAssemblyIssue,
   deleteAssemblyIssue,
+  cleanupDuplicates,
+  seedAssemblyIssues,
 } = require("../controller/assemblyIssueController");
 const protect = require("../middleware/authMiddleware");
 const { checkPermission } = require("../middleware/permissionMiddleware");
