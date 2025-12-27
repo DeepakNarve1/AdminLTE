@@ -23,9 +23,11 @@ const getAssemblyIssues = async (req, res) => {
 
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { assembly: { $regex: search, $options: "i" } },
+        { uniqueId: { $regex: search, $options: "i" } },
+        { block: { $regex: search, $options: "i" } },
+        { village: { $regex: search, $options: "i" } },
+        { boothName: { $regex: search, $options: "i" } },
+        { gramPanchayat: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -88,6 +90,11 @@ const createAssemblyIssue = async (req, res) => {
     const issue = await AssemblyIssue.create(req.body);
     res.status(201).json({ success: true, data: issue });
   } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "Unique ID number already exists" });
+    }
     res.status(400).json({ message: error.message });
   }
 };
@@ -108,6 +115,11 @@ const updateAssemblyIssue = async (req, res) => {
     );
     res.json({ success: true, data: updatedIssue });
   } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "Unique ID number already exists" });
+    }
     res.status(500).json({ message: error.message });
   }
 };

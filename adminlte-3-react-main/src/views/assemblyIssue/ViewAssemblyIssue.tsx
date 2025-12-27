@@ -64,7 +64,7 @@ const ViewAssemblyIssueContent = () => {
       <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
         {label}
       </h3>
-      <p className="text-lg font-medium text-gray-900 break-words">
+      <p className="text-lg font-medium text-gray-900 wrap-break-word">
         {value || "-"}
       </p>
     </div>
