@@ -252,25 +252,15 @@ const ProjectSummary = () => {
                     variant="outline"
                     size="lg"
                     onClick={handleExport}
-                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                    className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
                   >
                     <Download className="w-5 h-5 mr-2" /> Export
                   </Button>
-
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
-                  >
-                    <Upload className="w-5 h-5 mr-2" /> Import
-                  </Button>
-
                   {canCreate && (
                     <Button
                       size="lg"
                       onClick={() => router.push("/project-summary/create")}
-                      className="bg-[#00563B] hover:bg-[#368F8B]"
+                      className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
                     >
                       <Plus className="w-5 h-5 mr-2" /> Add Project
                     </Button>
