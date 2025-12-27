@@ -24,6 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@app/components/ui/dropdown-menu";
 
 import * as XLSX from "xlsx";
@@ -45,6 +46,7 @@ import {
   Eye,
   Download,
   Upload,
+  Columns,
 } from "lucide-react";
 
 interface IAssemblyIssue {
@@ -84,6 +86,22 @@ const AssemblyIssueListContent = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Column Visibility
+  const [visibleColumns, setVisibleColumns] = useState({
+    uniqueId: true,
+    year: true,
+    block: true,
+    sector: true,
+    microSectorNo: true,
+    boothName: true,
+    boothNo: true,
+    gramPanchayat: true,
+    village: true,
+    faliya: true,
+    totalMembers: true,
+    file: true,
+  });
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -152,6 +170,10 @@ const AssemblyIssueListContent = () => {
 
   const handleImport = () => {
     toast.info("Import feature coming soon");
+  };
+
+  const toggleColumn = (key: keyof typeof visibleColumns) => {
+    setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -223,47 +245,100 @@ const AssemblyIssueListContent = () => {
               </div>
             </div>
 
+            {/* Column Visibility */}
+            <div className="px-6 py-3 border-b border-gray-200 flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Columns className="w-4 h-4 mr-2" /> Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {Object.keys(visibleColumns).map((key) => (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={
+                        visibleColumns[key as keyof typeof visibleColumns]
+                      }
+                      onCheckedChange={() =>
+                        toggleColumn(key as keyof typeof visibleColumns)
+                      }
+                    >
+                      {key
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())
+                        .trim()}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             {/* Table */}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Unique ID
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Year
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Block
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Sector
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Micro Sector No
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Booth Name
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Booth No
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Gram Panchayat
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Village
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Faliya
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      Total Members
-                    </TableHead>
-                    <TableHead className="font-semibold whitespace-nowrap">
-                      File
-                    </TableHead>
+                    {visibleColumns.uniqueId && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Unique ID
+                      </TableHead>
+                    )}
+                    {visibleColumns.year && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Year
+                      </TableHead>
+                    )}
+                    {visibleColumns.block && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Block
+                      </TableHead>
+                    )}
+                    {visibleColumns.sector && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Sector
+                      </TableHead>
+                    )}
+                    {visibleColumns.microSectorNo && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Micro Sector No
+                      </TableHead>
+                    )}
+                    {visibleColumns.boothName && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Booth Name
+                      </TableHead>
+                    )}
+                    {visibleColumns.boothNo && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Booth No
+                      </TableHead>
+                    )}
+                    {visibleColumns.gramPanchayat && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Gram Panchayat
+                      </TableHead>
+                    )}
+                    {visibleColumns.village && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Village
+                      </TableHead>
+                    )}
+                    {visibleColumns.faliya && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Faliya
+                      </TableHead>
+                    )}
+                    {visibleColumns.totalMembers && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        Total Members
+                      </TableHead>
+                    )}
+                    {visibleColumns.file && (
+                      <TableHead className="font-semibold whitespace-nowrap">
+                        File
+                      </TableHead>
+                    )}
                     <TableHead className="text-right font-semibold whitespace-nowrap">
                       Actions
                     </TableHead>
@@ -288,55 +363,79 @@ const AssemblyIssueListContent = () => {
                   ) : (
                     issues.map((issue) => (
                       <TableRow key={issue._id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium text-gray-900 whitespace-nowrap">
-                          {issue.uniqueId}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.year}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.block}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.sector}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.microSectorNo}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.boothName}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.boothNo}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.gramPanchayat}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.village}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.faliya}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-center">
-                          <Badge
-                            variant="outline"
-                            className="bg-blue-50 text-blue-700 border-blue-200"
-                          >
-                            {issue.totalMembers}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {issue.file ? (
-                            <span className="text-blue-600 underline text-xs cursor-pointer">
-                              View File
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 text-xs">
-                              No File
-                            </span>
-                          )}
-                        </TableCell>
+                        {visibleColumns.uniqueId && (
+                          <TableCell className="font-medium text-gray-900 whitespace-nowrap">
+                            {issue.uniqueId}
+                          </TableCell>
+                        )}
+                        {visibleColumns.year && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.year}
+                          </TableCell>
+                        )}
+                        {visibleColumns.block && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.block}
+                          </TableCell>
+                        )}
+                        {visibleColumns.sector && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.sector}
+                          </TableCell>
+                        )}
+                        {visibleColumns.microSectorNo && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.microSectorNo}
+                          </TableCell>
+                        )}
+                        {visibleColumns.boothName && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.boothName}
+                          </TableCell>
+                        )}
+                        {visibleColumns.boothNo && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.boothNo}
+                          </TableCell>
+                        )}
+                        {visibleColumns.gramPanchayat && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.gramPanchayat}
+                          </TableCell>
+                        )}
+                        {visibleColumns.village && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.village}
+                          </TableCell>
+                        )}
+                        {visibleColumns.faliya && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.faliya}
+                          </TableCell>
+                        )}
+                        {visibleColumns.totalMembers && (
+                          <TableCell className="whitespace-nowrap text-center">
+                            <Badge
+                              variant="outline"
+                              className="bg-blue-50 text-blue-700 border-blue-200"
+                            >
+                              {issue.totalMembers}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.file && (
+                          <TableCell className="whitespace-nowrap">
+                            {issue.file ? (
+                              <span className="text-blue-600 underline text-xs cursor-pointer">
+                                View File
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-xs">
+                                No File
+                              </span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

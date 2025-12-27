@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@app/components/ui/dropdown-menu";
 
 import * as XLSX from "xlsx";
@@ -43,6 +44,7 @@ import {
   Filter,
   X,
   Eye,
+  Columns,
 } from "lucide-react";
 
 interface IEvent {
@@ -79,6 +81,19 @@ const EventListContent = () => {
   const [filterMonth, setFilterMonth] = useState("All Months");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Column Visibility
+  const [visibleColumns, setVisibleColumns] = useState({
+    uniqueId: true,
+    district: true,
+    year: true,
+    month: true,
+    receivingDate: true,
+    programDate: true,
+    time: true,
+    eventType: true,
+    eventDetails: true,
+  });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -152,6 +167,10 @@ const EventListContent = () => {
     );
   };
 
+  const toggleColumn = (key: keyof typeof visibleColumns) => {
+    setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <>
       <ContentHeader title="Events Management" />
@@ -208,7 +227,7 @@ const EventListContent = () => {
 
                 <Button
                   variant="outline"
-                  className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-none"
+                  className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
                 >
                   <Filter className="w-4 h-4 mr-1" /> Filter
                 </Button>
@@ -239,7 +258,7 @@ const EventListContent = () => {
                 {hasPermission("create_events") && (
                   <Button
                     onClick={() => router.push("/events/create")}
-                    className="bg-[#00A65A] hover:bg-[#008d4c] text-white"
+                    className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
                   >
                     <Plus className="w-5 h-5 mr-2" /> Add New Events
                   </Button>
@@ -289,6 +308,35 @@ const EventListContent = () => {
               </div>
             </div>
 
+            {/* Column Visibility */}
+            <div className="px-6 py-3 border-b border-gray-200 flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Columns className="w-4 h-4 mr-2" /> Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {Object.keys(visibleColumns).map((key) => (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      checked={
+                        visibleColumns[key as keyof typeof visibleColumns]
+                      }
+                      onCheckedChange={() =>
+                        toggleColumn(key as keyof typeof visibleColumns)
+                      }
+                    >
+                      {key
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())
+                        .trim()}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             {/* Table */}
             <div className="overflow-x-auto">
               <Table>
@@ -297,33 +345,51 @@ const EventListContent = () => {
                     <TableHead className="text-white font-bold whitespace-nowrap">
                       Sr No
                     </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Unique ID
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      District
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Year
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Month
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Receiving Date
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Program Date
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Time
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Event Type
-                    </TableHead>
-                    <TableHead className="text-white font-bold whitespace-nowrap">
-                      Event Details
-                    </TableHead>
+                    {visibleColumns.uniqueId && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Unique ID
+                      </TableHead>
+                    )}
+                    {visibleColumns.district && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        District
+                      </TableHead>
+                    )}
+                    {visibleColumns.year && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Year
+                      </TableHead>
+                    )}
+                    {visibleColumns.month && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Month
+                      </TableHead>
+                    )}
+                    {visibleColumns.receivingDate && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Receiving Date
+                      </TableHead>
+                    )}
+                    {visibleColumns.programDate && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Program Date
+                      </TableHead>
+                    )}
+                    {visibleColumns.time && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Time
+                      </TableHead>
+                    )}
+                    {visibleColumns.eventType && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Event Type
+                      </TableHead>
+                    )}
+                    {visibleColumns.eventDetails && (
+                      <TableHead className="text-white font-bold whitespace-nowrap">
+                        Event Details
+                      </TableHead>
+                    )}
                     <TableHead className="text-white font-bold whitespace-nowrap text-right">
                       Actions
                     </TableHead>
@@ -351,23 +417,41 @@ const EventListContent = () => {
                         <TableCell>
                           {(currentPage - 1) * entriesPerPage + index + 1}
                         </TableCell>
-                        <TableCell className="font-bold">
-                          {event.uniqueId}
-                        </TableCell>
-                        <TableCell>{event.district}</TableCell>
-                        <TableCell>{event.year}</TableCell>
-                        <TableCell>{event.month}</TableCell>
-                        <TableCell>
-                          {new Date(event.receivingDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(event.programDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>{event.time}</TableCell>
-                        <TableCell>{event.eventType}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {event.eventDetails}
-                        </TableCell>
+                        {visibleColumns.uniqueId && (
+                          <TableCell className="font-bold">
+                            {event.uniqueId}
+                          </TableCell>
+                        )}
+                        {visibleColumns.district && (
+                          <TableCell>{event.district}</TableCell>
+                        )}
+                        {visibleColumns.year && (
+                          <TableCell>{event.year}</TableCell>
+                        )}
+                        {visibleColumns.month && (
+                          <TableCell>{event.month}</TableCell>
+                        )}
+                        {visibleColumns.receivingDate && (
+                          <TableCell>
+                            {new Date(event.receivingDate).toLocaleDateString()}
+                          </TableCell>
+                        )}
+                        {visibleColumns.programDate && (
+                          <TableCell>
+                            {new Date(event.programDate).toLocaleDateString()}
+                          </TableCell>
+                        )}
+                        {visibleColumns.time && (
+                          <TableCell>{event.time}</TableCell>
+                        )}
+                        {visibleColumns.eventType && (
+                          <TableCell>{event.eventType}</TableCell>
+                        )}
+                        {visibleColumns.eventDetails && (
+                          <TableCell className="max-w-xs truncate">
+                            {event.eventDetails}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
