@@ -1,0 +1,462 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { ContentHeader } from "@app/components";
+import { RouteGuard } from "@app/components/RouteGuard";
+import { usePermissions } from "@app/hooks/usePermissions";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@app/components/ui/table";
+import { Button } from "@app/components/ui/button";
+import { Input } from "@app/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@app/components/ui/dropdown-menu";
+
+import * as XLSX from "xlsx";
+import { useDebounce } from "@app/hooks/useDebounce";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Filter,
+  X,
+  Eye,
+} from "lucide-react";
+
+interface IEvent {
+  _id: string;
+  uniqueId: string;
+  district: string;
+  year: string;
+  month: string;
+  receivingDate: string;
+  programDate: string;
+  time: string;
+  eventType: string;
+  eventDetails: string;
+}
+
+const EventList = () => {
+  return (
+    <RouteGuard requiredPermissions={["view_events"]}>
+      <EventListContent />
+    </RouteGuard>
+  );
+};
+
+const EventListContent = () => {
+  const router = useRouter();
+  const { hasPermission } = usePermissions();
+
+  const [events, setEvents] = useState<IEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterMonth, setFilterMonth] = useState("All Months");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const params: any = {
+        page: currentPage,
+        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        search: debouncedSearchTerm || undefined,
+        month: filterMonth === "All Months" ? undefined : filterMonth,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      };
+
+      const { data } = await axios.get("http://localhost:5000/api/events", {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      });
+      setEvents(data.data || []);
+      setTotalCount(data.count || 0);
+      if (data.filteredCount !== undefined) {
+        setTotalCount(data.filteredCount);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch events");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [
+    currentPage,
+    entriesPerPage,
+    debouncedSearchTerm,
+    filterMonth,
+    startDate,
+    endDate,
+  ]);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/events/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Event deleted successfully");
+      fetchEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to delete event");
+    }
+  };
+
+  const handleExport = () => {
+    if (events.length === 0) return toast.warning("No data to export");
+    const ws = XLSX.utils.json_to_sheet(events);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Events");
+    XLSX.writeFile(wb, "Events.xlsx");
+    toast.success("Exported successfully");
+  };
+
+  const connectGoogleCalendar = () => {
+    toast.info("Google Calendar integration coming soon!");
+  };
+
+  return (
+    <>
+      <ContentHeader title="Events Management" />
+      <section className="content">
+        <div className="container-fluid px-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
+            {/* Filter Section */}
+            <div className="p-6 border-b border-gray-200 bg-gray-50">
+              <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Month:
+                  </span>
+                  <Select value={filterMonth} onValueChange={setFilterMonth}>
+                    <SelectTrigger className="w-40 bg-white">
+                      <SelectValue placeholder="All Months" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Months">All Months</SelectItem>
+                      <SelectItem value="January">January</SelectItem>
+                      <SelectItem value="February">February</SelectItem>
+                      <SelectItem value="March">March</SelectItem>
+                      <SelectItem value="April">April</SelectItem>
+                      <SelectItem value="May">May</SelectItem>
+                      <SelectItem value="June">June</SelectItem>
+                      <SelectItem value="July">July</SelectItem>
+                      <SelectItem value="August">August</SelectItem>
+                      <SelectItem value="September">September</SelectItem>
+                      <SelectItem value="October">October</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Date Range:
+                  </span>
+                  <Input
+                    type="date"
+                    className="w-40 bg-white"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                  <span>to</span>
+                  <Input
+                    type="date"
+                    className="w-40 bg-white"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-none"
+                >
+                  <Filter className="w-4 h-4 mr-1" /> Filter
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setFilterMonth("All Months");
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  <X className="w-4 h-4 mr-1" /> Clear
+                </Button>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <Button
+                  className="bg-blue-400 hover:bg-blue-500 text-white"
+                  onClick={connectGoogleCalendar}
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg"
+                    alt="GCal"
+                    className="w-5 h-5 mr-2"
+                  />
+                  Connect Google Calendar
+                </Button>
+                {hasPermission("create_events") && (
+                  <Button
+                    onClick={() => router.push("/events/create")}
+                    className="bg-[#00A65A] hover:bg-[#008d4c] text-white"
+                  >
+                    <Plus className="w-5 h-5 mr-2" /> Add New Events
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* List Header Actions (Search & Export) */}
+            <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Show</span>
+                <Select
+                  value={entriesPerPage.toString()}
+                  onValueChange={(v) => {
+                    setEntriesPerPage(Number(v));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="-1">All</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm">entries</span>
+
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  className="ml-4"
+                >
+                  Export Excel
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold">Search:</label>
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#001f3f] hover:bg-[#001f3f]">
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Sr No
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Unique ID
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      District
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Year
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Month
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Receiving Date
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Program Date
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Time
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Event Type
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap">
+                      Event Details
+                    </TableHead>
+                    <TableHead className="text-white font-bold whitespace-nowrap text-right">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-10">
+                        Loading...
+                      </TableCell>
+                    </TableRow>
+                  ) : events.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={11}
+                        className="text-center py-20 text-gray-500"
+                      >
+                        No events found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    events.map((event, index) => (
+                      <TableRow key={event._id} className="hover:bg-gray-50">
+                        <TableCell>
+                          {(currentPage - 1) * entriesPerPage + index + 1}
+                        </TableCell>
+                        <TableCell className="font-bold">
+                          {event.uniqueId}
+                        </TableCell>
+                        <TableCell>{event.district}</TableCell>
+                        <TableCell>{event.year}</TableCell>
+                        <TableCell>{event.month}</TableCell>
+                        <TableCell>
+                          {new Date(event.receivingDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(event.programDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>{event.time}</TableCell>
+                        <TableCell>{event.eventType}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {event.eventDetails}
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(`/events/${event._id}/view`)
+                                }
+                              >
+                                <Eye className="mr-2 h-4 w-4" /> View
+                              </DropdownMenuItem>
+                              {hasPermission("edit_events") && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(`/events/${event._id}/edit`)
+                                  }
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              {hasPermission("delete_events") && (
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDelete(event._id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            <div className="border-t border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing{" "}
+                  {(currentPage - 1) *
+                    (entriesPerPage === -1 ? totalCount : entriesPerPage) +
+                    1}{" "}
+                  to{" "}
+                  {entriesPerPage === -1
+                    ? totalCount
+                    : Math.min(currentPage * entriesPerPage, totalCount)}{" "}
+                  of {totalCount} entries
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="px-3 py-1 bg-gray-100 rounded text-sm font-medium">
+                    {currentPage}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={
+                      entriesPerPage === -1 ||
+                      currentPage * entriesPerPage >= totalCount
+                    }
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default EventList;

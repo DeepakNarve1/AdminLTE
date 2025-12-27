@@ -148,6 +148,24 @@ const permissions = [
     description: "Can view events",
     category: "events",
   },
+  {
+    name: "create_events",
+    displayName: "Create Events",
+    description: "Can create events",
+    category: "events",
+  },
+  {
+    name: "edit_events",
+    displayName: "Edit Events",
+    description: "Can edit events",
+    category: "events",
+  },
+  {
+    name: "delete_events",
+    displayName: "Delete Events",
+    description: "Can delete events",
+    category: "events",
+  },
 
   // Voter
   {

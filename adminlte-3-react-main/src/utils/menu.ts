@@ -71,6 +71,7 @@ export const MENU: IMenuItem[] = [
     icon: "fas fa-calendar-alt nav-icon",
     path: "/events",
     allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_events"],
     resource: "events",
   },
   {
