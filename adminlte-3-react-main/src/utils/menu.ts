@@ -30,6 +30,7 @@ export const MENU: IMenuItem[] = [
     name: i18n.t("menusidebar.label.dashboard"),
     icon: "fas fa-tachometer-alt nav-icon",
     path: "/dashboard",
+    allowedPermissions: ["view_dashboard"],
   },
   {
     name: i18n.t("menusidebar.label.users"),

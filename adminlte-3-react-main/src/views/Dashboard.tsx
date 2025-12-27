@@ -23,9 +23,18 @@ import {
   BarChart3,
 } from "lucide-react";
 import { ContentHeader } from "@app/components";
+import { RouteGuard } from "@app/components/RouteGuard";
 import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
+  return (
+    <RouteGuard requiredPermissions={["view_dashboard"]}>
+      <DashboardContent />
+    </RouteGuard>
+  );
+};
+
+const DashboardContent = () => {
   const router = useRouter();
   const [stats, setStats] = useState({
     totalUsers: 0,
