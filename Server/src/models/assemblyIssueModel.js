@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const assemblyIssueSchema = mongoose.Schema(
   {
-    uniqueId: { type: String, required: true },
+    uniqueId: { type: String, required: true, unique: true },
     year: { type: String, required: true },
     acMpNo: { type: String, default: "N/A" },
     block: { type: String, required: true },

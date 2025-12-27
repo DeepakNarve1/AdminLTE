@@ -26,6 +26,15 @@ import {
   DropdownMenuTrigger,
 } from "@app/components/ui/dropdown-menu";
 
+import * as XLSX from "xlsx";
+import { useDebounce } from "@app/hooks/useDebounce";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/components/ui/select";
 import {
   Search,
   Plus,
@@ -34,6 +43,8 @@ import {
   Trash2,
   AlertCircle,
   Eye,
+  Download,
+  Upload,
 } from "lucide-react";
 
 interface IAssemblyIssue {
@@ -70,21 +81,41 @@ const AssemblyIssueListContent = () => {
   const [issues, setIssues] = useState<IAssemblyIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const fetchIssues = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      const params: any = {
+        page: currentPage,
+        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        search: debouncedSearchTerm || undefined,
+      };
+
       const { data } = await axios.get(
         "http://localhost:5000/api/assembly-issues",
         {
           headers: { Authorization: `Bearer ${token}` },
+          params,
         }
       );
       setIssues(data.data || []);
+      setTotalCount(data.count || 0);
+      // If we filtered, use filteredCount, but API returns data.count as total?
+      // Conventionally data.filteredCount if search is active.
+      // Let's assume data.count is the relevant count for pagination.
+      if (data.filteredCount !== undefined) {
+        setTotalCount(data.filteredCount);
+      }
     } catch (error) {
-      // toast.error("Failed to fetch assembly issues");
       console.error(error);
+      // toast.error("Failed to fetch assembly issues");
     } finally {
       setLoading(false);
     }
@@ -92,7 +123,7 @@ const AssemblyIssueListContent = () => {
 
   useEffect(() => {
     fetchIssues();
-  }, []);
+  }, [currentPage, entriesPerPage, debouncedSearchTerm]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this issue?")) return;
@@ -108,13 +139,20 @@ const AssemblyIssueListContent = () => {
     }
   };
 
-  const filteredIssues = issues.filter(
-    (issue) =>
-      issue.uniqueId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.block?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.village?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.boothName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleExport = () => {
+    if (issues.length === 0) return toast.warning("No data to export");
+    // Prepare data for export (flatten or select fields if needed)
+    // Here exporting raw issue objects
+    const ws = XLSX.utils.json_to_sheet(issues);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Assembly Issues");
+    XLSX.writeFile(wb, "AssemblyIssues.xlsx");
+    toast.success("Exported successfully");
+  };
+
+  const handleImport = () => {
+    toast.info("Import feature coming soon");
+  };
 
   return (
     <>
@@ -136,6 +174,22 @@ const AssemblyIssueListContent = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleExport}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Download className="w-5 h-5 mr-2" /> Export
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleImport}
+                    className="bg-[#00563B] hover:bg-[#368F8B] text-white"
+                  >
+                    <Upload className="w-5 h-5 mr-2" /> Import
+                  </Button>
                   {hasPermission("create_assembly_issues") && (
                     <Button
                       size="lg"
@@ -146,6 +200,34 @@ const AssemblyIssueListContent = () => {
                     </Button>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Pagination/Filter Controls */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-end">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-700">
+                  Entries per page:
+                </span>
+                <Select
+                  value={entriesPerPage.toString()}
+                  onValueChange={(v: string) => {
+                    setEntriesPerPage(v === "-1" ? -1 : Number(v));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-32 h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="1000">1000</SelectItem>
+                    <SelectItem value="-1">All</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -202,7 +284,7 @@ const AssemblyIssueListContent = () => {
                         Loading...
                       </TableCell>
                     </TableRow>
-                  ) : filteredIssues.length === 0 ? (
+                  ) : issues.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={13}
@@ -212,7 +294,7 @@ const AssemblyIssueListContent = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredIssues.map((issue) => (
+                    issues.map((issue) => (
                       <TableRow key={issue._id} className="hover:bg-gray-50">
                         <TableCell className="font-medium text-gray-900 whitespace-nowrap">
                           {issue.uniqueId}
@@ -311,6 +393,45 @@ const AssemblyIssueListContent = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Pagination Footer */}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing{" "}
+                  {(currentPage - 1) *
+                    (entriesPerPage === -1 ? totalCount : entriesPerPage) +
+                    1}{" "}
+                  to{" "}
+                  {entriesPerPage === -1
+                    ? totalCount
+                    : Math.min(currentPage * entriesPerPage, totalCount)}{" "}
+                  of {totalCount} entries
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="px-4 py-2 bg-[#00563B] text-white rounded-md text-sm font-medium">
+                    {currentPage}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={
+                      entriesPerPage === -1 ||
+                      currentPage * entriesPerPage >= totalCount
+                    }
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
