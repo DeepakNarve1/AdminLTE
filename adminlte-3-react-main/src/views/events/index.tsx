@@ -245,7 +245,7 @@ const EventListContent = () => {
 
               <div className="flex justify-end gap-3 mt-4">
                 <Button
-                  className="bg-blue-400 hover:bg-blue-500 text-white"
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={connectGoogleCalendar}
                 >
                   <img
