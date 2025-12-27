@@ -86,13 +86,36 @@ export const RouteGuard = ({
   // Show nothing while checking permissions
   if (!user) return null;
 
-  // Check permissions before rendering
-  if (requiredPermission && !hasPermission(requiredPermission)) return null;
+  // Check specific permission if provided
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <h1 className="text-4xl font-bold text-gray-300 mb-4">403</h1>
+        <h2 className="text-xl font-semibold text-gray-600">Access Denied</h2>
+        <p className="text-gray-500 mt-2">
+          You don't have authorization to view this page.
+        </p>
+      </div>
+    );
+  }
+
+  // Check multiple permissions if provided
   if (requiredPermissions && requiredPermissions.length > 0) {
     const hasAccess = requireAll
       ? hasAllPermissions(requiredPermissions)
       : hasAnyPermission(requiredPermissions);
-    if (!hasAccess) return null;
+
+    if (!hasAccess) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <h1 className="text-4xl font-bold text-gray-300 mb-4">403</h1>
+          <h2 className="text-xl font-semibold text-gray-600">Access Denied</h2>
+          <p className="text-gray-500 mt-2">
+            You don't have authorization to view this page.
+          </p>
+        </div>
+      );
+    }
   }
 
   return <>{children}</>;
