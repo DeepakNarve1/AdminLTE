@@ -77,7 +77,7 @@ const Login = () => {
 
       // Small delay to ensure Redux state is updated
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/");
       }, 100);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Invalid credentials");
