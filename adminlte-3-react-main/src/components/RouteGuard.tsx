@@ -90,10 +90,11 @@ export const RouteGuard = ({
   if (requiredPermission && !hasPermission(requiredPermission)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <h1 className="text-4xl font-bold text-gray-300 mb-4">403</h1>
-        <h2 className="text-xl font-semibold text-gray-600">Access Denied</h2>
-        <p className="text-gray-500 mt-2">
-          You don't have authorization to view this page.
+        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+          Permission Not Assigned
+        </h2>
+        <p className="text-gray-500">
+          You do not have permission to view this module.
         </p>
       </div>
     );
@@ -108,10 +109,11 @@ export const RouteGuard = ({
     if (!hasAccess) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <h1 className="text-4xl font-bold text-gray-300 mb-4">403</h1>
-          <h2 className="text-xl font-semibold text-gray-600">Access Denied</h2>
-          <p className="text-gray-500 mt-2">
-            You don't have authorization to view this page.
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            Permission Not Assigned
+          </h2>
+          <p className="text-gray-500">
+            You do not have permission to view this module.
           </p>
         </div>
       );
