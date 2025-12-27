@@ -11,7 +11,7 @@ const eventSchema = mongoose.Schema(
     time: { type: String, required: true },
     eventType: { type: String, required: true },
     eventDetails: { type: String, required: true },
-    // Google calendar integration fields could be added later
+    googleEventId: { type: String },
   },
   {
     timestamps: true,
