@@ -112,4 +112,12 @@ export const MENU: IMenuItem[] = [
     allowedPermissions: ["view_states", "manage_states"],
     resource: "states",
   },
+  {
+    name: "Member List",
+    icon: "fas fa-users-cog nav-icon",
+    path: "/member-list",
+    allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_members"],
+    resource: "members",
+  },
 ];
