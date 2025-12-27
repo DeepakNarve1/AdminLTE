@@ -55,6 +55,9 @@ app.use("/api/assembly-issues", assemblyIssueRoutes);
 const eventRoutes = require("./routes/eventRoute");
 app.use("/api/events", eventRoutes);
 
+const memberRoutes = require("./routes/memberRoute");
+app.use("/api/members", memberRoutes);
+
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });

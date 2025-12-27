@@ -260,6 +260,32 @@ const permissions = [
     description: "Can delete states",
     category: "states",
   },
+
+  // Member
+  {
+    name: "view_members",
+    displayName: "View Members",
+    description: "Can view members list",
+    category: "members",
+  },
+  {
+    name: "create_members",
+    displayName: "Create Members",
+    description: "Can create members",
+    category: "members",
+  },
+  {
+    name: "edit_members",
+    displayName: "Edit Members",
+    description: "Can edit members",
+    category: "members",
+  },
+  {
+    name: "delete_members",
+    displayName: "Delete Members",
+    description: "Can delete members",
+    category: "members",
+  },
 ];
 
 async function seedPermissions() {
