@@ -17,45 +17,38 @@ export default function ProtectedLayout({
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  // Fetch user with populated role and permissions
-  useEffect(() => {
-    const fetchUserWithPermissions = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
+  const fetchUserWithPermissions = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        if (!token || !storedUser) {
-          router.push("/login");
-          return;
-        }
-
-        const parsedUser = JSON.parse(storedUser);
-
-        // Fetch fresh user data with populated role and permissions
-        // Use /me endpoint to avoid permission issues (users can always view themselves)
-        const response = await axios.get(`http://localhost:5000/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const userData = response.data.data;
-
-        // Update Redux store with fresh data
-        dispatch(setCurrentUser(userData));
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+      if (!token) {
         router.push("/login");
+        return;
       }
-    };
 
-    if (!user) {
-      fetchUserWithPermissions();
-    } else {
+      // Fetch fresh user data with populated role and permissions
+      const response = await axios.get(`http://localhost:5000/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const userData = response.data.data;
+
+      // Update Redux store with fresh data
+      dispatch(setCurrentUser(userData));
       setLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      // Don't log out immediately on error (network blip), but maybe handle it
     }
-  }, [user, dispatch, router]);
+  };
+
+  useEffect(() => {
+    fetchUserWithPermissions();
+
+    // Poll every 10 seconds to keep permissions fresh
+    const interval = setInterval(fetchUserWithPermissions, 10000);
+    return () => clearInterval(interval);
+  }, [dispatch, router]);
 
   if (loading || !user) {
     return (
