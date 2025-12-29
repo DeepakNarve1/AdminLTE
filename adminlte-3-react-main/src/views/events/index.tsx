@@ -36,7 +36,6 @@ import {
   SelectValue,
 } from "@app/components/ui/select";
 import {
-  Search,
   Plus,
   MoreVertical,
   Edit,
@@ -290,7 +289,7 @@ const EventListContent = () => {
 
                 <Button
                   variant="outline"
-                  className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
+                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
                 >
                   <Filter className="w-4 h-4 mr-1" /> Filter
                 </Button>
@@ -314,15 +313,17 @@ const EventListContent = () => {
                   accept=".xlsx, .xls, .csv"
                   onChange={handleImport}
                 />
+
                 <Button
                   variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => router.push("/events/calendar")}
                   className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
                 >
-                  Import Excel
+                  📅 Calendar View
                 </Button>
+
                 <Button
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  className="bg-white hover:bg-blue-600 text-blue-600 hover:text-white"
                   onClick={handleSyncAll}
                   disabled={syncing}
                 >
@@ -336,7 +337,7 @@ const EventListContent = () => {
                 {hasPermission("create_events") && (
                   <Button
                     onClick={() => router.push("/events/create")}
-                    className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
+                    className="border border-[#2e7875] bg-white text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
                   >
                     <Plus className="w-5 h-5 mr-2" /> Add New Events
                   </Button>
@@ -370,8 +371,15 @@ const EventListContent = () => {
 
                 <Button
                   variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
+                >
+                  Import Excel
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={handleExport}
-                  className="ml-4"
+                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
                 >
                   Export Excel
                 </Button>

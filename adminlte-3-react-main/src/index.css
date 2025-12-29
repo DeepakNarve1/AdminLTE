@@ -191,3 +191,73 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* =========================
+   FULLCALENDAR + TAILWIND
+   ========================= */
+
+  .fc {
+    @apply text-sm;
+  }
+
+  /* Header */
+  .fc-toolbar {
+    @apply mb-4 flex flex-wrap gap-2;
+  }
+
+  .fc-toolbar-title {
+    @apply text-lg font-semibold text-neutral-800 dark:text-neutral-100;
+  }
+
+  .fc-button {
+    @apply bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700
+         text-neutral-700 dark:text-neutral-200
+         px-3 py-1.5 rounded-md shadow-sm
+         hover:bg-neutral-100 dark:hover:bg-neutral-700
+         focus:outline-none focus:ring-2 focus:ring-[#2e7875];
+  }
+
+  .fc-button-primary:not(:disabled).fc-button-active {
+    @apply bg-[#2e7875] text-white border-[#2e7875];
+  }
+
+  /* Calendar Grid */
+  .fc-scrollgrid {
+    @apply border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden;
+  }
+
+  .fc-daygrid-day {
+    @apply bg-white dark:bg-neutral-900;
+  }
+
+  .fc-daygrid-day-number {
+    @apply text-xs font-medium text-neutral-600 dark:text-neutral-400 p-1;
+  }
+
+  /* Today Highlight */
+  .fc-day-today {
+    @apply bg-emerald-50 dark:bg-emerald-900/20;
+  }
+
+  /* Events (Notion-style) */
+  .fc-event {
+    @apply bg-[#2e7875] text-white border-none rounded-md
+         px-2 py-1 text-xs font-medium
+         cursor-pointer truncate;
+  }
+
+  .fc-event:hover {
+    @apply opacity-90;
+  }
+
+  /* "+ more" link */
+  .fc-daygrid-more-link {
+    @apply text-xs text-[#2e7875] font-medium;
+  }
+
+  /* Remove blue focus outline */
+  .fc a {
+    @apply no-underline;
+  }
+}
