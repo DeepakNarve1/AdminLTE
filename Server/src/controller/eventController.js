@@ -10,14 +10,7 @@ const {
 // @access  Private
 const getEvents = async (req, res) => {
   try {
-    const {
-      month,
-      search,
-      startDate,
-      endDate,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { month, search, startDate, endDate, page = 1, limit } = req.query;
 
     const query = {};
 
@@ -41,14 +34,24 @@ const getEvents = async (req, res) => {
       ];
     }
 
-    const pageNum = Number(page);
-    const limitNum = Number(limit);
+    const pageNum = parseInt(page) || 1;
+    // Parse limit: if not provided or invalid, default to 10
+    // If explicitly -1, keep it as -1 for "all" entries
+    let limitNum = 10;
+    if (limit !== undefined && limit !== null && limit !== "") {
+      const parsedLimit = parseInt(limit);
+      if (!isNaN(parsedLimit)) {
+        limitNum = parsedLimit;
+      }
+    }
+
     let events;
     let filteredCount;
     let totalCount;
 
     totalCount = await Event.countDocuments({});
 
+    // If limit is -1, fetch all records
     if (limitNum === -1) {
       events = await Event.find(query).sort({ programDate: -1 });
       filteredCount = events.length;

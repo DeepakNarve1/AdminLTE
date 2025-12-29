@@ -7,7 +7,7 @@ const asyncHandler = require("express-async-handler");
 const getMembers = asyncHandler(async (req, res) => {
   const {
     page = 1,
-    limit = 10,
+    limit,
     search,
     block,
     year,
@@ -34,12 +34,23 @@ const getMembers = asyncHandler(async (req, res) => {
   if (samiti && samiti !== "All") query.samiti = samiti;
   if (code && code !== "All") query.code = code;
 
+  const pageNum = parseInt(page) || 1;
+  // Parse limit: if not provided or invalid, default to 10
+  // If explicitly -1, keep it as -1 for "all" entries
+  let limitNum = 10;
+  if (limit !== undefined && limit !== null && limit !== "") {
+    const parsedLimit = parseInt(limit);
+    if (!isNaN(parsedLimit)) {
+      limitNum = parsedLimit;
+    }
+  }
+
   let queryBuilder = Member.find(query).sort({ createdAt: -1 });
 
-  // Pagination
-  if (limit !== "-1") {
-    const skip = (Number(page) - 1) * Number(limit);
-    queryBuilder = queryBuilder.skip(skip).limit(Number(limit));
+  // Pagination - if limit is -1, fetch all records
+  if (limitNum !== -1) {
+    const skip = (pageNum - 1) * limitNum;
+    queryBuilder = queryBuilder.skip(skip).limit(limitNum);
   }
 
   const members = await queryBuilder;
@@ -50,8 +61,8 @@ const getMembers = asyncHandler(async (req, res) => {
     data: members,
     count: count,
     pagination: {
-      page: Number(page),
-      pages: limit === "-1" ? 1 : Math.ceil(count / Number(limit)),
+      page: pageNum,
+      pages: limitNum === -1 ? 1 : Math.ceil(count / limitNum),
     },
   });
 });

@@ -105,7 +105,7 @@ const EventListContent = () => {
       const token = localStorage.getItem("token");
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        limit: entriesPerPage, // Send -1 directly, don't convert to undefined
         search: debouncedSearchTerm || undefined,
         month: filterMonth === "All Months" ? undefined : filterMonth,
         startDate: startDate || undefined,
@@ -494,7 +494,9 @@ const EventListContent = () => {
                     events.map((event, index) => (
                       <TableRow key={event._id} className="hover:bg-gray-50">
                         <TableCell>
-                          {(currentPage - 1) * entriesPerPage + index + 1}
+                          {entriesPerPage === -1
+                            ? index + 1
+                            : (currentPage - 1) * entriesPerPage + index + 1}
                         </TableCell>
                         {visibleColumns.uniqueId && (
                           <TableCell className="font-bold">

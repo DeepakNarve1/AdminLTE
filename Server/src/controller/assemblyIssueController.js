@@ -5,14 +5,7 @@ const AssemblyIssue = require("../models/assemblyIssueModel");
 // @access  Private
 const getAssemblyIssues = async (req, res) => {
   try {
-    const {
-      status,
-      priority,
-      assembly,
-      search,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { status, priority, assembly, search, page = 1, limit } = req.query;
 
     // Build filter query
     const query = {};
@@ -31,8 +24,16 @@ const getAssemblyIssues = async (req, res) => {
       ];
     }
 
-    const pageNum = Number(page);
-    const limitNum = Number(limit);
+    const pageNum = parseInt(page) || 1;
+    // Parse limit: if not provided or invalid, default to 10
+    // If explicitly -1, keep it as -1 for "all" entries
+    let limitNum = 10;
+    if (limit !== undefined && limit !== null && limit !== "") {
+      const parsedLimit = parseInt(limit);
+      if (!isNaN(parsedLimit)) {
+        limitNum = parsedLimit;
+      }
+    }
 
     let issues;
     let filteredCount;
@@ -41,6 +42,7 @@ const getAssemblyIssues = async (req, res) => {
     // Always get the true total (unfiltered)
     totalCount = await AssemblyIssue.countDocuments({});
 
+    // If limit is -1, fetch all records
     if (limitNum === -1) {
       // Return all filtered records (no pagination)
       issues = await AssemblyIssue.find(query).sort({ createdAt: -1 });

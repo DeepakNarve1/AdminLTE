@@ -99,7 +99,7 @@ const MemberListContent = () => {
       const token = localStorage.getItem("token");
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        limit: entriesPerPage, // Send -1 directly, don't convert to undefined
         search: debouncedSearchTerm || undefined,
         block: filterBlock === "All" ? undefined : filterBlock,
         year: filterYear === "All" ? undefined : filterYear,

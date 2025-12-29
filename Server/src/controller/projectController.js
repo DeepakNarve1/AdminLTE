@@ -4,14 +4,7 @@ const Project = require("../models/projectModel");
 // @route   GET /api/projects
 const getProjects = async (req, res) => {
   try {
-    const {
-      block,
-      department,
-      status,
-      search,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { block, department, status, search, page = 1, limit } = req.query;
 
     const query = {};
 
@@ -27,13 +20,22 @@ const getProjects = async (req, res) => {
       ];
     }
 
-    const pageNum = Number(page);
-    const limitNum = Number(limit);
+    const pageNum = parseInt(page) || 1;
+    // Parse limit: if not provided or invalid, default to 10
+    // If explicitly -1, keep it as -1 for "all" entries
+    let limitNum = 10;
+    if (limit !== undefined && limit !== null && limit !== "") {
+      const parsedLimit = parseInt(limit);
+      if (!isNaN(parsedLimit)) {
+        limitNum = parsedLimit;
+      }
+    }
 
     let projects;
     let filteredCount;
     let totalCount = await Project.countDocuments({});
 
+    // If limit is -1, fetch all records
     if (limitNum === -1) {
       projects = await Project.find(query).sort({ createdAt: -1 });
       filteredCount = projects.length;

@@ -112,7 +112,7 @@ const AssemblyIssueListContent = () => {
       const token = localStorage.getItem("token");
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        limit: entriesPerPage, // Send -1 directly, don't convert to undefined
         search: debouncedSearchTerm || undefined,
       };
 

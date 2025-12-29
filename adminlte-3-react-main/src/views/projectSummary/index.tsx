@@ -151,7 +151,7 @@ const ProjectSummary = () => {
       setLoading(true);
       const params: any = {
         page: currentPage,
-        limit: entriesPerPage === -1 ? undefined : entriesPerPage,
+        limit: entriesPerPage, // Send -1 directly, don't convert to undefined
         block: filterBlock === "all" ? undefined : filterBlock,
         department: filterDepartment === "all" ? undefined : filterDepartment,
         status: filterStatus === "all" ? undefined : filterStatus,
@@ -518,7 +518,9 @@ const ProjectSummary = () => {
                       >
                         {visibleColumns.srNo && (
                           <TableCell>
-                            {(currentPage - 1) * entriesPerPage + idx + 1}
+                            {entriesPerPage === -1
+                              ? idx + 1
+                              : (currentPage - 1) * entriesPerPage + idx + 1}
                           </TableCell>
                         )}
                         {visibleColumns.district && (
@@ -626,9 +628,15 @@ const ProjectSummary = () => {
             <div className="border-t border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600">
-                  Showing {(currentPage - 1) * entriesPerPage + 1} to{" "}
-                  {Math.min(currentPage * entriesPerPage, totalCount)} of{" "}
-                  {totalCount} entries
+                  Showing{" "}
+                  {entriesPerPage === -1
+                    ? 1
+                    : (currentPage - 1) * entriesPerPage + 1}{" "}
+                  to{" "}
+                  {entriesPerPage === -1
+                    ? totalCount
+                    : Math.min(currentPage * entriesPerPage, totalCount)}{" "}
+                  of {totalCount} entries
                 </p>
                 <div className="flex items-center gap-3">
                   <Button
@@ -643,7 +651,10 @@ const ProjectSummary = () => {
                   </span>
                   <Button
                     variant="outline"
-                    disabled={currentPage * entriesPerPage >= totalCount}
+                    disabled={
+                      entriesPerPage === -1 ||
+                      currentPage * entriesPerPage >= totalCount
+                    }
                     onClick={() => setCurrentPage((p) => p + 1)}
                   >
                     Next
