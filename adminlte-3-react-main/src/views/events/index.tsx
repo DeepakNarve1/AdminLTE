@@ -44,7 +44,9 @@ import {
   X,
   Eye,
   Columns,
+  Calendar1,
 } from "lucide-react";
+import { Calendar } from "@fullcalendar/core/index.js";
 
 interface IEvent {
   _id: string;
@@ -319,11 +321,12 @@ const EventListContent = () => {
                   onClick={() => router.push("/events/calendar")}
                   className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
                 >
-                  📅 Calendar View
+                  <Calendar1 className="w-4 h-4 mr-1" /> Calendar View
                 </Button>
 
                 <Button
-                  className="bg-white hover:bg-blue-600 text-blue-600 hover:text-white"
+                  className="bg-white dark:bg-neutral-900 rounded-sm text-[#2e7875] hover:bg-[#2e7875] hover:text-white 
+border border-[#2e7875]"
                   onClick={handleSyncAll}
                   disabled={syncing}
                 >
