@@ -6,11 +6,24 @@ const {
   updateEvent,
   deleteEvent,
   seedEvents,
+  syncAllEvents,
 } = require("../controller/eventController");
 const protect = require("../middleware/authMiddleware");
 const { checkPermission } = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
+console.log("Event routes initialized");
+
+router.post(
+  "/sync",
+  (req, res, next) => {
+    console.log("Sync route hit");
+    next();
+  },
+  protect,
+  checkPermission("edit_events"),
+  syncAllEvents
+);
 
 router
   .route("/")

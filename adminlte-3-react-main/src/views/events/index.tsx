@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ContentHeader } from "@app/components";
@@ -81,6 +81,8 @@ const EventListContent = () => {
   const [filterMonth, setFilterMonth] = useState("All Months");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [syncing, setSyncing] = useState(false);
 
   // Column Visibility
   const [visibleColumns, setVisibleColumns] = useState({
@@ -161,10 +163,71 @@ const EventListContent = () => {
     toast.success("Exported successfully");
   };
 
-  const connectGoogleCalendar = () => {
-    toast.info(
-      "Google Calendar integration is automatic. Events are synced when created/updated."
-    );
+  const handleSyncAll = async () => {
+    try {
+      setSyncing(true);
+      const token = localStorage.getItem("token");
+      const { data } = await axios.post(
+        "http://localhost:5000/api/events/sync",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success(data.message);
+      fetchEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to sync events");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: "binary" });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+
+        if (data.length === 0) {
+          toast.warning("No data found in excel file");
+          return;
+        }
+
+        const token = localStorage.getItem("token");
+        let importedCount = 0;
+
+        for (const item of data as any[]) {
+          try {
+            // Very basic validation/mapping
+            if (!item.uniqueId || !item.programDate) continue;
+
+            await axios.post("http://localhost:5000/api/events", item, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            importedCount++;
+          } catch (err) {
+            console.error("Failed to import row:", item, err);
+          }
+        }
+
+        toast.success(`Successfully imported ${importedCount} events`);
+        fetchEvents();
+      } catch (error) {
+        console.error("Import error:", error);
+        toast.error("Failed to parse excel file");
+      }
+    };
+    reader.readAsBinaryString(file);
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const toggleColumn = (key: keyof typeof visibleColumns) => {
@@ -244,16 +307,31 @@ const EventListContent = () => {
               </div>
 
               <div className="flex justify-end gap-3 mt-4">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleImport}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
+                >
+                  Import Excel
+                </Button>
                 <Button
                   className="bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={connectGoogleCalendar}
+                  onClick={handleSyncAll}
+                  disabled={syncing}
                 >
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg"
                     alt="GCal"
                     className="w-5 h-5 mr-2"
                   />
-                  Connect Google Calendar
+                  {syncing ? "Syncing..." : "Sync to Google Calendar"}
                 </Button>
                 {hasPermission("create_events") && (
                   <Button
@@ -272,10 +350,9 @@ const EventListContent = () => {
                 <span className="text-sm">Show</span>
                 <Select
                   value={entriesPerPage.toString()}
-                  onValueChange={(v) => {
-                    setEntriesPerPage(Number(v));
-                    setCurrentPage(1);
-                  }}
+                  onValueChange={(v: string) =>
+                    setEntriesPerPage(v === "-1" ? -1 : Number(v))
+                  }
                 >
                   <SelectTrigger className="w-20">
                     <SelectValue />
@@ -284,6 +361,8 @@ const EventListContent = () => {
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="25">25</SelectItem>
                     <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="1000">1000</SelectItem>
                     <SelectItem value="-1">All</SelectItem>
                   </SelectContent>
                 </Select>

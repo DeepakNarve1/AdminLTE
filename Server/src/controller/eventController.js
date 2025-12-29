@@ -1,4 +1,9 @@
 const Event = require("../models/eventModel");
+const {
+  createGoogleEvent,
+  updateGoogleEvent,
+  deleteGoogleEvent,
+} = require("../services/googleCalendarService");
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -87,7 +92,20 @@ const getEventById = async (req, res) => {
 // @access  Private
 const createEvent = async (req, res) => {
   try {
+    // Create in Local DB
     const event = await Event.create(req.body);
+
+    // Sync to Google Calendar
+    try {
+      const googleEventId = await createGoogleEvent(event);
+      if (googleEventId) {
+        event.googleEventId = googleEventId;
+        await event.save();
+      }
+    } catch (syncError) {
+      console.error("Failed to sync new event to Google Calendar:", syncError);
+    }
+
     res.status(201).json({ success: true, data: event });
   } catch (error) {
     if (error.code === 11000) {
@@ -111,6 +129,23 @@ const updateEvent = async (req, res) => {
       req.body,
       { new: true }
     );
+
+    // Sync to Google Calendar
+    try {
+      if (updatedEvent.googleEventId) {
+        await updateGoogleEvent(updatedEvent.googleEventId, updatedEvent);
+      } else {
+        // If it was never synced, sync it now
+        const googleEventId = await createGoogleEvent(updatedEvent);
+        if (googleEventId) {
+          updatedEvent.googleEventId = googleEventId;
+          await updatedEvent.save();
+        }
+      }
+    } catch (syncError) {
+      console.error("Failed to update Google Calendar event:", syncError);
+    }
+
     res.json({ success: true, data: updatedEvent });
   } catch (error) {
     if (error.code === 11000) {
@@ -129,7 +164,18 @@ const deleteEvent = async (req, res) => {
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
+    const googleEventId = event.googleEventId;
     await event.deleteOne();
+
+    // Remove from Google Calendar
+    if (googleEventId) {
+      try {
+        await deleteGoogleEvent(googleEventId);
+      } catch (syncError) {
+        console.error("Failed to delete Google Calendar event:", syncError);
+      }
+    }
+
     res.json({ success: true, message: "Event removed" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -170,6 +216,32 @@ const seedEvents = async (req, res) => {
   }
 };
 
+// @desc    Sync all unsynced events to Google Calendar
+// @route   POST /api/events/sync
+// @access  Private
+const syncAllEvents = async (req, res) => {
+  try {
+    const events = await Event.find({ googleEventId: { $exists: false } });
+    let syncCount = 0;
+
+    for (const event of events) {
+      const googleEventId = await createGoogleEvent(event);
+      if (googleEventId) {
+        event.googleEventId = googleEventId;
+        await event.save();
+        syncCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully synced ${syncCount} events to Google Calendar.`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getEvents,
   getEventById,
@@ -177,4 +249,5 @@ module.exports = {
   updateEvent,
   deleteEvent,
   seedEvents,
+  syncAllEvents,
 };
