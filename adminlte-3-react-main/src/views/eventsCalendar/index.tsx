@@ -15,7 +15,25 @@ import {
   eachDayOfInterval,
   getWeekOfMonth,
   isToday,
+  addWeeks,
+  subWeeks,
+  addDays,
+  subDays,
 } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@app/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { Button } from "@app/components/ui/button";
 import { cn } from "@app/lib/utils";
 import axios from "axios";
@@ -44,6 +62,7 @@ interface CalendarEvent {
     | "neutral"
     | "emerald";
   date: Date;
+  details: string;
 }
 
 export default function CalendarPage() {
@@ -52,6 +71,8 @@ export default function CalendarPage() {
 
   // Mock events based on the screenshot
   const [events, setEvents] = React.useState<CalendarEvent[]>([]);
+  const [selectedEvent, setSelectedEvent] =
+    React.useState<CalendarEvent | null>(null);
 
   const getEventColor = (title: string): CalendarEvent["color"] => {
     const t = title.toLowerCase();
@@ -78,6 +99,7 @@ export default function CalendarPage() {
           time: e.time || "", // optional, you can format time
           color: getEventColor(e.eventType || ""),
           date: new Date(e.programDate),
+          details: e.eventDetails || "No details provided",
         }));
 
         setEvents(mappedEvents);
@@ -91,16 +113,58 @@ export default function CalendarPage() {
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
 
-  const calendarDays = eachDayOfInterval({
-    start: startDate,
-    end: endDate,
-  });
+  // Calculate calendar days based on view
+  const getCalendarDays = () => {
+    switch (view) {
+      case "Week view":
+        return eachDayOfInterval({
+          start: startOfWeek(currentDate),
+          end: endOfWeek(currentDate),
+        });
+      case "Day view":
+        return [currentDate];
+      case "Month view":
+      default:
+        const startDate = startOfWeek(monthStart);
+        const endDate = endOfWeek(monthEnd);
+        return eachDayOfInterval({
+          start: startDate,
+          end: endDate,
+        });
+    }
+  };
 
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  const calendarDays = getCalendarDays();
+
+  const handleNext = () => {
+    switch (view) {
+      case "Week view":
+        setCurrentDate(addWeeks(currentDate, 1));
+        break;
+      case "Day view":
+        setCurrentDate(addDays(currentDate, 1));
+        break;
+      case "Month view":
+      default:
+        setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  const handlePrev = () => {
+    switch (view) {
+      case "Week view":
+        setCurrentDate(subWeeks(currentDate, 1));
+        break;
+      case "Day view":
+        setCurrentDate(subDays(currentDate, 1));
+        break;
+      case "Month view":
+      default:
+        setCurrentDate(subMonths(currentDate, 1));
+    }
+  };
+
   const goToToday = () => setCurrentDate(new Date());
 
   return (
@@ -141,7 +205,7 @@ export default function CalendarPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-md"
-                onClick={prevMonth}
+                onClick={handlePrev}
               >
                 <ChevronLeft className="h-4 w-4 text-neutral-600" />
               </Button>
@@ -156,38 +220,60 @@ export default function CalendarPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-md"
-                onClick={nextMonth}
+                onClick={handleNext}
               >
                 <ChevronRight className="h-4 w-4 text-neutral-600" />
               </Button>
             </div>
 
-            <Button
-              variant="outline"
-              className="h-9 gap-2 border-neutral-200 px-4 text-sm font-medium text-neutral-700 bg-transparent"
-            >
-              {view}
-              <ChevronDown className="h-4 w-4 text-neutral-400" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-9 gap-2 border-neutral-200 px-4 text-sm font-medium text-neutral-700 bg-transparent"
+                >
+                  {view}
+                  <ChevronDown className="h-4 w-4 text-neutral-400" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setView("Month view")}>
+                  Month view
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("Week view")}>
+                  Week view
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("Day view")}>
+                  Day view
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
         {/* Calendar Grid */}
         <div className="overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-sm">
-          {/* Day Headers */}
-          <div className="grid grid-cols-7 border-b border-neutral-200 bg-white">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div
-                key={day}
-                className="py-3 text-center text-sm font-medium text-neutral-400"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
+          {/* Day Headers - Hidden in Day view */}
+          {view !== "Day view" && (
+            <div className="grid grid-cols-7 border-b border-neutral-200 bg-white">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div
+                  key={day}
+                  className="py-3 text-center text-sm font-medium text-neutral-400"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Days */}
-          <div className="grid grid-cols-7">
+          <div
+            className={cn(
+              "grid",
+              view === "Day view" ? "grid-cols-1" : "grid-cols-7"
+            )}
+          >
             {calendarDays.map((day, i) => {
               const dayEvents = events.filter((e) => isSameDay(e.date, day));
               const isSelected = isSameDay(day, currentDate);
@@ -197,7 +283,8 @@ export default function CalendarPage() {
                 <div
                   key={day.toString()}
                   className={cn(
-                    "relative min-h-[140px] border-r border-b border-neutral-200 p-2 transition-colors last:border-r-0",
+                    "relative min-h-[140px] border-b border-neutral-200 p-2 transition-colors",
+                    view !== "Day view" && "border-r last:border-r-0",
                     !isCurrentMonth && "bg-neutral-50/30",
                     isSelected && "bg-indigo-50/20"
                   )}
@@ -205,22 +292,40 @@ export default function CalendarPage() {
                 >
                   <span
                     className={cn(
-                      "inline-flex h-7 w-7 items-center justify-center text-sm font-medium transition-colors",
+                      "text-sm font-medium transition-colors",
+                      view !== "Day view"
+                        ? "inline-flex h-7 w-7 items-center justify-center"
+                        : "inline-block mb-2",
                       !isCurrentMonth ? "text-neutral-300" : "text-neutral-900",
-                      isToday(day) && "rounded-full bg-indigo-600 text-white"
+                      isToday(day) &&
+                        (view !== "Day view"
+                          ? "rounded-full bg-indigo-600 text-white"
+                          : "text-indigo-600 font-bold")
                     )}
                   >
-                    {format(day, "d")}
+                    {view !== "Day view"
+                      ? format(day, "d")
+                      : format(day, "EEEE, d")}
                   </span>
 
                   <div className="mt-2 flex flex-col gap-1">
-                    {dayEvents.slice(0, 3).map((event) => (
+                    {(view === "Month view"
+                      ? dayEvents.slice(0, 3)
+                      : dayEvents
+                    ).map((event) => (
                       <div
                         key={event.id}
                         className={cn(
-                          "group flex cursor-pointer items-center justify-between rounded-md px-2 py-1 text-[11px] font-medium transition-shadow hover:shadow-sm",
-                          colorStyles[event.color]
+                          "group flex cursor-pointer items-center justify-between transition-shadow hover:shadow-sm",
+                          colorStyles[event.color],
+                          view === "Month view"
+                            ? "rounded-md px-2 py-1 text-[11px] font-medium"
+                            : "rounded-md px-3 py-2 text-xs font-semibold"
                         )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEvent(event);
+                        }}
                       >
                         <span className="truncate">{event.title}</span>
                         <span className="ml-1 shrink-0 opacity-60">
@@ -228,7 +333,7 @@ export default function CalendarPage() {
                         </span>
                       </div>
                     ))}
-                    {dayEvents.length > 3 && (
+                    {view === "Month view" && dayEvents.length > 3 && (
                       <div className="px-2 text-[11px] font-medium text-neutral-500">
                         {dayEvents.length - 3} more...
                       </div>
@@ -240,6 +345,46 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={!!selectedEvent}
+        onOpenChange={(open: boolean) => !open && setSelectedEvent(null)}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "h-3 w-3 rounded-full",
+                  selectedEvent?.color === "blue" && "bg-blue-500",
+                  selectedEvent?.color === "pink" && "bg-pink-500",
+                  selectedEvent?.color === "green" && "bg-green-500",
+                  selectedEvent?.color === "purple" && "bg-purple-500",
+                  selectedEvent?.color === "orange" && "bg-orange-500",
+                  selectedEvent?.color === "neutral" && "bg-neutral-500",
+                  selectedEvent?.color === "emerald" && "bg-emerald-500"
+                )}
+              />
+              {selectedEvent?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedEvent?.date &&
+                format(selectedEvent.date, "EEEE, MMMM d, yyyy")}
+              {selectedEvent?.time && ` at ${selectedEvent.time}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="text-sm text-neutral-600">
+              {selectedEvent?.details}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedEvent(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
