@@ -50,8 +50,12 @@ const colorStyles = {
   green: "bg-green-50 text-green-700 border border-green-200",
   purple: "bg-purple-50 text-purple-700 border border-purple-200",
   orange: "bg-orange-50 text-orange-700 border border-orange-200",
-  neutral: "bg-neutral-50 text-neutral-700 border border-neutral-200",
+  neutral: "bg-gray-50 text-gray-700 border border-gray-200",
   emerald: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  red: "bg-red-50 text-red-700 border border-red-200",
+  cyan: "bg-cyan-50 text-cyan-700 border border-cyan-200",
+  yellow: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+  indigo: "bg-indigo-50 text-indigo-700 border border-indigo-200",
 };
 
 // Types matching the provided attachment structure
@@ -66,7 +70,11 @@ interface CalendarEvent {
     | "purple"
     | "orange"
     | "neutral"
-    | "emerald";
+    | "emerald"
+    | "red"
+    | "cyan"
+    | "yellow"
+    | "indigo";
   date: Date;
   details: string;
 }
@@ -83,12 +91,20 @@ export default function CalendarPage() {
 
   const getEventColor = (title: string): CalendarEvent["color"] => {
     const t = title.toLowerCase();
-    if (t.includes("meeting")) return "blue";
-    if (t.includes("inauguration")) return "orange";
+
+    // Explicit mappings based on event types
+    if (t.includes("social")) return "pink"; // Social Events
+    if (t.includes("religious")) return "purple"; // Religious Events
+    if (t.includes("political") || t.includes("rally")) return "red"; // Political Rally
+    if (t.includes("meeting")) return "blue"; // Meeting
+    if (t.includes("inauguration")) return "orange"; // Inauguration
+
+    // Additional mappings
     if (t.includes("visit")) return "green";
-    if (t.includes("conference") || t.includes("vc")) return "purple";
-    if (t.includes("ceremony")) return "pink";
-    return "neutral";
+    if (t.includes("conference") || t.includes("vc")) return "indigo";
+    if (t.includes("ceremony")) return "cyan";
+
+    return "neutral"; // Other/Default
   };
 
   React.useEffect(() => {
@@ -376,8 +392,12 @@ export default function CalendarPage() {
                   selectedEvent?.color === "green" && "bg-green-500",
                   selectedEvent?.color === "purple" && "bg-purple-500",
                   selectedEvent?.color === "orange" && "bg-orange-500",
-                  selectedEvent?.color === "neutral" && "bg-neutral-500",
-                  selectedEvent?.color === "emerald" && "bg-emerald-500"
+                  selectedEvent?.color === "neutral" && "bg-gray-500",
+                  selectedEvent?.color === "emerald" && "bg-emerald-500",
+                  selectedEvent?.color === "red" && "bg-red-500",
+                  selectedEvent?.color === "cyan" && "bg-cyan-500",
+                  selectedEvent?.color === "yellow" && "bg-yellow-500",
+                  selectedEvent?.color === "indigo" && "bg-indigo-500"
                 )}
               />
               {selectedEvent?.title}
