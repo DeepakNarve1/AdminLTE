@@ -205,17 +205,85 @@ const EventListContent = () => {
         const token = localStorage.getItem("token");
         let importedCount = 0;
 
+        // Helper to find value by possible keys
+        const getVal = (obj: any, keys: string[]) => {
+          for (const k of keys) {
+            if (obj[k] !== undefined) return obj[k];
+          }
+          return undefined;
+        };
+
+        // Helper to parse Excel date
+        const parseDate = (val: any) => {
+          if (!val) return new Date();
+          if (typeof val === "number") {
+            // Excel serial date (days since 1900-01-01)
+            // Subtract 25569 to get Unix time (days since 1970-01-01)
+            // Multiply by 86400 * 1000 for milliseconds
+            // This is a rough approx, typically sufficient or use XLSX utility
+            const date = new Date((val - 25569) * 86400 * 1000);
+            return date;
+          }
+          return new Date(val);
+        };
+
         for (const item of data as any[]) {
           try {
-            // Very basic validation/mapping
-            if (!item.uniqueId || !item.programDate) continue;
+            // Map known columns to schema
+            // "Unique ID" or "uniqueId" -> uniqueId
+            const uniqueId = getVal(item, [
+              "uniqueId",
+              "Unique ID",
+              "UniqueId",
+              "ID",
+            ]);
+            const district = getVal(item, ["district", "District"]);
+            const year = getVal(item, ["year", "Year"]);
+            const month = getVal(item, ["month", "Month"]);
+            const receivingDateRaw = getVal(item, [
+              "receivingDate",
+              "Receiving Date",
+              "ReceivingDate",
+            ]);
+            const programDateRaw = getVal(item, [
+              "programDate",
+              "Program Date",
+              "ProgramDate",
+            ]);
+            const time = getVal(item, ["time", "Time"]);
+            const eventType = getVal(item, ["eventType", "Event Type", "Type"]);
+            const eventDetails = getVal(item, [
+              "eventDetails",
+              "Event Details",
+              "Details",
+              "Description",
+            ]);
 
-            await axios.post("http://localhost:5000/api/events", item, {
+            if (!uniqueId || !programDateRaw) {
+              // Skip rows that look empty identify-wise
+              continue;
+            }
+
+            const payload = {
+              uniqueId: String(uniqueId),
+              district: String(district || ""),
+              year: String(year || new Date().getFullYear()),
+              month: String(month || ""),
+              receivingDate: parseDate(receivingDateRaw),
+              programDate: parseDate(programDateRaw),
+              time: String(time || "00:00"),
+              eventType: String(eventType || "General"),
+              eventDetails: String(eventDetails || ""),
+            };
+
+            await axios.post("http://localhost:5000/api/events", payload, {
               headers: { Authorization: `Bearer ${token}` },
             });
             importedCount++;
-          } catch (err) {
+          } catch (err: any) {
             console.error("Failed to import row:", item, err);
+            // Optional: toast warning for specific row failures?
+            // toast.warning(`Failed to import row: ${err.message}`);
           }
         }
 
@@ -243,71 +311,7 @@ const EventListContent = () => {
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 mt-6 overflow-hidden">
             {/* Filter Section */}
             <div className="p-6 border-b border-gray-200 bg-gray-50">
-              <div className="flex flex-wrap gap-4 items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700">
-                    Month:
-                  </span>
-                  <Select value={filterMonth} onValueChange={setFilterMonth}>
-                    <SelectTrigger className="w-40 bg-white">
-                      <SelectValue placeholder="All Months" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All Months">All Months</SelectItem>
-                      <SelectItem value="January">January</SelectItem>
-                      <SelectItem value="February">February</SelectItem>
-                      <SelectItem value="March">March</SelectItem>
-                      <SelectItem value="April">April</SelectItem>
-                      <SelectItem value="May">May</SelectItem>
-                      <SelectItem value="June">June</SelectItem>
-                      <SelectItem value="July">July</SelectItem>
-                      <SelectItem value="August">August</SelectItem>
-                      <SelectItem value="September">September</SelectItem>
-                      <SelectItem value="October">October</SelectItem>
-                      <SelectItem value="November">November</SelectItem>
-                      <SelectItem value="December">December</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700">
-                    Date Range:
-                  </span>
-                  <Input
-                    type="date"
-                    className="w-40 bg-white"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                  <span>to</span>
-                  <Input
-                    type="date"
-                    className="w-40 bg-white"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
-                >
-                  <Filter className="w-4 h-4 mr-1" /> Filter
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setFilterMonth("All Months");
-                    setStartDate("");
-                    setEndDate("");
-                  }}
-                >
-                  <X className="w-4 h-4 mr-1" /> Clear
-                </Button>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="flex justify-end gap-3 mt-1">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -399,7 +403,71 @@ border border-[#2e7875]"
             </div>
 
             {/* Column Visibility */}
-            <div className="px-6 py-3 border-b border-gray-200 flex justify-end">
+            <div className="px-6 py-3 border-b border-gray-200 flex justify-between items-center gap-4">
+              <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Month:
+                  </span>
+                  <Select value={filterMonth} onValueChange={setFilterMonth}>
+                    <SelectTrigger className="w-40 bg-white">
+                      <SelectValue placeholder="All Months" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Months">All Months</SelectItem>
+                      <SelectItem value="January">January</SelectItem>
+                      <SelectItem value="February">February</SelectItem>
+                      <SelectItem value="March">March</SelectItem>
+                      <SelectItem value="April">April</SelectItem>
+                      <SelectItem value="May">May</SelectItem>
+                      <SelectItem value="June">June</SelectItem>
+                      <SelectItem value="July">July</SelectItem>
+                      <SelectItem value="August">August</SelectItem>
+                      <SelectItem value="September">September</SelectItem>
+                      <SelectItem value="October">October</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Date Range:
+                  </span>
+                  <Input
+                    type="date"
+                    className="w-40 bg-white"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                  <span>to</span>
+                  <Input
+                    type="date"
+                    className="w-40 bg-white"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="border-[#2e7875] text-[#2e7875] hover:bg-[#2e7875] hover:text-white"
+                >
+                  <Filter className="w-4 h-4 mr-1" /> Filter
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setFilterMonth("All Months");
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  <X className="w-4 h-4 mr-1" /> Clear
+                </Button>
+              </div>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">

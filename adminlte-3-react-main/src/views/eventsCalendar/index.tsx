@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ArrowLeft,
+} from "lucide-react";
 import {
   format,
   addMonths,
@@ -20,6 +25,7 @@ import {
   addDays,
   subDays,
 } from "date-fns";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +72,7 @@ interface CalendarEvent {
 }
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = React.useState(new Date(2025, 11, 29)); // Defaulting to Dec 29, 2025 as per screenshot
   const [view, setView] = React.useState("Month view");
 
@@ -173,6 +180,14 @@ export default function CalendarPage() {
         {/* Calendar Header */}
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="text-neutral-600 hover:text-neutral-900"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
             {/* Date Chip */}
             <div className="flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-neutral-100 bg-white shadow-sm">
               <span className="text-[10px] font-semibold tracking-wider text-neutral-400 uppercase">

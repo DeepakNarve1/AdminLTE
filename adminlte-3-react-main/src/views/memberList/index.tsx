@@ -190,14 +190,16 @@ const MemberListContent = () => {
                     variant="outline"
                     size="lg"
                     onClick={handleExport}
-                    className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
+                    className="bg-white dark:bg-neutral-900 rounded-sm text-[#2e7875] hover:bg-[#2e7875] hover:text-white 
+border border-[#2e7875]"
                   >
                     <Download className="w-5 h-5 mr-2" /> Export
                   </Button>
                   {hasPermission("create_members") && (
                     <Button
                       size="lg"
-                      className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
+                      className="bg-white dark:bg-neutral-900 rounded-sm text-[#2e7875] hover:bg-[#2e7875] hover:text-white 
+border border-[#2e7875]"
                       onClick={() => router.push("/member-list/create")}
                     >
                       <Plus className="w-5 h-5 mr-2" /> Add New

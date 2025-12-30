@@ -131,10 +131,11 @@ const EditEvent = () => {
                 <div className="space-y-2">
                   <Label>District</Label>
                   <Select
+                    key={formik.values.district}
                     onValueChange={(val) =>
                       formik.setFieldValue("district", val)
                     }
-                    value={formik.values.district}
+                    value={formik.values.district || ""}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select District" />
@@ -166,8 +167,9 @@ const EditEvent = () => {
                 <div className="space-y-2">
                   <Label>Year</Label>
                   <Select
+                    key={formik.values.year}
                     onValueChange={(val) => formik.setFieldValue("year", val)}
-                    value={formik.values.year}
+                    value={formik.values.year || ""}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Year" />
@@ -187,8 +189,9 @@ const EditEvent = () => {
                 <div className="space-y-2">
                   <Label>Month</Label>
                   <Select
+                    key={formik.values.month}
                     onValueChange={(val) => formik.setFieldValue("month", val)}
-                    value={formik.values.month}
+                    value={formik.values.month || ""}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Month" />
@@ -265,10 +268,11 @@ const EditEvent = () => {
                 <div className="space-y-2">
                   <Label>Event Type</Label>
                   <Select
+                    key={formik.values.eventType}
                     onValueChange={(val) =>
                       formik.setFieldValue("eventType", val)
                     }
-                    value={formik.values.eventType}
+                    value={formik.values.eventType || ""}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Event Type" />

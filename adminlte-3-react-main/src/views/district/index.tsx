@@ -172,7 +172,8 @@ const District = () => {
                     <Button
                       size="lg"
                       onClick={() => router.push("/districts/create")}
-                      className="bg-[#2e7875] hover:bg-[#00563B] text-white hover:text-white"
+                      className="bg-white dark:bg-neutral-900 rounded-sm text-[#2e7875] hover:bg-[#2e7875] hover:text-white 
+border border-[#2e7875]"
                     >
                       <Plus className="w-5 h-5 mr-2" /> Add New District
                     </Button>
