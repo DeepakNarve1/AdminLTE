@@ -16,6 +16,7 @@ import { Mail, Lock, Loader2 } from "lucide-react";
 // Redux imports
 import { useAppDispatch } from "@app/store/store";
 import { setCurrentUser } from "@store/reducers/auth";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const router = useRouter();
@@ -153,6 +154,54 @@ const Login = () => {
                 "Sign In"
               )}
             </Button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleOAuthProvider
+                clientId={process.env.GOOGLE_CLIENT_ID || ""}
+              >
+                <GoogleLogin
+                  onSuccess={async (credentialResponse: any) => {
+                    try {
+                      setLoading(true);
+                      const { credential } = credentialResponse;
+                      const res = await axios.post(
+                        "http://localhost:5000/api/auth/google-login",
+                        {
+                          token: credential,
+                        }
+                      );
+
+                      const { token, user } = res.data.data;
+                      localStorage.setItem("token", token);
+                      localStorage.setItem("user", JSON.stringify(user));
+                      dispatch(setCurrentUser(user));
+                      toast.success("Login successful!");
+                      router.push("/");
+                    } catch (error: any) {
+                      toast.error(
+                        error.response?.data?.message || "Google Login failed"
+                      );
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onError={() => {
+                    toast.error("Google Login Failed");
+                  }}
+                />
+              </GoogleOAuthProvider>
+            </div>
           </form>
 
           {/* Links */}

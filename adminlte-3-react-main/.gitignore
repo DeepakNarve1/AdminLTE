@@ -26,7 +26,6 @@ yarn-error.log*
 .eslintcache
 dist
 
-firebase-debug.log
 ui-debug.log
 
 # Next.js

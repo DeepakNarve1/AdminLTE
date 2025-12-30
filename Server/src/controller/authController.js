@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const Role = require("../models/roleModel");
+const { OAuth2Client } = require("google-auth-library");
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -263,6 +266,84 @@ exports.loginUser = asyncHandler(async (req, res) => {
         mobile: user.mobile,
         userType: user.userType,
         block: user.block,
+      },
+    },
+  });
+});
+
+// Google Login
+exports.googleLogin = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    res.status(400);
+    throw new Error("Google token is required");
+  }
+
+  // Verify Google Token
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const { email, name, picture, sub } = ticket.getPayload();
+
+  // Check if user exists
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // Check if blocked
+    if (user.block === "true") {
+      res.status(403);
+      throw new Error("User is blocked. Contact support.");
+    }
+  } else {
+    // Create new user if not exists
+    // Default role? Maybe null or search for 'User' role
+    const defaultRole = (await Role.findOne({ name: "regularUser" })) || null;
+
+    user = await User.create({
+      name: name,
+      email: email,
+      password:
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8), // Random password
+      role: defaultRole ? defaultRole._id : null,
+      mobile: "",
+      userType: "regularUser",
+      googleId: sub, // Optional: save google ID
+    });
+  }
+
+  // Populate Role for response
+  if (user.role) {
+    if (mongoose.Types.ObjectId.isValid(user.role)) {
+      const roleDoc = await Role.findById(user.role).populate(
+        "permissions",
+        "name displayName"
+      );
+      if (roleDoc) user.role = roleDoc;
+    } else if (typeof user.role === "string") {
+      const roleDoc = await Role.findOne({ name: user.role }).populate(
+        "permissions",
+        "name displayName"
+      );
+      if (roleDoc) user.role = roleDoc;
+    }
+  }
+
+  res.json({
+    success: true,
+    data: {
+      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        mobile: user.mobile,
+        userType: user.userType,
+        block: user.block,
+        photoURL: picture,
       },
     },
   });
