@@ -34,8 +34,11 @@ const Dashboard = () => {
   );
 };
 
+import { usePermissions } from "@app/hooks/usePermissions";
+
 const DashboardContent = () => {
   const router = useRouter();
+  const { hasPermission, user } = usePermissions();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalRoles: 0,
@@ -51,31 +54,57 @@ const DashboardContent = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      const [usersRes, rolesRes, problemsRes, projectsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/auth/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5000/api/rbac/roles", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5000/api/public-problems?limit=-1", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5000/api/projects?limit=-1", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      // Define promises conditionally
+      const usersPromise = hasPermission("view_users")
+        ? axios.get("http://localhost:5000/api/auth/users", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : Promise.resolve({ data: { data: [] } });
 
-      const users = usersRes.data?.data?.length || 0;
-      const roles = rolesRes.data?.data?.length || 0;
+      const rolesPromise = hasPermission("view_roles")
+        ? axios.get("http://localhost:5000/api/rbac/roles", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : Promise.resolve({ data: { data: [] } });
 
-      const problems = problemsRes.data?.data || [];
+      const problemsPromise = hasPermission("view_public_problems")
+        ? axios.get("http://localhost:5000/api/public-problems?limit=-1", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : Promise.resolve({ data: { data: [] } });
+
+      const projectsPromise = hasPermission("view_projects")
+        ? axios.get("http://localhost:5000/api/projects?limit=-1", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : Promise.resolve({ data: { data: [] } });
+
+      const [usersRes, rolesRes, problemsRes, projectsRes] =
+        await Promise.allSettled([
+          usersPromise,
+          rolesPromise,
+          problemsPromise,
+          projectsPromise,
+        ]);
+
+      // Helper to safely extract data from settled promises
+      const getData = (result: PromiseSettledResult<any>) =>
+        result.status === "fulfilled" ? result.value.data?.data || [] : [];
+
+      const users = hasPermission("view_users") ? getData(usersRes).length : 0;
+      const roles = hasPermission("view_roles") ? getData(rolesRes).length : 0;
+
+      const problems = hasPermission("view_public_problems")
+        ? getData(problemsRes)
+        : [];
       const totalProblems = problems.length;
       const pending = problems.filter(
         (p: any) => p.status === "Pending"
       ).length;
 
-      const projects = projectsRes.data?.data || [];
+      const projects = hasPermission("view_projects")
+        ? getData(projectsRes)
+        : [];
       const totalProjects = projects.length;
       const completed = projects.filter(
         (p: any) => p.status === "Completed"
@@ -90,6 +119,7 @@ const DashboardContent = () => {
         completedProjects: completed,
       });
     } catch (err) {
+      console.error(err);
       toast.error("Failed to load dashboard stats");
     } finally {
       setLoading(false);
@@ -98,10 +128,10 @@ const DashboardContent = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [user]); // Add dependency to re-fetch if permissions load late
 
   const statCards = [
-    {
+    hasPermission("view_users") && {
       title: "Total Users",
       value: stats.totalUsers,
       icon: Users,
@@ -109,7 +139,7 @@ const DashboardContent = () => {
       hover: "hover:bg-blue-600",
       description: "Registered system users",
     },
-    {
+    hasPermission("view_roles") && {
       title: "Active Roles",
       value: stats.totalRoles,
       icon: Shield,
@@ -117,7 +147,7 @@ const DashboardContent = () => {
       hover: "hover:bg-purple-600",
       description: "Defined roles in system",
     },
-    {
+    hasPermission("view_public_problems") && {
       title: "Public Problems",
       value: stats.totalPublicProblems,
       icon: FileText,
@@ -125,7 +155,7 @@ const DashboardContent = () => {
       hover: "hover:bg-[#368F8B]",
       description: "Total submitted issues",
     },
-    {
+    hasPermission("view_public_problems") && {
       title: "Pending Issues",
       value: stats.pendingProblems,
       icon: AlertCircle,
@@ -133,8 +163,7 @@ const DashboardContent = () => {
       hover: "hover:bg-yellow-600",
       description: "Awaiting resolution",
     },
-
-    {
+    hasPermission("view_projects") && {
       title: "Total Projects",
       value: stats.totalProjects,
       icon: BarChart3,
@@ -142,7 +171,7 @@ const DashboardContent = () => {
       hover: "hover:bg-indigo-600",
       description: "Infrastructure projects",
     },
-    {
+    hasPermission("view_projects") && {
       title: "Completed Projects",
       value: stats.completedProjects,
       icon: UserCheck,
@@ -150,7 +179,7 @@ const DashboardContent = () => {
       hover: "hover:bg-teal-600",
       description: "Finished works",
     },
-  ];
+  ].filter(Boolean) as any[];
 
   return (
     <>
