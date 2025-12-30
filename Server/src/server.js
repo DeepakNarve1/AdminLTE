@@ -58,6 +58,25 @@ app.use("/api/events", eventRoutes);
 const memberRoutes = require("./routes/memberRoute");
 app.use("/api/members", memberRoutes);
 
+const samitiRoutes = require("./routes/samitiRoute");
+const SAMITI_TYPES = [
+  "ganesh-samiti",
+  "tenkar-samiti",
+  "dp-samiti",
+  "mandir-samiti",
+  "bhagoria-samiti",
+  "nirman-samiti",
+  "booth-samiti",
+  "block-samiti",
+];
+
+SAMITI_TYPES.forEach((type) => {
+  app.use(`/api/${type}`, (req, res, next) => {
+    req.samitiType = type;
+    samitiRoutes(req, res, next);
+  });
+});
+
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });

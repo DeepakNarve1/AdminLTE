@@ -83,11 +83,52 @@ export const MENU: IMenuItem[] = [
     resource: "voter",
   },
   {
-    name: "Samiti",
+    name: "Vidhasabha Samiti",
     icon: "fas fa-building nav-icon",
-    path: "/samiti",
     allowedRoles: ["superadmin"],
-    resource: "samiti",
+    resource: "vidhasabha-samiti",
+    children: [
+      {
+        name: "Ganesh-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/ganesh-samiti",
+      },
+      {
+        name: "Tenkar-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/tenkar-samiti",
+      },
+      {
+        name: "DP-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/dp-samiti",
+      },
+      {
+        name: "Mandir-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/mandir-samiti",
+      },
+      {
+        name: "Bhagoria-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/bhagoria-samiti",
+      },
+      {
+        name: "Nirman-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/nirman-samiti",
+      },
+      {
+        name: "Booth-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/booth-samiti",
+      },
+      {
+        name: "Block-Samiti",
+        icon: "far fa-circle nav-icon",
+        path: "/vidhasabha-samiti/block-samiti",
+      },
+    ],
   },
   {
     name: "District",
