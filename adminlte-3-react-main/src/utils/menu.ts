@@ -86,6 +86,7 @@ export const MENU: IMenuItem[] = [
     name: "Vidhasabha Samiti",
     icon: "fas fa-building nav-icon",
     allowedRoles: ["superadmin"],
+    allowedPermissions: ["view_vidhansabha_samiti"],
     resource: "vidhasabha-samiti",
     children: [
       {

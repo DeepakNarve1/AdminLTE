@@ -175,12 +175,220 @@ const permissions = [
     category: "voter",
   },
 
-  // Samiti
+  // Ganesh Samiti
   {
-    name: "view_samiti",
-    displayName: "View Samiti",
-    description: "Can view samiti",
-    category: "samiti",
+    name: "view_ganesh_samiti",
+    displayName: "View Ganesh Samiti",
+    description: "Can view Ganesh Samiti records",
+    category: "ganesh_samiti",
+  },
+  {
+    name: "create_ganesh_samiti",
+    displayName: "Create Ganesh Samiti",
+    description: "Can create Ganesh Samiti records",
+    category: "ganesh_samiti",
+  },
+  {
+    name: "edit_ganesh_samiti",
+    displayName: "Edit Ganesh Samiti",
+    description: "Can edit Ganesh Samiti records",
+    category: "ganesh_samiti",
+  },
+  {
+    name: "delete_ganesh_samiti",
+    displayName: "Delete Ganesh Samiti",
+    description: "Can delete Ganesh Samiti records",
+    category: "ganesh_samiti",
+  },
+
+  // Tenkar Samiti
+  {
+    name: "view_tenkar_samiti",
+    displayName: "View Tenkar Samiti",
+    description: "Can view Tenkar Samiti records",
+    category: "tenkar_samiti",
+  },
+  {
+    name: "create_tenkar_samiti",
+    displayName: "Create Tenkar Samiti",
+    description: "Can create Tenkar Samiti records",
+    category: "tenkar_samiti",
+  },
+  {
+    name: "edit_tenkar_samiti",
+    displayName: "Edit Tenkar Samiti",
+    description: "Can edit Tenkar Samiti records",
+    category: "tenkar_samiti",
+  },
+  {
+    name: "delete_tenkar_samiti",
+    displayName: "Delete Tenkar Samiti",
+    description: "Can delete Tenkar Samiti records",
+    category: "tenkar_samiti",
+  },
+
+  // DP Samiti
+  {
+    name: "view_dp_samiti",
+    displayName: "View DP Samiti",
+    description: "Can view DP Samiti records",
+    category: "dp_samiti",
+  },
+  {
+    name: "create_dp_samiti",
+    displayName: "Create DP Samiti",
+    description: "Can create DP Samiti records",
+    category: "dp_samiti",
+  },
+  {
+    name: "edit_dp_samiti",
+    displayName: "Edit DP Samiti",
+    description: "Can edit DP Samiti records",
+    category: "dp_samiti",
+  },
+  {
+    name: "delete_dp_samiti",
+    displayName: "Delete DP Samiti",
+    description: "Can delete DP Samiti records",
+    category: "dp_samiti",
+  },
+
+  // Mandir Samiti
+  {
+    name: "view_mandir_samiti",
+    displayName: "View Mandir Samiti",
+    description: "Can view Mandir Samiti records",
+    category: "mandir_samiti",
+  },
+  {
+    name: "create_mandir_samiti",
+    displayName: "Create Mandir Samiti",
+    description: "Can create Mandir Samiti records",
+    category: "mandir_samiti",
+  },
+  {
+    name: "edit_mandir_samiti",
+    displayName: "Edit Mandir Samiti",
+    description: "Can edit Mandir Samiti records",
+    category: "mandir_samiti",
+  },
+  {
+    name: "delete_mandir_samiti",
+    displayName: "Delete Mandir Samiti",
+    description: "Can delete Mandir Samiti records",
+    category: "mandir_samiti",
+  },
+
+  // Bhagoria Samiti
+  {
+    name: "view_bhagoria_samiti",
+    displayName: "View Bhagoria Samiti",
+    description: "Can view Bhagoria Samiti records",
+    category: "bhagoria_samiti",
+  },
+  {
+    name: "create_bhagoria_samiti",
+    displayName: "Create Bhagoria Samiti",
+    description: "Can create Bhagoria Samiti records",
+    category: "bhagoria_samiti",
+  },
+  {
+    name: "edit_bhagoria_samiti",
+    displayName: "Edit Bhagoria Samiti",
+    description: "Can edit Bhagoria Samiti records",
+    category: "bhagoria_samiti",
+  },
+  {
+    name: "delete_bhagoria_samiti",
+    displayName: "Delete Bhagoria Samiti",
+    description: "Can delete Bhagoria Samiti records",
+    category: "bhagoria_samiti",
+  },
+
+  // Nirman Samiti
+  {
+    name: "view_nirman_samiti",
+    displayName: "View Nirman Samiti",
+    description: "Can view Nirman Samiti records",
+    category: "nirman_samiti",
+  },
+  {
+    name: "create_nirman_samiti",
+    displayName: "Create Nirman Samiti",
+    description: "Can create Nirman Samiti records",
+    category: "nirman_samiti",
+  },
+  {
+    name: "edit_nirman_samiti",
+    displayName: "Edit Nirman Samiti",
+    description: "Can edit Nirman Samiti records",
+    category: "nirman_samiti",
+  },
+  {
+    name: "delete_nirman_samiti",
+    displayName: "Delete Nirman Samiti",
+    description: "Can delete Nirman Samiti records",
+    category: "nirman_samiti",
+  },
+
+  // Booth Samiti
+  {
+    name: "view_booth_samiti",
+    displayName: "View Booth Samiti",
+    description: "Can view Booth Samiti records",
+    category: "booth_samiti",
+  },
+  {
+    name: "create_booth_samiti",
+    displayName: "Create Booth Samiti",
+    description: "Can create Booth Samiti records",
+    category: "booth_samiti",
+  },
+  {
+    name: "edit_booth_samiti",
+    displayName: "Edit Booth Samiti",
+    description: "Can edit Booth Samiti records",
+    category: "booth_samiti",
+  },
+  {
+    name: "delete_booth_samiti",
+    displayName: "Delete Booth Samiti",
+    description: "Can delete Booth Samiti records",
+    category: "booth_samiti",
+  },
+
+  // Block Samiti
+  {
+    name: "view_block_samiti",
+    displayName: "View Block Samiti",
+    description: "Can view Block Samiti records",
+    category: "block_samiti",
+  },
+  {
+    name: "create_block_samiti",
+    displayName: "Create Block Samiti",
+    description: "Can create Block Samiti records",
+    category: "block_samiti",
+  },
+  {
+    name: "edit_block_samiti",
+    displayName: "Edit Block Samiti",
+    description: "Can edit Block Samiti records",
+    category: "block_samiti",
+  },
+  {
+    name: "delete_block_samiti",
+    displayName: "Delete Block Samiti",
+    description: "Can delete Block Samiti records",
+    category: "block_samiti",
+  },
+
+  // Vidhan Sabha Samiti
+  {
+    name: "view_vidhansabha_samiti",
+    displayName: "View Vidhan Sabha Samiti",
+    description: "Can view Vidhan Sabha Samiti module",
+    category: "vidhansabha_samiti",
   },
 
   // District
