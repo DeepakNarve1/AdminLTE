@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@app/components/ui/table";
+import { Dialog, DialogContent, DialogTitle } from "@app/components/ui/dialog";
 import { Button } from "@app/components/ui/button";
 import { Input } from "@app/components/ui/input";
 import { Badge } from "@app/components/ui/badge";
@@ -62,6 +63,7 @@ interface ISamitiData {
   village: string;
   faliya: string;
   totalMembers: number;
+  image?: string;
   addedBy?: string; // Sometimes shown in images
 }
 
@@ -119,7 +121,10 @@ const SamitiListContent = ({
     village: true,
     faliya: true,
     totalMembers: true,
+    image: true,
   });
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -303,6 +308,11 @@ const SamitiListContent = ({
                         Year
                       </TableHead>
                     )}
+                    {visibleColumns.image && (
+                      <TableHead className="text-white font-semibold whitespace-nowrap">
+                        Image
+                      </TableHead>
+                    )}
                     {visibleColumns.acMpNo && (
                       <TableHead className="text-white font-semibold whitespace-nowrap">
                         AC/MP No.
@@ -388,6 +398,20 @@ const SamitiListContent = ({
                         {visibleColumns.year && (
                           <TableCell className="whitespace-nowrap">
                             {item.year}
+                          </TableCell>
+                        )}
+                        {visibleColumns.image && (
+                          <TableCell className="whitespace-nowrap">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt="Thumbnail"
+                                className="h-10 w-10 object-cover rounded cursor-pointer border border-gray-200"
+                                onClick={() => setSelectedImage(item.image!)}
+                              />
+                            ) : (
+                              <span className="text-xs text-gray-400">N/A</span>
+                            )}
                           </TableCell>
                         )}
                         {visibleColumns.acMpNo && (
@@ -530,6 +554,46 @@ const SamitiListContent = ({
           </div>
         </div>
       </section>
+
+      {/* Image Preview Modal */}
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={() => setSelectedImage(null)}
+      >
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+          <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          {selectedImage && (
+            <div className="relative flex items-center justify-center w-full h-full">
+              <img
+                src={selectedImage}
+                alt="Full Preview"
+                className="max-w-full max-h-[90vh] object-contain rounded-md"
+              />
+              <button
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
+                onClick={() => setSelectedImage(null)}
+              >
+                <span className="sr-only">Close</span>
+                {/* Close Icon SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

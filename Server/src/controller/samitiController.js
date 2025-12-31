@@ -75,9 +75,19 @@ exports.create = async (req, res) => {
     const samitiType = req.samitiType;
     const SamitiModel = getSamitiModel(samitiType);
 
+    // Auto-generate Unique ID if missing
+    let { uniqueId } = req.body;
+    if (!uniqueId || uniqueId.trim() === "") {
+      const count = await SamitiModel.countDocuments();
+      const prefix = samitiType.substring(0, 3).toUpperCase();
+      uniqueId = `${prefix}-${Date.now()}-${count + 1}`;
+    }
+
     // req.body should contain the fields. We append samitiType and addedBy
     const newItem = await SamitiModel.create({
       ...req.body,
+      uniqueId,
+      // image: req.body.image, // Already in ...req.body
       samitiType, // Still saving it for reference, though implicit by collection
       addedBy: req.user ? req.user._id : undefined,
     });

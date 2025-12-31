@@ -22,7 +22,7 @@ interface ISamitiData {
   gramPanchayat: string;
   village: string;
   faliya: string;
-  file?: string;
+  image?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -128,13 +128,25 @@ const SamitiView = ({
                 <ViewField label="Village" value={data.village} />
                 <ViewField label="Faliya" value={data.faliya} />
 
-                {/* File */}
+                {/* Image */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
-                    Attached File
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
+                    Attached Image
                   </h3>
-                  <div className="p-3 bg-gray-50 rounded border border-gray-200 text-gray-700">
-                    {data.file ? data.file : "No file attached"}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    {data.image ? (
+                      <div className="relative w-full max-w-md">
+                        <img
+                          src={data.image}
+                          alt="Attached"
+                          className="rounded-lg shadow-sm border border-gray-200 max-h-[500px] object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 italic">
+                        No image attached
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -157,7 +169,7 @@ const ViewField = ({
     <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
       {label}
     </h3>
-    <p className="text-lg font-semibold text-gray-800 break-words">
+    <p className="text-lg font-semibold text-gray-800 wrap-break-word">
       {value || <span className="text-gray-400 italic">N/A</span>}
     </p>
   </div>

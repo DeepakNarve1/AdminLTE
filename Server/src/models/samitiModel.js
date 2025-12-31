@@ -25,6 +25,7 @@ const samitiSchema = mongoose.Schema(
     inChargeName: { type: String },
     mobileNumber: { type: String },
     remark: { type: String },
+    image: { type: String },
 
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

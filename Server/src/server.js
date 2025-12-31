@@ -9,6 +9,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
 app.use(
   cors({
     origin: "http://localhost:3001",
@@ -17,7 +18,8 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Api is running...");

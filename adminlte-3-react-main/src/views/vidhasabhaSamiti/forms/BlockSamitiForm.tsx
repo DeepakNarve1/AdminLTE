@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -44,8 +44,33 @@ const GenericSamitiForm = ({
     gramPanchayat: "",
     village: "",
     faliya: "",
-    file: "",
+    file: "" as string, // Base64 string
+    fileName: "", // To show the name
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        // Reset the input value so the same file can be selected again if needed (though invalid)
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          file: reader.result as string,
+          fileName: file.name,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -62,7 +87,8 @@ const GenericSamitiForm = ({
         gramPanchayat: initialData.gramPanchayat || "",
         village: initialData.village || "",
         faliya: initialData.faliya || "",
-        file: initialData.file || "",
+        file: initialData.image || "",
+        fileName: initialData.image ? "Keep existing or upload new" : "",
       });
     } else {
       // Generate a random Unique ID if creating new (Simulation)
@@ -90,13 +116,17 @@ const GenericSamitiForm = ({
       }`;
       const method = isEdit ? "put" : "post";
 
-      await axios[method](
-        url,
-        { ...formData },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const payload = {
+        ...formData,
+        image: formData.file, // Map file (base64) to image field
+      };
+
+      await axios[method](url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       toast.success(`${title} ${isEdit ? "updated" : "created"} successfully`);
       router.push(`/vidhasabha-samiti/${apiEndpoint}`);
@@ -294,21 +324,32 @@ const GenericSamitiForm = ({
               {/* File Upload Placeholder */}
               <div className="space-y-2">
                 <Label htmlFor="file">File Upload</Label>
-                <Input
-                  id="file"
-                  type="text"
-                  name="file" // Just text for now, real upload needs state handling
-                  placeholder="No file chosen"
-                  disabled
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                >
-                  Choose File
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Input
+                    id="file"
+                    type="text"
+                    value={formData.fileName}
+                    name="file"
+                    placeholder="No file chosen"
+                    readOnly
+                  />
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-fit"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose File
+                  </Button>
+                </div>
               </div>
 
               <div className="flex items-center gap-4 pt-4">
