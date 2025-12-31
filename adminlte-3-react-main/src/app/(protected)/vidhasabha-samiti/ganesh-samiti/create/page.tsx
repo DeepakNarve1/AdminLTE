@@ -1,9 +1,12 @@
 "use client";
 
 import GenericSamitiForm from "@app/views/vidhasabhaSamiti/forms/BlockSamitiForm";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 export default function CreateGaneshSamiti() {
   return (
-    <GenericSamitiForm title="Ganesh Samiti" apiEndpoint="ganesh-samiti" />
+    <RouteGuard requiredPermissions={["create_ganesh_samiti"]}>
+      <GenericSamitiForm title="Ganesh Samiti" apiEndpoint="ganesh-samiti" />
+    </RouteGuard>
   );
 }

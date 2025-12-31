@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import GenericSamitiForm from "@app/views/vidhasabhaSamiti/forms/BlockSamitiForm";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 export default function EditGaneshSamiti() {
   const { id } = useParams();
@@ -33,11 +34,13 @@ export default function EditGaneshSamiti() {
   if (!data) return <div>Loading...</div>;
 
   return (
-    <GenericSamitiForm
-      title="Ganesh Samiti"
-      apiEndpoint="ganesh-samiti"
-      initialData={data}
-      isEdit
-    />
+    <RouteGuard requiredPermissions={["edit_ganesh_samiti"]}>
+      <GenericSamitiForm
+        title="Ganesh Samiti"
+        apiEndpoint="ganesh-samiti"
+        initialData={data}
+        isEdit
+      />
+    </RouteGuard>
   );
 }

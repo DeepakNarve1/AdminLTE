@@ -1,9 +1,12 @@
 "use client";
 
 import GenericSamitiForm from "@app/views/vidhasabhaSamiti/forms/BlockSamitiForm";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 export default function CreateNirmanSamiti() {
   return (
-    <GenericSamitiForm title="Nirman Samiti" apiEndpoint="nirman-samiti" />
+    <RouteGuard requiredPermissions={["create_nirman_samiti"]}>
+      <GenericSamitiForm title="Nirman Samiti" apiEndpoint="nirman-samiti" />
+    </RouteGuard>
   );
 }

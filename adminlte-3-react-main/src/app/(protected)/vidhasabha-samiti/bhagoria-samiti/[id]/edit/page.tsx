@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import BhagoriaSamitiForm from "@app/views/vidhasabhaSamiti/forms/BhagoriaSamitiForm";
+import GenericSamitiForm from "@app/views/vidhasabhaSamiti/forms/BlockSamitiForm";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 export default function EditBhagoriaSamiti() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function EditBhagoriaSamiti() {
 
   useEffect(() => {
     if (id) {
+      // Fetch data
       const fetchData = async () => {
         try {
           const token = localStorage.getItem("token");
@@ -31,5 +33,14 @@ export default function EditBhagoriaSamiti() {
 
   if (!data) return <div>Loading...</div>;
 
-  return <BhagoriaSamitiForm initialData={data} isEdit />;
+  return (
+    <RouteGuard requiredPermissions={["edit_bhagoria_samiti"]}>
+      <GenericSamitiForm
+        title="Bhagoria Samiti"
+        apiEndpoint="bhagoria-samiti"
+        initialData={data}
+        isEdit
+      />
+    </RouteGuard>
+  );
 }

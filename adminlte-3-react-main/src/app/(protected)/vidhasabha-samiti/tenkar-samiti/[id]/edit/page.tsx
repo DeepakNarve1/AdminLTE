@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import GenericSamitiForm from "@app/views/vidhasabhaSamiti/forms/BlockSamitiForm";
+import { RouteGuard } from "@app/components/RouteGuard";
 
 export default function EditTenkarSamiti() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function EditTenkarSamiti() {
 
   useEffect(() => {
     if (id) {
+      // Fetch data
       const fetchData = async () => {
         try {
           const token = localStorage.getItem("token");
@@ -32,11 +34,13 @@ export default function EditTenkarSamiti() {
   if (!data) return <div>Loading...</div>;
 
   return (
-    <GenericSamitiForm
-      title="Tenkar Samiti"
-      apiEndpoint="tenkar-samiti"
-      initialData={data}
-      isEdit
-    />
+    <RouteGuard requiredPermissions={["edit_tenkar_samiti"]}>
+      <GenericSamitiForm
+        title="Tenkar Samiti"
+        apiEndpoint="tenkar-samiti"
+        initialData={data}
+        isEdit
+      />
+    </RouteGuard>
   );
 }
