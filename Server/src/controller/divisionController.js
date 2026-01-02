@@ -64,8 +64,13 @@ const getDivisionById = async (req, res) => {
     }
     const District = require("../models/districtModel");
     const districts = await District.find({ division: division._id });
+    const Parliament = require("../models/parliamentModel");
+    const parliaments = await Parliament.find({ division: division._id });
 
-    res.json({ success: true, data: { ...division.toObject(), districts } });
+    res.json({
+      success: true,
+      data: { ...division.toObject(), districts, parliaments },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -75,7 +80,7 @@ const getDivisionById = async (req, res) => {
 // @route   POST /api/divisions
 const createDivision = async (req, res) => {
   try {
-    const { name, state, districts } = req.body;
+    const { name, state, districts, parliaments } = req.body;
     const division = await Division.create({ name, state });
 
     if (districts && Array.isArray(districts) && districts.length > 0) {
@@ -88,6 +93,19 @@ const createDivision = async (req, res) => {
         }));
       if (districtsToInsert.length > 0) {
         await District.insertMany(districtsToInsert);
+      }
+    }
+
+    if (parliaments && Array.isArray(parliaments) && parliaments.length > 0) {
+      const Parliament = require("../models/parliamentModel");
+      const parliamentsToInsert = parliaments
+        .filter((p) => p && p.trim() !== "")
+        .map((p) => ({
+          name: p,
+          division: division._id,
+        }));
+      if (parliamentsToInsert.length > 0) {
+        await Parliament.insertMany(parliamentsToInsert);
       }
     }
 
@@ -111,7 +129,7 @@ const updateDivision = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    const { districts } = req.body;
+    const { districts, parliaments } = req.body;
     if (districts && Array.isArray(districts) && districts.length > 0) {
       const District = require("../models/districtModel");
       const districtsToInsert = districts
@@ -122,6 +140,19 @@ const updateDivision = async (req, res) => {
         }));
       if (districtsToInsert.length > 0) {
         await District.insertMany(districtsToInsert);
+      }
+    }
+
+    if (parliaments && Array.isArray(parliaments) && parliaments.length > 0) {
+      const Parliament = require("../models/parliamentModel");
+      const parliamentsToInsert = parliaments
+        .filter((p) => p && p.trim() !== "")
+        .map((p) => ({
+          name: p,
+          division: updatedDivision._id,
+        }));
+      if (parliamentsToInsert.length > 0) {
+        await Parliament.insertMany(parliamentsToInsert);
       }
     }
 

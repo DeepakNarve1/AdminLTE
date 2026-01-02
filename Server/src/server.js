@@ -51,6 +51,18 @@ app.use("/api/divisions", divisionRoutes);
 const stateRoutes = require("./routes/stateRoute");
 app.use("/api/states", stateRoutes);
 
+const parliamentRoutes = require("./routes/parliamentRoute");
+app.use("/api/parliaments", parliamentRoutes);
+
+const assemblyRoutes = require("./routes/assemblyRoute");
+app.use("/api/assemblies", assemblyRoutes);
+
+const blockRoutes = require("./routes/blockRoute");
+app.use("/api/blocks", blockRoutes);
+
+const boothRoutes = require("./routes/boothRoute");
+app.use("/api/booths", boothRoutes);
+
 const assemblyIssueRoutes = require("./routes/assemblyIssueRoute");
 app.use("/api/assembly-issues", assemblyIssueRoutes);
 

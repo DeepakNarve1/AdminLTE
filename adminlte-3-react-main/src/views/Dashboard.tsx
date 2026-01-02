@@ -242,7 +242,7 @@ const DashboardContent = () => {
                 </div>
               )}
 
-              {/* Recent Activity Placeholder */}
+              {/* Recent Activity Placeholder
               <div className="mt-10">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   Recent Activity
@@ -253,7 +253,7 @@ const DashboardContent = () => {
                     <p>Activity log coming soon...</p>
                   </CardContent>
                 </Card>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
