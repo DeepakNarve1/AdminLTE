@@ -176,20 +176,8 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
 // Delete User
 exports.deleteUser = asyncHandler(async (req, res) => {
-  const roleName = req.user?.role?.name || req.user?.role;
-  if (
-    !req.user ||
-    ![
-      "admin",
-      "superadmin",
-      "super admin",
-      "System Administrator",
-      "system administrator",
-    ].includes(roleName)
-  ) {
-    res.status(403);
-    throw new Error("Not authorized to delete users");
-  }
+  // Role check is handled by middleware
+  // if (!req.user || !['admin', 'superadmin', ...].includes(roleName)) ...
 
   const user = await User.findById(req.params.id);
   if (!user) {

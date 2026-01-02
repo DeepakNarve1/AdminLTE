@@ -260,6 +260,26 @@ const CreateRoleContent = () => {
 
   const categories = Array.from(new Set(permissions.map((p) => p.category)));
 
+  const moduleIcons: Record<string, string> = {
+    dashboard: "fas fa-tachometer-alt",
+    users: "fas fa-wrench",
+    roles: "fas fa-user-shield",
+    projects: "fas fa-user-friends",
+    mp_public_problems: "fas fa-exclamation-circle",
+    assembly_issues: "fas fa-university",
+    events: "fas fa-calendar-alt",
+    voter: "fas fa-id-card",
+    "vidhasabha-samiti": "fas fa-building",
+    districts: "fas fa-map",
+    divisions: "fas fa-map",
+    states: "fas fa-map",
+    members: "fas fa-users-cog",
+    parliaments: "fas fa-landmark",
+    assemblies: "fas fa-landmark",
+    blocks: "fas fa-cubes",
+    booths: "fas fa-person-booth",
+  };
+
   return (
     <>
       <ContentHeader title="Create Role" />
@@ -373,7 +393,14 @@ const CreateRoleContent = () => {
                       {categories.map((category) => (
                         <TableRow key={category}>
                           <TableCell className="font-medium capitalize">
-                            {category.replace(/_/g, " ")}
+                            <div className="flex items-center gap-2">
+                              {moduleIcons[category] && (
+                                <i
+                                  className={`${moduleIcons[category]} text-gray-500 w-5`}
+                                />
+                              )}
+                              {category.replace(/_/g, " ")}
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
                             <Checkbox

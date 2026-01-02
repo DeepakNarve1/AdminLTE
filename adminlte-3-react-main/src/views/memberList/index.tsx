@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@app/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogTitle } from "@app/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -83,6 +84,7 @@ const MemberListContent = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Filters
   const [filterBlock, setFilterBlock] = useState("All");
@@ -323,9 +325,10 @@ border border-[#2e7875]"
                     <TableHead className="text-white font-semibold whitespace-nowrap min-w-[150px]">
                       End Date
                     </TableHead>
-                    <TableHead className="text-white font-semibold whitespace-nowrap min-w-[100px]">
+                    <TableHead className="text-white font-semibold whitespace-nowrap">
                       Image
                     </TableHead>
+
                     <TableHead className="text-white font-semibold whitespace-nowrap min-w-[150px]">
                       Created On
                     </TableHead>
@@ -402,18 +405,14 @@ border border-[#2e7875]"
                         </TableCell>
                         <TableCell>
                           {member.image ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs"
-                              onClick={() =>
-                                window.open(member.image, "_blank")
-                              }
-                            >
-                              <Eye className="w-3 h-3 mr-1" /> View
-                            </Button>
+                            <img
+                              src={member.image}
+                              alt="Thumbnail"
+                              className="h-10 w-10 object-cover rounded cursor-pointer border border-gray-200"
+                              onClick={() => setSelectedImage(member.image)}
+                            />
                           ) : (
-                            <span className="text-gray-400 text-sm">
+                            <span className="text-gray-400 text-sm italic">
                               No Image
                             </span>
                           )}
@@ -510,6 +509,46 @@ border border-[#2e7875]"
           </div>
         </div>
       </section>
+
+      {/* Image Preview Modal */}
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={() => setSelectedImage(null)}
+      >
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+          <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          {selectedImage && (
+            <div className="relative flex items-center justify-center w-full h-full">
+              <img
+                src={selectedImage}
+                alt="Full Preview"
+                className="max-w-full max-h-[90vh] object-contain rounded-md"
+              />
+              <button
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
+                onClick={() => setSelectedImage(null)}
+              >
+                <span className="sr-only">Close</span>
+                {/* Close Icon SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

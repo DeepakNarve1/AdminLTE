@@ -469,6 +469,110 @@ const permissions = [
     category: "states",
   },
 
+  // Parliament
+  {
+    name: "view_parliaments",
+    displayName: "View Parliaments",
+    description: "Can view parliaments list",
+    category: "parliaments",
+  },
+  {
+    name: "create_parliaments",
+    displayName: "Create Parliaments",
+    description: "Can create parliaments",
+    category: "parliaments",
+  },
+  {
+    name: "edit_parliaments",
+    displayName: "Edit Parliaments",
+    description: "Can edit parliaments",
+    category: "parliaments",
+  },
+  {
+    name: "delete_parliaments",
+    displayName: "Delete Parliaments",
+    description: "Can delete parliaments",
+    category: "parliaments",
+  },
+
+  // Assembly
+  {
+    name: "view_assemblies",
+    displayName: "View Assemblies",
+    description: "Can view assemblies list",
+    category: "assemblies",
+  },
+  {
+    name: "create_assemblies",
+    displayName: "Create Assemblies",
+    description: "Can create assemblies",
+    category: "assemblies",
+  },
+  {
+    name: "edit_assemblies",
+    displayName: "Edit Assemblies",
+    description: "Can edit assemblies",
+    category: "assemblies",
+  },
+  {
+    name: "delete_assemblies",
+    displayName: "Delete Assemblies",
+    description: "Can delete assemblies",
+    category: "assemblies",
+  },
+
+  // Block
+  {
+    name: "view_blocks",
+    displayName: "View Blocks",
+    description: "Can view blocks list",
+    category: "blocks",
+  },
+  {
+    name: "create_blocks",
+    displayName: "Create Blocks",
+    description: "Can create blocks",
+    category: "blocks",
+  },
+  {
+    name: "edit_blocks",
+    displayName: "Edit Blocks",
+    description: "Can edit blocks",
+    category: "blocks",
+  },
+  {
+    name: "delete_blocks",
+    displayName: "Delete Blocks",
+    description: "Can delete blocks",
+    category: "blocks",
+  },
+
+  // Booth
+  {
+    name: "view_booths",
+    displayName: "View Booths",
+    description: "Can view booths list",
+    category: "booths",
+  },
+  {
+    name: "create_booths",
+    displayName: "Create Booths",
+    description: "Can create booths",
+    category: "booths",
+  },
+  {
+    name: "edit_booths",
+    displayName: "Edit Booths",
+    description: "Can edit booths",
+    category: "booths",
+  },
+  {
+    name: "delete_booths",
+    displayName: "Delete Booths",
+    description: "Can delete booths",
+    category: "booths",
+  },
+
   // Member
   {
     name: "view_members",
@@ -498,7 +602,9 @@ const permissions = [
 
 async function seedPermissions() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
     console.log("✅ Connected to MongoDB");
 
     // Clear existing permissions
@@ -506,27 +612,37 @@ async function seedPermissions() {
     console.log("🗑️  Cleared existing permissions");
 
     // Create permissions
-    const createdPermissions = await Permission.insertMany(permissions);
-    console.log(`✅ Created ${createdPermissions.length} permissions`);
-
-    // Update superadmin role with all permissions
-    const superadminRole = await Role.findOne({ name: "superadmin" });
-    if (superadminRole) {
-      superadminRole.permissions = createdPermissions.map((p) => p._id);
-      superadminRole.sidebarAccess = ["*"];
-      await superadminRole.save();
-      console.log("✅ Updated superadmin role with all permissions");
-    } else {
-      // Create superadmin role if it doesn't exist
-      await Role.create({
-        name: "superadmin",
-        displayName: "Super Administrator",
-        description: "Full system access with all permissions",
-        permissions: createdPermissions.map((p) => p._id),
-        sidebarAccess: ["*"],
-        isSystem: true,
+    console.log("Creating permissions object...");
+    try {
+      const createdPermissions = await Permission.insertMany(permissions, {
+        ordered: false,
       });
-      console.log("✅ Created superadmin role");
+      console.log(`✅ Created ${createdPermissions.length} permissions`);
+
+      // Update superadmin role with all permissions
+      const superadminRole = await Role.findOne({ name: "superadmin" });
+      if (superadminRole) {
+        superadminRole.permissions = createdPermissions.map((p) => p._id);
+        superadminRole.sidebarAccess = ["*"];
+        await superadminRole.save();
+        console.log("✅ Updated superadmin role with all permissions");
+      } else {
+        // Create superadmin role if it doesn't exist
+        await Role.create({
+          name: "superadmin",
+          displayName: "Super Administrator",
+          description: "Full system access with all permissions",
+          permissions: createdPermissions.map((p) => p._id),
+          sidebarAccess: ["*"],
+          isSystem: true,
+        });
+        console.log("✅ Created superadmin role");
+      }
+    } catch (insertError) {
+      console.error("Error during insertMany or Role update:", insertError);
+      if (insertError.writeErrors) {
+        console.error("Write Errors:", insertError.writeErrors);
+      }
     }
 
     console.log("\n📋 Permissions created:");

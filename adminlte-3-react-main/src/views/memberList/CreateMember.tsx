@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
+
 import { ContentHeader } from "@app/components";
 import { RouteGuard } from "@app/components/RouteGuard";
 import { Button } from "@app/components/ui/button";
@@ -34,12 +35,14 @@ const schema = Yup.object().shape({
   endLat: Yup.number(),
   endLong: Yup.number(),
   endDate: Yup.date(),
-  image: Yup.string().url("Must be a valid URL"),
+  image: Yup.string().nullable(),
 });
 
 const CreateMember = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
 
   const formik = useFormik({
     initialValues: {
@@ -219,14 +222,59 @@ const CreateMember = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Image URL</Label>
-                  <Input
-                    name="image"
-                    value={formik.values.image}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="http://example.com/image.jpg"
-                  />
+                  <Label>Image (Max 10MB)</Label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-4">
+                      {formik.values.image && (
+                        <div className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 shrink-0">
+                          <img
+                            src={formik.values.image}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <Input
+                        type="text"
+                        value={fileName}
+                        placeholder="No file chosen"
+                        readOnly
+                        className="flex-1"
+                      />
+                    </div>
+
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0];
+                        if (file) {
+                          if (file.size > 10 * 1024 * 1024) {
+                            toast.error("File size exceeds 10MB");
+                            return;
+                          }
+                          setFileName(file.name);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            formik.setFieldValue("image", reader.result);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-fit"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Choose File
+                    </Button>
+                  </div>
                   {formik.touched.image && formik.errors.image && (
                     <p className="text-red-500 text-sm">
                       {formik.errors.image}
