@@ -172,7 +172,10 @@ const MemberListContent = () => {
       const allMembers = data.data || [];
       if (allMembers.length === 0) return toast.warning("No data to export");
 
-      const ws = XLSX.utils.json_to_sheet(allMembers);
+      // Exclude image field
+      const exportData = allMembers.map(({ image, ...rest }: any) => rest);
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Members");
       XLSX.writeFile(wb, "Members.xlsx");
