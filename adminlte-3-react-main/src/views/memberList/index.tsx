@@ -151,13 +151,36 @@ const MemberListContent = () => {
     }
   };
 
-  const handleExport = () => {
-    if (members.length === 0) return toast.warning("No data to export");
-    const ws = XLSX.utils.json_to_sheet(members);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Members");
-    XLSX.writeFile(wb, "Members.xlsx");
-    toast.success("Exported successfully");
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const params: any = {
+        limit: -1,
+        search: debouncedSearchTerm || undefined,
+        block: filterBlock === "All" ? undefined : filterBlock,
+        year: filterYear === "All" ? undefined : filterYear,
+        vehicle: filterVehicle === "All" ? undefined : filterVehicle,
+        samiti: filterSamiti === "All" ? undefined : filterSamiti,
+        code: filterCode === "All" ? undefined : filterCode,
+      };
+
+      const { data } = await axios.get("http://localhost:5000/api/members", {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      });
+
+      const allMembers = data.data || [];
+      if (allMembers.length === 0) return toast.warning("No data to export");
+
+      const ws = XLSX.utils.json_to_sheet(allMembers);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Members");
+      XLSX.writeFile(wb, "Members.xlsx");
+      toast.success("Exported successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to export data");
+    }
   };
 
   const clearFilters = () => {

@@ -20,9 +20,6 @@ const MenuSidebar = () => {
   // Use our permission hook
   const { hasPermission, user } = usePermissions();
 
-  console.log("[MenuSidebar] User:", user);
-  console.log("[MenuSidebar] Current user from Redux:", currentUser);
-
   // Check if user is superadmin
   const isSuperadmin = useMemo(() => {
     if (!user || !user.role) return false;
@@ -32,22 +29,15 @@ const MenuSidebar = () => {
     return user.role.name === "superadmin";
   }, [user]);
 
-  console.log("[MenuSidebar] Is superadmin?", isSuperadmin);
-
   const canAccess = (item: IMenuItem) => {
     // Superadmin can see everything
     if (isSuperadmin) {
-      console.log("[MenuSidebar] Superadmin - allowing:", item.name);
       return true;
     }
 
     // 1. Check strict permissions if defined (e.g. manage_roles)
     if (item.allowedPermissions && item.allowedPermissions.length > 0) {
       const hasAccess = item.allowedPermissions.some((p) => hasPermission(p));
-      console.log(
-        `[MenuSidebar] Checking allowedPermissions for ${item.name}:`,
-        hasAccess
-      );
       return hasAccess;
     }
 
@@ -55,21 +45,15 @@ const MenuSidebar = () => {
     if (item.resource) {
       const viewPermission = `view_${item.resource}`;
       const canView = hasPermission(viewPermission);
-      console.log(
-        `[MenuSidebar] Checking ${viewPermission} for ${item.name}:`,
-        canView
-      );
+
       return canView;
     }
 
     // Allow items without resource (like headers)
-    console.log("[MenuSidebar] No resource check for:", item.name);
     return true;
   };
 
   const filteredMenu = useMemo(() => {
-    console.log("[MenuSidebar] Filtering menu, user:", user);
-
     const filterItems = (items: IMenuItem[]): IMenuItem[] =>
       items
         .map((item) => {
