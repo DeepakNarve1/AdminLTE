@@ -216,6 +216,22 @@ const EditRoleContent = () => {
     return permsToCheck.length === 0;
   };
 
+  const isAllTotalChecked = () => {
+    if (permissions.length === 0) return false;
+    return permissions.every((p) => role.permissions.includes(p._id));
+  };
+
+  const toggleAllTotal = () => {
+    const allIds = permissions.map((p) => p._id);
+    setRole((prev) => {
+      const allPresent = allIds.every((id) => prev.permissions.includes(id));
+      return {
+        ...prev,
+        permissions: allPresent ? [] : allIds,
+      };
+    });
+  };
+
   const updateRole = async () => {
     const newErrors: Record<string, string> = {};
     if (!role.name.trim()) newErrors.name = "Role name is required";
@@ -347,7 +363,14 @@ const EditRoleContent = () => {
                       <TableRow className="bg-gray-50">
                         <TableHead className="font-semibold">Module</TableHead>
                         <TableHead className="font-semibold text-center w-24">
-                          Total
+                          <div className="flex flex-col items-center gap-1">
+                            <span>Total</span>
+                            <Checkbox
+                              checked={isAllTotalChecked()}
+                              onCheckedChange={toggleAllTotal}
+                              className="border-gray-400 data-[state=checked]:bg-[#00563B] data-[state=checked]:border-[#00563B]"
+                            />
+                          </div>
                         </TableHead>
                         <TableHead className="font-semibold text-center w-24">
                           View
@@ -382,6 +405,7 @@ const EditRoleContent = () => {
                               onCheckedChange={() =>
                                 togglePermission(category, "view")
                               }
+                              className="data-[state=checked]:bg-[#00563B] data-[state=checked]:border-[#00563B]"
                             />
                           </TableCell>
                           <TableCell className="text-center">
@@ -391,6 +415,7 @@ const EditRoleContent = () => {
                               onCheckedChange={() =>
                                 togglePermission(category, "create")
                               }
+                              className="data-[state=checked]:bg-[#00563B] data-[state=checked]:border-[#00563B]"
                             />
                           </TableCell>
                           <TableCell className="text-center">
@@ -400,6 +425,7 @@ const EditRoleContent = () => {
                               onCheckedChange={() =>
                                 togglePermission(category, "edit")
                               }
+                              className="data-[state=checked]:bg-[#00563B] data-[state=checked]:border-[#00563B]"
                             />
                           </TableCell>
                           <TableCell className="text-center">
@@ -409,6 +435,7 @@ const EditRoleContent = () => {
                               onCheckedChange={() =>
                                 togglePermission(category, "delete")
                               }
+                              className="data-[state=checked]:bg-[#00563B] data-[state=checked]:border-[#00563B]"
                             />
                           </TableCell>
                         </TableRow>
