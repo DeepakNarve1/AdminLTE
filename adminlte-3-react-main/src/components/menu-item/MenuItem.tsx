@@ -66,15 +66,15 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
 
   // Dynamic Styles
   const linkBaseClasses =
-    "flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 group relative overflow-hidden";
+    "flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer";
 
   const activeClasses = isLight
     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
     : "bg-[#368F8B] text-white shadow-lg shadow-[#368F8B]/30";
 
   const inactiveClasses = isLight
-    ? "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
-    : "text-black/70 hover:bg-white/10 hover:text-emerald-800";
+    ? "text-gray-600 hover:bg-transparent"
+    : "text-black/70 hover:bg-transparent";
 
   return (
     <li className={`relative w-full ${isMenuExtended ? "menu-open" : ""}`}>
@@ -88,12 +88,12 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
         onClick={handleMainMenuAction}
       >
         <i
-          className={`${menuItem.icon} w-5 text-center text-lg transition-transform group-hover:scale-110 ${
+          className={`${menuItem.icon} w-5 text-center text-lg ${
             isMainActive || isOneOfChildrenActive
               ? "text-white"
               : isLight
                 ? "text-gray-500"
-                : "text-slate-500 group-hover:text-white"
+                : "text-slate-500"
           }`}
         />
         <p className="flex-1 truncate font-medium text-sm tracking-wide">
@@ -102,7 +102,7 @@ const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
 
         {isExpandable && (
           <i
-            className={`fas fa-chevron-right text-xs transition-transform duration-200 ${
+            className={`fas fa-chevron-right text-xs ${
               isMenuExtended ? "rotate-90" : ""
             } ${isMainActive || isOneOfChildrenActive ? "text-white/70" : "opacity-50"}`}
           />

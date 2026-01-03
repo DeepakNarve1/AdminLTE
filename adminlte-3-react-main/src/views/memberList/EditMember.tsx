@@ -36,6 +36,17 @@ const schema = Yup.object().shape({
   image: Yup.string().nullable(),
 });
 
+const SAMITI_TYPES = [
+  "Ganesh Samiti",
+  "Tenkar Samiti",
+  "Dp Samiti",
+  "Mandir Samiti",
+  "Bhagoria Samiti",
+  "Nirman Samiti",
+  "Booth Samiti",
+  "Block Samiti",
+];
+
 const EditMember = () => {
   const router = useRouter();
   const { id } = useParams();
@@ -43,6 +54,7 @@ const EditMember = () => {
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
+  const [blocksList, setBlocksList] = useState<any[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -80,9 +92,25 @@ const EditMember = () => {
   });
 
   useEffect(() => {
-    const fetchMember = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        // Fetch Blocks
+        try {
+          const blocksRes = await axios.get(
+            "http://localhost:5000/api/blocks?limit=-1",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setBlocksList(blocksRes.data.data || []);
+        } catch (err) {
+          console.error("Failed to fetch blocks", err);
+        }
+
+        // Fetch Member
+        if (!id) return;
         const { data } = await axios.get(
           `http://localhost:5000/api/members/${id}`,
           {
@@ -124,7 +152,7 @@ const EditMember = () => {
       }
     };
 
-    if (id) fetchMember();
+    fetchData();
   }, [id]);
 
   if (loading) return <div>Loading...</div>;
@@ -150,8 +178,11 @@ const EditMember = () => {
                       <SelectValue placeholder="Select Block" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Niwali">Niwali</SelectItem>
-                      <SelectItem value="Sendhwa">Sendhwa</SelectItem>
+                      {blocksList.map((block: any) => (
+                        <SelectItem key={block._id} value={block.name}>
+                          {block.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {formik.touched.block && formik.errors.block && (
@@ -220,8 +251,11 @@ const EditMember = () => {
                       <SelectValue placeholder="Select Samiti" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Samiti A">Samiti A</SelectItem>
-                      <SelectItem value="Samiti B">Samiti B</SelectItem>
+                      {SAMITI_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {formik.touched.samiti && formik.errors.samiti && (

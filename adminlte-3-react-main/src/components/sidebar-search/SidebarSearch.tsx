@@ -78,7 +78,7 @@ export const SidebarSearch = () => {
           placeholder="Search menu..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          className="w-full bg-white border-gray-300 text-gray-900 border-1 rounded-lg py-3 pl-10 pr-4 text-sm shadow-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00563B]/50 focus:shadow-lg transition-all duration-200"
+          className="w-full bg-white border-gray-300 text-gray-900 border rounded-lg py-3 pl-10 pr-4 text-sm shadow-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00563B]/50 focus:shadow-lg transition-all duration-200"
         />
       </div>
 
@@ -97,12 +97,16 @@ export const SidebarSearch = () => {
                   onClick={handleMenuItemClick}
                   className="block px-4 py-2 text-gray-300 hover:bg-[#343a40] hover:text-white transition-colors"
                 >
-                  <div
-                    className="text-sm"
-                    dangerouslySetInnerHTML={{
-                      __html: boldString(menuItem.name, searchText),
-                    }}
-                  />
+                  <div className="flex items-center gap-2 text-sm">
+                    {menuItem.icon && (
+                      <i className={`${menuItem.icon} text-xs`} />
+                    )}
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: boldString(menuItem.name, searchText),
+                      }}
+                    />
+                  </div>
                   <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
                     {menuItem.name}
                   </div>
